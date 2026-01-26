@@ -244,7 +244,7 @@ To make packages public:
 
 - Ensure agent listens on `0.0.0.0:8000` (not `localhost:8000`)
 - Verify `EXPOSE 8000` in Dockerfile
-- Check agent runs correctly: `docker run -p 8000:8000 ghcr.io/YOUR_USERNAME/green-agent:latest`
+- Check agent runs correctly: `docker run -p 8001:8000 ghcr.io/YOUR_USERNAME/green-agent:latest`
 
 ### Issue: "agentbeats_id not showing after registration"
 

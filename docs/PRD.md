@@ -38,7 +38,11 @@ purpose: Enhance evaluation system with real LLM integration, plugin architectur
 - [ ] Response extracted from `TaskState.completed` events
 - [ ] Client caching per agent URL implemented
 - [ ] `Messenger.close()` cleanup method for cached clients
-- [ ] TraceData model includes `task_id: str | None = None` field
+- [ ] InteractionStep model conforms to A2A Traceability Extension Step specification
+- [ ] Model includes: step_id, trace_id, call_type, start_time, end_time, latency, error, parent_step_id
+- [ ] AgentCard declares traceability + timestamp extension support
+- [ ] Messenger sends `X-A2A-Extensions` activation headers
+- [ ] CallType classification: AGENT for messenger, TOOL for LLM, HOST for graph
 - [ ] Executor calls `await messenger.close()` after trace collection
 - [ ] All tests pass: `uv run pytest tests/test_messenger.py tests/test_executor.py`
 
@@ -106,20 +110,22 @@ purpose: Enhance evaluation system with real LLM integration, plugin architectur
 
 #### Feature 4: Latency Metrics Evaluation
 
-**Description:** Track and analyze agent response time performance to complement coordination quality metrics.
+**Description:** Track agent response time performance for comparative analysis within the same system environment. Latency metrics are **relative** (comparing agents on identical hardware), not absolute performance benchmarks.
 
 **Acceptance Criteria:**
-- [ ] Parses timestamps from TraceData
+- [ ] Reads latency from InteractionStep.latency field (auto-calculated by A2A)
 - [ ] Computes percentiles: avg, p50, p95, p99
-- [ ] Identifies slowest agent by URL
+- [ ] Identifies slowest agent by URL (relative to peers in same run)
 - [ ] Follows existing evaluator pattern (like GraphEvaluator, LLMJudge)
 - [ ] Executor includes `_evaluate_latency()` method (tier pattern)
-- [ ] Results included as `tier1_latency` in Executor response
-- [ ] Evaluation completes in <5 seconds for typical workloads
+- [ ] Results included as `tier2_latency` in Executor response
+- [ ] Documentation warns: "Latency values only comparable within same system/run"
 
 **Technical Requirements:**
 - NumPy for percentile calculations
-- Timestamp parsing (ISO 8601 format)
+- Latency values in milliseconds (from A2A Step.latency field)
+
+**Use Case:** Identify coordination bottlenecks (e.g., Agent A waits 10x longer than Agent B for responses), not absolute performance rating.
 
 **Files:**
 - `src/agentbeats/evals/latency.py`
@@ -132,9 +138,11 @@ purpose: Enhance evaluation system with real LLM integration, plugin architectur
 
 **Description:** AgentBeats platform compatibility with proper CLI interface, Docker configuration, and discovery endpoints.
 
+> **Implementation Guide:** See [IMPLEMENTATION_CHECKLIST.md](IMPLEMENTATION_CHECKLIST.md) for detailed Dockerfile patterns, server entry point code, test structure, and validation gates.
+
 **Acceptance Criteria:**
 - [ ] CLI args: `--host`, `--port`, `--card-url` (argparse-based)
-- [ ] Default port: 9009 (AgentBeats standard)
+- [ ] Default port: 8000 (local dev uses 8001:8000, AgentBeats platform uses 9009)
 - [ ] AgentCard accessible at `/.well-known/agent-card.json`
 - [ ] Docker images: linux/amd64, Python 3.13-slim, multi-stage build
 - [ ] ENTRYPOINT supports CLI arguments
@@ -183,6 +191,7 @@ purpose: Enhance evaluation system with real LLM integration, plugin architectur
 - All evaluations (graph + LLM + latency) complete in <30 seconds
 - A2A task timeout: 300 seconds (5 minutes)
 - Latency evaluation: <5 seconds
+- **Note**: Latency metrics are relative (same-system comparisons), not cross-environment benchmarks
 
 **A2A Protocol:**
 - JSON-RPC 2.0 message format
@@ -232,12 +241,17 @@ purpose: Enhance evaluation system with real LLM integration, plugin architectur
 
 **PREREQUISITE**: Must complete before real coordination measurement is possible.
 
-- **Feature 1** → STORY-001-TEST: Write A2A SDK messenger tests
-- **Feature 1** → STORY-001-IMPL: Refactor messenger to use A2A SDK (depends: STORY-001-TEST)
-- **Feature 1** → STORY-002-TEST: Write TraceData task_id field tests (depends: STORY-001-IMPL)
-- **Feature 1** → STORY-002-IMPL: Add task_id field to TraceData (depends: STORY-002-TEST)
-- **Feature 1** → STORY-003-TEST: Write Executor A2A cleanup tests (depends: STORY-002-IMPL)
-- **Feature 1** → STORY-003-IMPL: Implement Executor A2A cleanup (depends: STORY-003-TEST)
+**Story Numbering Convention**: Each story has TEST and IMPL sub-tasks. STORY-001 = STORY-001-TEST + STORY-001-IMPL. Total 3 stories (6 sub-tasks).
+
+- **Feature 1** → **STORY-001**: Messenger with A2A SDK + extensions
+  - STORY-001-TEST: Write A2A SDK messenger tests (extension activation, tracing)
+  - STORY-001-IMPL: Implement messenger with A2A SDK + extensions (depends: STORY-001-TEST)
+- **Feature 1** → **STORY-002**: InteractionStep model integration
+  - STORY-002-TEST: Write InteractionStep model tests (A2A Step compliance) (depends: STORY-001-IMPL)
+  - STORY-002-IMPL: Implement InteractionStep capture in messenger (depends: STORY-002-TEST)
+- **Feature 1** → **STORY-003**: Executor with trace collection
+  - STORY-003-TEST: Write Executor A2A cleanup tests (depends: STORY-002-IMPL)
+  - STORY-003-IMPL: Implement Executor with trace collection + cleanup (depends: STORY-003-TEST)
 
 ### Story Breakdown - Phase 2: Real LLM Integration (5 stories total)
 
@@ -270,11 +284,9 @@ purpose: Enhance evaluation system with real LLM integration, plugin architectur
 
 ### Platform Compatibility Checklist
 
-Per GAP_ANALYSIS.md learnings:
-
 - [ ] CLI interface: `--host`, `--port`, `--card-url` (argparse)
 - [ ] Entry point: argparse-based, not uvicorn factory pattern
-- [ ] Default port: 9009 (AgentBeats default)
+- [ ] Default port: 8000 (local: 8001:8000, platform: 9009)
 - [ ] Endpoints: `/.well-known/agent-card.json` accessible
 - [ ] Validated against: AgentBeats `generate_compose.py`
 - [ ] Docker ENTRYPOINT supports positional CLI args
@@ -310,9 +322,9 @@ STORY-007-TEST
 STORY-007-IMPL
     ├────────────────┐
     ↓                ↓
-STORY-008-TEST   (Feature 2: Graph already exists)
-    ↓
-STORY-008-IMPL
+STORY-008-TEST   STORY-GRAPH-IMPL (Feature 2: Implement graph evaluator)
+    ↓                ↓
+STORY-008-IMPL   ─┘
     ↓
     └─────→ STORY-009-INTEGRATION
 ```

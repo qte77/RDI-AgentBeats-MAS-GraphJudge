@@ -86,7 +86,7 @@ services:
       - "8002:8000"
     environment:
       - LOG_LEVEL=INFO
-    command: ["--host", "0.0.0.0", "--port", "8000", "--card-url", "http://purple-agent:8000"]
+    command: ["--host", "0.0.0.0", "--port", "9009", "--card-url", "http://purple-agent:9009"]
     networks:
       - agentbeats
     depends_on:

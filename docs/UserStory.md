@@ -7,6 +7,10 @@ purpose: Product vision, value proposition, and success metrics
 
 # User Story: Graph-Based Coordination Benchmark
 
+## Product Vision
+
+GraphJudge transforms multi-agent interactions into coordination graphs and evaluates collaboration quality through graph theory, LLM assessment, and performance analysis.
+
 ## Problem Statement
 
 Current AgentBeats benchmarks evaluate individual agent capabilities (coding, reasoning, tool use) but don't measure **how agents coordinate**. Multi-agent systems fail not because individual agents lack capability, but because coordination breaks down—centralized bottlenecks, communication inefficiencies, redundant work.

@@ -2,7 +2,7 @@
 title: Product Requirements Document - Graph-Based Coordination Benchmark
 version: 1.0
 applies-to: Agents and humans
-purpose: Enhance evaluation system with real LLM integration, plugin architecture, and additional metrics
+purpose: How, Enhance evaluation system with real LLM integration, plugin architecture, and additional metrics
 ---
 
 > See [GreenAgent-UserStory.md](GreenAgent-UserStory.md) for vision and value proposition.
@@ -64,20 +64,34 @@ purpose: Enhance evaluation system with real LLM integration, plugin architectur
 
 #### Feature 2: Graph-Based Coordination Analysis
 
-**Description:** Build directed graphs from interaction traces and compute coordination quality metrics using graph theory.
+**Description:** Build directed graphs from interaction traces and compute coordination quality metrics using graph theory. All metrics implemented as plugins that can be enabled/disabled independently.
 
 **Acceptance Criteria:**
 - [ ] Builds directed graph from TraceData (nodes = agents, edges = interactions)
-- [ ] Computes centrality metrics: degree, betweenness, closeness
-- [ ] Identifies bottlenecks (high betweenness centrality agents)
-- [ ] Measures efficiency: graph density, clustering coefficient
+- [ ] **Pluggable metric system**: Each graph metric is a separate plugin
+- [ ] **Centrality metrics** (all pluggable):
+  - degree centrality
+  - betweenness centrality
+  - closeness centrality
+  - eigenvector centrality
+  - PageRank
+- [ ] **Structure metrics** (all pluggable):
+  - graph density
+  - clustering coefficient
+  - connected components count
+- [ ] **Path metrics** (all pluggable):
+  - average path length
+  - diameter
+- [ ] Identifies bottlenecks (betweenness centrality >0.5)
 - [ ] Detects isolated agents (degree = 0)
 - [ ] Detects over-centralized patterns (single agent handles >70% interactions)
+- [ ] Measures distribution quality (density >0.3 indicates healthy collaboration)
 - [ ] Returns structured GraphMetrics with numerical scores
 
 **Technical Requirements:**
-- NetworkX for graph algorithms
+- NetworkX for graph algorithms (see Non-Functional Requirements for alternatives)
 - Deterministic metric computation (same input → same output)
+- Plugin interface allows adding custom metrics without modifying core code
 
 **Files:**
 - `src/agentbeats/evals/graph.py`
@@ -208,6 +222,60 @@ purpose: Enhance evaluation system with real LLM integration, plugin architectur
 - Python 3.13 (uv package manager)
 - Docker linux/amd64
 - A2A Protocol v0.3+ (a2a-sdk>=0.3.20)
+
+**Graph Analysis:**
+- NetworkX for graph algorithms (industry standard, pure Python)
+- Alternative: igraph for large-scale graphs if performance becomes an issue
+
+**Agent Template Structure:**
+Both Green and Purple agents follow RDI green-agent-template pattern in separate directories:
+```
+src/
+├── green/              # Green Agent (assessor) - implement first
+│   ├── agent.py        # Agent logic and orchestration
+│   ├── executor.py     # Task execution and result processing
+│   ├── messenger.py    # A2A communication layer
+│   └── server.py       # Server setup and endpoints
+└── purple/             # Purple Agent (assessee) - implement later
+    ├── agent.py
+    ├── executor.py
+    ├── messenger.py
+    └── server.py
+data/
+└── ground_truth.json   # Labeled test scenarios for validation
+```
+Reference: `github.com/RDI-Foundation/green-agent-template/tree/example/debate_judge/src`
+
+**A2A Protocol Implementation Details:**
+- SDK: A2A SDK (a2a-sdk>=0.3.20) for Agent, Task, and Message operations
+- Agent Card: AgentCard at `/.well-known/agent-card.json` declaring AgentSkill and AgentCapabilities
+- Task Operations: `tasks.send`, `tasks.query`, `tasks.update` methods
+- Message Types: TextPart, DataPart content in A2A Message protocol
+- Traceability: A2A Traceability Extension for distributed call tracing
+- Error Handling: JSONRPCErrorResponse with proper error codes per A2A specification
+- Authentication: OpenAPI auth mechanisms as defined in A2A protocol
+- MCP Ready: Model Context Protocol for extensible tool/resource access
+- Streaming: Optional push notifications for long-running evaluations
+
+**AgentBeats CLI Interface:**
+- CLI args: `--host`, `--port`, `--card-url` (argparse-based)
+- Entry point: argparse-based (not uvicorn factory)
+- Default port: 9009 (AgentBeats default)
+- Task isolation via context_id tracking
+
+**LLM Judge Implementation:**
+- Uses temperature=0 for consistent scoring
+- Falls back to rule-based if API unavailable (logs warning)
+
+**Graph Metric Thresholds:**
+- Bottleneck detection: Betweenness centrality >0.5 flags coordinator agents
+- Isolation detection: Degree centrality = 0 identifies disconnected agents
+- Distribution quality: Graph density >0.3 indicates healthy collaboration spread
+
+**Testing Scripts:**
+- `scripts/docker/test_e2e.sh`: Basic smoke test
+- `scripts/docker/test_comprehensive.sh`: Full ground truth validation
+- Ground truth: `data/ground_truth.json`
 
 **Reproducibility:**
 - Fresh state for each assessment

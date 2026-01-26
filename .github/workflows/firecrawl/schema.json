@@ -1,0 +1,222 @@
+{
+  "type": "object",
+  "description": "Comprehensive data for AI agents from agentbeats.dev",
+  "properties": {
+    "agents": {
+      "type": "array",
+      "description": "List of AI agents",
+      "items": {
+        "type": "object",
+        "properties": {
+          "category": {
+            "type": "string",
+            "description": "Category of the AI agent"
+          },
+          "category_citation": {
+            "type": "string",
+            "description": "Source URL for category"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the AI agent"
+          },
+          "name_citation": {
+            "type": "string",
+            "description": "Source URL for name"
+          },
+          "author": {
+            "type": "string",
+            "description": "Author of the AI agent"
+          },
+          "author_citation": {
+            "type": "string",
+            "description": "Source URL for author"
+          },
+          "agentbeats_dev_details": {
+            "type": "object",
+            "description": "Details extracted from agentbeats.dev",
+            "properties": {
+              "architecture": {
+                "type": "string",
+                "description": "Agent architecture"
+              },
+              "architecture_citation": {
+                "type": "string",
+                "description": "Source URL for architecture"
+              },
+              "purpose": {
+                "type": "string",
+                "description": "Agent purpose"
+              },
+              "purpose_citation": {
+                "type": "string",
+                "description": "Source URL for purpose"
+              },
+              "goal": {
+                "type": "string",
+                "description": "Agent goal"
+              },
+              "goal_citation": {
+                "type": "string",
+                "description": "Source URL for goal"
+              },
+              "approach": {
+                "type": "string",
+                "description": "Agent approach"
+              },
+              "approach_citation": {
+                "type": "string",
+                "description": "Source URL for approach"
+              }
+            }
+          },
+          "external_links": {
+            "type": "object",
+            "description": "External links related to the AI agent",
+            "properties": {
+              "arxiv_papers": {
+                "type": "array",
+                "description": "List of ArXiv paper links",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "string"
+                    },
+                    "value_citation": {
+                      "type": "string",
+                      "description": "Source URL for this value"
+                    }
+                  },
+                  "required": [
+                    "value"
+                  ]
+                }
+              },
+              "github_repositories": {
+                "type": "array",
+                "description": "List of GitHub repository links",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "string"
+                    },
+                    "value_citation": {
+                      "type": "string",
+                      "description": "Source URL for this value"
+                    }
+                  },
+                  "required": [
+                    "value"
+                  ]
+                }
+              },
+              "leaderboards": {
+                "type": "array",
+                "description": "List of leaderboard links",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "string"
+                    },
+                    "value_citation": {
+                      "type": "string",
+                      "description": "Source URL for this value"
+                    }
+                  },
+                  "required": [
+                    "value"
+                  ]
+                }
+              }
+            }
+          },
+          "tech_stack": {
+            "type": "array",
+            "description": "List of tech stack keywords",
+            "items": {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "type": "string"
+                },
+                "value_citation": {
+                  "type": "string",
+                  "description": "Source URL for this value"
+                }
+              },
+              "required": [
+                "value"
+              ]
+            }
+          },
+          "user_page_details": {
+            "type": "object",
+            "description": "Details extracted from the user page",
+            "properties": {
+              "other_agents": {
+                "type": "array",
+                "description": "Other agents associated with the user",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "string"
+                    },
+                    "value_citation": {
+                      "type": "string",
+                      "description": "Source URL for this value"
+                    }
+                  },
+                  "required": [
+                    "value"
+                  ]
+                }
+              },
+              "activity": {
+                "type": "object",
+                "description": "User activity details",
+                "properties": {
+                  "created_date": {
+                    "type": "string",
+                    "description": "Date the agent was created"
+                  },
+                  "created_date_citation": {
+                    "type": "string",
+                    "description": "Source URL for created_date"
+                  },
+                  "category": {
+                    "type": "string",
+                    "description": "Category of the agent"
+                  },
+                  "category_citation": {
+                    "type": "string",
+                    "description": "Source URL for category"
+                  },
+                  "color": {
+                    "type": "string",
+                    "description": "Color associated with the agent (e.g., green, purple)"
+                  },
+                  "color_citation": {
+                    "type": "string",
+                    "description": "Source URL for color"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "required": [
+          "category",
+          "name",
+          "author"
+        ]
+      }
+    }
+  },
+  "required": [
+    "agents"
+  ]
+}

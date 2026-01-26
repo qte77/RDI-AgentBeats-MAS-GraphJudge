@@ -1,0 +1,28 @@
+@startuml RDI-AgentX-Architecture
+title RDI-AgentX-AgentBeats Competition Architecture
+
+skinparam component {
+    BackgroundColor<<Agent>> #E8D5F2
+    BackgroundColor<<Primary>> #C8E6C9
+    BackgroundColor<<Secondary>> #FFECB3
+    BackgroundColor<<Plugin>> #B3E5FC
+}
+
+skinparam packageStyle rectangle
+skinparam linetype ortho
+
+package "PURPLE AGENT" as PurpleAgent #E8D5F2 {
+}
+
+package "GREEN AGENT" as GreenAgent #C8E6C9 {
+  component "Graph\n(PRIMARY)" as Graph <<Primary>>
+  component "LLM-as-Judge\n(SECONDARY)" as LLMJudge <<Secondary>>
+  component "Plugins" as Plugins <<Plugin>>
+
+  Graph -[hidden]right- LLMJudge
+  LLMJudge -[hidden]right- Plugins
+}
+
+PurpleAgent -right-> GreenAgent
+
+@enduml

@@ -1,0 +1,13 @@
+Extract comprehensive data for all AI agents listed across all categories on agentbeats.dev.
+
+For each agent extract:
+1. Category (coding, web, multi-agent, research, agent-safety, computer-use, etc.)
+2. Name and author
+3. External links (ArXiv papers, GitHub repos, leaderboards)
+4. Architecture, purpose, goal, and approach from web sources
+5. Tech stack keywords (Python, Docker, A2A Protocol, NetworkX, etc.)
+6. Activity details (created date, color: green/purple)
+
+All fields must include source URL citations.
+
+Return ONLY valid JSON matching the schema. No markdown, explanations, or commentary.

@@ -1,0 +1,13 @@
+# AgentBeats Scenario Configuration
+# Based on: https://github.com/RDI-Foundation/agentbeats-leaderboard-template
+
+[green_agent]
+agentbeats_id = ""
+env = { API_KEY = "${GITHUB_SECRET_NAME}", LOG_LEVEL = "INFO" }
+
+[[participants]]
+agentbeats_id = ""
+env = {}
+
+[config]
+# project specific config

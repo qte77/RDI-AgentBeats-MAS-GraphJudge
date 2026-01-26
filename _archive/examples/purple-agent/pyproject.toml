@@ -1,0 +1,18 @@
+[project]
+name = "purple-agent"
+version = "0.1.0"
+description = "Purple Agent - Simple A2A-compatible demo agent for AgentBeats evaluation"
+authors = [
+    {name = "qte77", email = "qte@77.gh"}
+]
+readme = "README.md"
+requires-python = ">=3.13"
+license = "bsd-3-clause"
+dependencies = [
+    "a2a-sdk[http-server]>=0.3.20",
+    "uvicorn>=0.38.0",
+    "pydantic>=2.12.5",
+]
+
+[tool.uv]
+exclude-newer = "2026-01-15T00:00:00Z"

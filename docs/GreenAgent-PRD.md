@@ -273,8 +273,8 @@ Reference: `github.com/RDI-Foundation/green-agent-template/tree/example/debate_j
 - Distribution quality: Graph density >0.3 indicates healthy collaboration spread
 
 **Testing Scripts:**
-- `scripts/docker/test_e2e.sh`: Basic smoke test
-- `scripts/docker/test_comprehensive.sh`: Full ground truth validation
+- `scripts/docker/e2e_test.sh` (quick): Basic smoke test with 2 test cases
+- `scripts/docker/e2e_test.sh full`: Full ground truth validation with all narratives
 - Ground truth: `data/ground_truth.json`
 
 **Reproducibility:**

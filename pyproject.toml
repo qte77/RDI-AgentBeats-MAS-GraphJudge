@@ -22,6 +22,7 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "pymarkdownlnt>=0.9.34",
     "pyright>=1.1.408",
     "ruff>=0.14.11",
 ]
@@ -110,6 +111,15 @@ omit = [
     '*/virtualenvs/*',
     '*/tests/*',
 ]
+
+[tool.pymarkdown.plugins.md013]
+enabled = false
+
+[tool.pymarkdown.plugins.md025]
+enabled = false
+
+[tool.pymarkdown.extensions.front-matter]
+enabled = true
 
 [tool.bumpversion]
 current_version = "0.0.0"

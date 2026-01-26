@@ -1,0 +1,70 @@
+@startuml ComponentDiagram
+title GraphJudge Component Architecture
+
+skinparam component {
+    BackgroundColor<<Agent>> #E8D5F2
+    BackgroundColor<<Core>> #C8E6C9
+    BackgroundColor<<Eval>> #B3E5FC
+    BackgroundColor<<External>> #FFECB3
+}
+
+skinparam package {
+    BackgroundColor #FAFAFA
+}
+
+package "Purple Agents (Under Test)" <<Agent>> #E8D5F2 {
+    component [Agent 1] as P1
+    component [Agent 2] as P2
+    component [Agent N] as PN
+}
+
+package "Green Agent (Assessor)" <<Core>> #C8E6C9 {
+
+    package "A2A Layer" {
+        component [Server\n(uvicorn)] as Server
+        component [AgentCard\n/.well-known/agent.json] as Card
+        component [Messenger\n(A2A SDK)] as Messenger
+    }
+
+    package "Orchestration" {
+        component [Executor] as Executor
+        component [TraceCollector] as Trace
+    }
+
+    package "Evaluation Tiers" <<Eval>> #B3E5FC {
+        component [Tier 1: Graph\n(NetworkX)] as GraphEval
+        component [Tier 2: LLM Judge\n(OpenAI API)] as LLMEval
+        component [Tier 2: Latency\n(NumPy)] as LatencyEval
+        component [Tier 3: Text\n(plugin example)] as TextEval
+    }
+}
+
+package "External Services" <<External>> #FFECB3 {
+    component [LLM API\n(OpenAI-compatible)] as LLMApi
+}
+
+' A2A Protocol connections
+Server --> Executor : routes\ntasks/send
+Executor --> Messenger : orchestrates
+Messenger --> P1 : A2A\nJSON-RPC
+Messenger --> P2 : A2A\nJSON-RPC
+Messenger --> PN : A2A\nJSON-RPC
+
+' Trace flow
+Messenger --> Trace : InteractionStep[]
+Trace --> Executor : TraceData
+
+' Evaluation flow
+Executor --> GraphEval : TraceData
+Executor --> LLMEval : TraceData
+Executor --> LatencyEval : TraceData
+Executor --> TextEval : TraceData
+LLMEval --> LLMApi : API call\n(or fallback)
+
+' Results flow
+GraphEval --> Executor : GraphMetrics
+LLMEval --> Executor : LLMJudgment
+LatencyEval --> Executor : LatencyMetrics
+TextEval --> Executor : TextMetrics
+
+@enduml

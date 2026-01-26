@@ -5,6 +5,8 @@ applies-to: Agents and humans
 purpose: Python coding standards, type annotations, and testing guidelines
 ---
 
+# Python Best Practices Reference
+
 ## Code Style
 
 - Use `ruff` for formatting (run `make format`)

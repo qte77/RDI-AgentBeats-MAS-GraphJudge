@@ -7,6 +7,8 @@ purpose: Product vision, value proposition, and success metrics
 
 # User Story: Graph-Based Coordination Benchmark
 
+> **Scope**: This document covers the **Green Agent (Assessor)** - the benchmark system that evaluates coordination. The **Purple Agent (Assessee)** - the multi-agent system under test - will be documented separately.
+
 ## Product Vision
 
 GraphJudge transforms multi-agent interactions into coordination graphs and evaluates collaboration quality through graph theory, LLM assessment, and performance analysis.
@@ -16,10 +18,17 @@ GraphJudge transforms multi-agent interactions into coordination graphs and eval
 Current AgentBeats benchmarks evaluate individual agent capabilities (coding, reasoning, tool use) but don't measure **how agents coordinate**. Multi-agent systems fail not because individual agents lack capability, but because coordination breaks down—centralized bottlenecks, communication inefficiencies, redundant work.
 
 Existing evaluation approaches lack the ability to:
+
 - Capture interaction patterns between agents during runtime
 - Quantify coordination quality through structural analysis
 - Distinguish effective collaboration from superficial task completion
 - Provide actionable feedback on coordination bottlenecks
+
+**This project does NOT:**
+- Evaluate individual agent capabilities (coding, reasoning, tool use)
+- Measure task success rates or completion quality
+- Assess domain-specific compliance or legal requirements
+- Test single-agent performance benchmarks
 
 ## Target Users
 
@@ -114,11 +123,28 @@ This benchmark transforms abstract "collaboration quality" into concrete, measur
 **So that** I can extend evaluation criteria without modifying core code.
 
 **Acceptance Criteria:**
-- [ ] Evaluators follow consistent interface pattern
+- [ ] Evaluators follow consistent interface pattern (BaseEvaluator)
 - [ ] Documentation explains evaluator structure and integration points
 - [ ] New evaluators can be added without changing Executor core logic
-- [ ] Tier-based evaluation structure (tier1, tier2) is documented
-- [ ] Examples provided for common evaluator types
+- [ ] Tier-based evaluation structure documented:
+  - Tier 1: Graph (structural analysis)
+  - Tier 2: LLM-Judge + Latency (assessment)
+  - Tier 3: Text (plugin example)
+- [ ] TextEvaluator provided as Tier 3 plugin reference implementation
+
+### Demo Video: Showcase Evaluation Flow
+
+**As a** competition judge,
+**I want** a demo video showing the evaluation system in action,
+**So that** I can understand the full evaluation flow and results interpretation.
+
+**Status:** Coming Soon
+
+**Acceptance Criteria:**
+- [ ] Video shows server startup and A2A endpoint verification
+- [ ] Demonstrates purple agent evaluation with trace capture
+- [ ] Displays multi-tier results (graph, LLM judge, latency)
+- [ ] Max 3 minutes duration
 
 ## Success Criteria
 
@@ -142,9 +168,9 @@ This benchmark transforms abstract "collaboration quality" into concrete, measur
 
 ## Out of Scope
 
-1. **Real-time streaming evaluation**: Evaluation happens post-execution, not during task runtime
-2. **Persistent metrics storage**: Results returned via A2A response only, no database persistence
-3. **Metrics visualization UI**: Output is structured JSON, no built-in visualization dashboard
-4. **Custom LLM fine-tuning**: Uses general-purpose LLMs with prompting, no domain-specific fine-tuning
-5. **Performance profiling tools**: Basic latency metrics only, no deep profiling (scalene/py-spy)
-6. **Non-coordination benchmarks**: Focus exclusively on multi-agent coordination, not individual agent capabilities
+See [GreenAgent-PRD.md](GreenAgent-PRD.md) for full Out of Scope list. Key exclusions:
+
+1. **Real-time streaming**: Evaluation happens post-execution
+2. **Persistent storage**: Results via A2A response only
+3. **Visualization UI**: Output is structured JSON
+4. **Non-coordination benchmarks**: Focus on multi-agent coordination only

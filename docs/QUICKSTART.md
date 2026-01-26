@@ -52,7 +52,8 @@ docker-compose down
 
 ## Platform Deployment
 
-See [AGENTBEATS_REGISTRATION.md](AGENTBEATS_REGISTRATION.md) for:
+See [AgentBeats/AGENTBEATS_REGISTRATION.md](AgentBeats/AGENTBEATS_REGISTRATION.md) for:
+
 - Pushing to GitHub Container Registry
 - Registering agents on agentbeats.dev
 - Updating scenario.toml
@@ -70,9 +71,7 @@ export AGENTBEATS_LLM_MODEL="gpt-4o-mini"  # default
 
 ---
 
-## Implementation Details
+## More Info
 
-For detailed patterns, see:
-- **Docker/Server patterns**: [IMPLEMENTATION_CHECKLIST.md](../IMPLEMENTATION_CHECKLIST.md)
-- **Platform registration**: [AGENTBEATS_REGISTRATION.md](AGENTBEATS_REGISTRATION.md)
-- **Requirements**: [PRD.md](../PRD.md)
+- **Platform registration**: [AgentBeats/AGENTBEATS_REGISTRATION.md](AgentBeats/AGENTBEATS_REGISTRATION.md)
+- **Requirements**: [GreenAgent-PRD.md](GreenAgent-PRD.md)

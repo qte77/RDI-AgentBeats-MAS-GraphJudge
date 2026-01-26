@@ -66,10 +66,9 @@ Green Agent (Coordination Benchmark)
 
 ## Key Documents
 
-### Primary (Graph Coordination Domain)
-- [UserStory.md](UserStory.md) - Problem statement, value proposition
-- [PRD.md](PRD.md) - Technical requirements, acceptance criteria
-- [IMPLEMENTATION_CHECKLIST.md](IMPLEMENTATION_CHECKLIST.md) - Detailed implementation patterns
+### Primary (Green Agent - Assessor)
+- [GreenAgent-UserStory.md](GreenAgent-UserStory.md) - Problem statement, value proposition
+- [GreenAgent-PRD.md](GreenAgent-PRD.md) - Technical requirements, stories, evaluator pattern
 
 ### Quick Start
 - [QUICKSTART.md](AgentBeats/QUICKSTART.md) - Get running in 5 minutes (commands only)
@@ -144,7 +143,7 @@ cat results/trace_analysis.json
 
 ## Success Criteria
 
-Per [UserStory.md Success Criteria](UserStory.md#success-criteria):
+Per [GreenAgent-UserStory.md Success Criteria](GreenAgent-UserStory.md#success-criteria):
 
 1. **A2A Protocol Compliance**: 100% interactions via A2A SDK ✅
 2. **Trace Capture Accuracy**: >95% of interactions captured
@@ -157,6 +156,5 @@ Per [UserStory.md Success Criteria](UserStory.md#success-criteria):
 ## Questions?
 
 - **Get started fast?**: See [QUICKSTART.md](AgentBeats/QUICKSTART.md) (5-minute setup)
-- **Architecture?**: See [PRD.md](PRD.md) Features 1-6
-- **Implementation patterns?**: See [IMPLEMENTATION_CHECKLIST.md](IMPLEMENTATION_CHECKLIST.md)
+- **Architecture?**: See [GreenAgent-PRD.md](GreenAgent-PRD.md) Features 1-6
 - **Platform deployment?**: See [AGENTBEATS_REGISTRATION.md](AgentBeats/AGENTBEATS_REGISTRATION.md)

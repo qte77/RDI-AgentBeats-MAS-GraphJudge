@@ -51,7 +51,7 @@ Your **green agent** is the assessor/benchmark that evaluates other agents.
 
 5. **Copy your agentbeats_id**: After successful registration, you'll see an ID like:
 
-   ```
+   ```text
    agentbeats_id: "agent_xyz123abc456"
    ```
 
@@ -148,7 +148,7 @@ After registration and configuration, verify everything works:
 
 Check the AgentBeats dashboard:
 
-```
+```text
 ✓ Green agent status: Active
 ✓ Purple agent status: Active
 ✓ Agent cards validated

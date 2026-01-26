@@ -5,15 +5,18 @@ applies-to: Agents and humans
 purpose: Enhance evaluation system with real LLM integration, plugin architecture, and additional metrics
 ---
 
-> See [UserStory.md](UserStory.md) for vision and value proposition.
+> See [GreenAgent-UserStory.md](GreenAgent-UserStory.md) for vision and value proposition.
+>
+> **Scope**: This PRD covers the **Green Agent (Assessor)** implementation only. The **Purple Agent (Assessee)** - multi-agent system under test - will be added in a future phase.
 
 ## Project Overview
 
-**Project Goal:** Evaluate multi-agent coordination quality through runtime graph analysis to measure HOW agents collaborate. This benchmark captures agent-to-agent interactions during task execution, builds coordination graphs, and applies both quantitative (graph metrics) and qualitative (LLM-based) evaluation.
+**Project Goal:** See [GreenAgent-UserStory.md](GreenAgent-UserStory.md) for full problem statement and value proposition.
 
-**Core Innovation:** No existing AgentBeats benchmark analyzes coordination patterns through graph structure. This benchmark transforms abstract "collaboration quality" into concrete metrics grounded in graph theory.
+**Summary:** Evaluate multi-agent coordination quality through runtime graph analysis, LLM assessment, and text similarity metrics.
 
 **Architecture:**
+
 - **Green Agent (Benchmark/Assessor)**: Captures interactions, builds graphs, computes metrics, orchestrates evaluation
 - **Purple Agents (Participants)**: Multi-agent systems under test, communicate via A2A protocol
 - **Evaluation Pipeline**: Trace capture → Graph analysis → LLM assessment → Latency metrics → Structured results
@@ -26,9 +29,9 @@ purpose: Enhance evaluation system with real LLM integration, plugin architectur
 
 ## Functional Requirements
 
-<!-- PARSER REQUIREMENT: Use exactly "#### Feature N:" format -->
+<!-- PARSER REQUIREMENT: Use exactly "### Feature N:" format -->
 
-#### Feature 1: A2A Protocol Communication
+### Feature 1: A2A Protocol Communication
 
 **Description:** Real agent-to-agent communication via A2A SDK for authentic coordination measurement. Replaces mock REST protocol with production-grade A2A JSON-RPC communication.
 
@@ -117,8 +120,8 @@ purpose: Enhance evaluation system with real LLM integration, plugin architectur
 - [ ] Computes percentiles: avg, p50, p95, p99
 - [ ] Identifies slowest agent by URL (relative to peers in same run)
 - [ ] Follows existing evaluator pattern (like GraphEvaluator, LLMJudge)
-- [ ] Executor includes `_evaluate_latency()` method (tier pattern)
-- [ ] Results included as `tier2_latency` in Executor response
+- [ ] Executor includes `_evaluate_latency()` method
+- [ ] Results included in Executor response (part of Tier 2 assessment)
 - [ ] Documentation warns: "Latency values only comparable within same system/run"
 
 **Technical Requirements:**
@@ -169,11 +172,13 @@ purpose: Enhance evaluation system with real LLM integration, plugin architectur
 
 **Acceptance Criteria:**
 - [ ] Documentation explains evaluator interface pattern
-- [ ] Tier-based structure documented (tier1, tier2)
+- [ ] Tier-based structure documented:
+  - Tier 1: Graph (structural analysis via NetworkX)
+  - Tier 2: LLM-Judge (qualitative) + Latency (performance)
+  - Tier 3: Text (similarity metrics - plugin example)
 - [ ] Integration points clearly described
-- [ ] Example evaluator implementation provided
+- [ ] Example evaluator implementation provided (TextEvaluator as Tier 3 plugin)
 - [ ] Shows how to add new evaluator to Executor
-- [ ] Explains when to use tier1 vs tier2
 
 **Technical Requirements:**
 - Markdown documentation
@@ -225,10 +230,43 @@ purpose: Enhance evaluation system with real LLM integration, plugin architectur
 3. **Metrics visualization UI**: Output is structured JSON, no built-in dashboard
 4. **Custom LLM fine-tuning**: Uses general-purpose LLMs with prompting only
 5. **Performance profiling tools**: Basic latency metrics only, no deep profiling (scalene/py-spy)
-6. **Plugin architecture with registry**: Defer complex abstractions, manual integration only
-7. **BLEU score evaluator**: TextMetrics covers basic similarity, defer advanced NLP metrics
-8. **Semantic similarity via embeddings**: Defer to future work
-9. **Error pattern categorization**: Defer to future work
+6. **Plugin registry/discovery**: Manual evaluator integration only (see Evaluator Extension Pattern below)
+7. **Advanced NLP metrics**: BLEU, semantic embeddings deferred (TextEvaluator demonstrates plugin pattern with basic similarity)
+8. **Error pattern categorization**: Defer to future work
+
+### Evaluator Extension Pattern
+
+Simple interface for adding custom evaluators without complex plugin registry:
+
+```python
+# src/agentbeats/evals/base.py
+from abc import ABC, abstractmethod
+from typing import Any
+from ..models import TraceData
+
+class BaseEvaluator(ABC):
+    """Simple evaluator interface. Implement evaluate() to add new evaluators."""
+
+    @abstractmethod
+    async def evaluate(self, traces: list[TraceData]) -> dict[str, Any]:
+        """Evaluate traces and return metrics dict."""
+        pass
+```
+
+**Adding a new evaluator:**
+1. Create `src/agentbeats/evals/my_evaluator.py` implementing `BaseEvaluator`
+2. Import and call in `Executor._run_evaluations()`
+3. Add result to response dict
+
+**TextEvaluator (Tier 3)** serves as the reference implementation for this pattern.
+
+---
+
+## Known Blockers
+
+1. **A2A SDK Installation**: a2a-sdk may not be on PyPI; check GitHub for git+https install URL
+2. **LLM API Credentials**: `AGENTBEATS_LLM_API_KEY` required; fallback to rule-based evaluation implemented
+3. **Purple Agent for Testing**: Need minimal echo agent; create baseline responder for integration tests
 
 ---
 
@@ -253,6 +291,25 @@ purpose: Enhance evaluation system with real LLM integration, plugin architectur
   - STORY-003-TEST: Write Executor A2A cleanup tests (depends: STORY-002-IMPL)
   - STORY-003-IMPL: Implement Executor with trace collection + cleanup (depends: STORY-003-TEST)
 
+### Story Breakdown - Phase 1b: Graph Evaluation (2 stories total)
+
+**Can run in parallel with Phase 2 after STORY-003-IMPL completes.**
+
+- **Feature 2** → **STORY-GRAPH-TEST**: Write graph evaluator tests (depends: STORY-003-IMPL)
+  - Test directed graph construction from TraceData
+  - Test centrality metrics (degree, betweenness, closeness)
+  - Test bottleneck detection
+  - Test edge cases (empty traces, single agent, isolated agents)
+- **Feature 2** → **STORY-GRAPH-IMPL**: Implement graph evaluator (depends: STORY-GRAPH-TEST)
+  - Build DiGraph from TraceData (nodes=agents, edges=interactions)
+  - Compute centrality metrics via NetworkX
+  - Detect coordination patterns (bottlenecks, isolation, over-centralization)
+  - Return structured GraphMetrics
+
+**Files:**
+- `src/agentbeats/evals/graph.py`
+- `tests/test_graph.py`
+
 ### Story Breakdown - Phase 2: Real LLM Integration (5 stories total)
 
 - **Feature 3** → STORY-004: Add OpenAI dependency (depends: STORY-003-IMPL)
@@ -272,15 +329,28 @@ purpose: Enhance evaluation system with real LLM integration, plugin architectur
 
 **Type**: integration
 
-- STORY-009-INTEGRATION: Wire all evaluators in Executor pipeline (depends: STORY-003-IMPL, STORY-007-IMPL, STORY-008-IMPL)
+- STORY-009-INTEGRATION: Wire all evaluators in Executor pipeline (depends: STORY-003-IMPL, STORY-GRAPH-IMPL, STORY-007-IMPL, STORY-008-IMPL)
 
 **Acceptance Criteria:**
 - [ ] Executor calls messenger.talk_to_agent() for each agent URL
 - [ ] Messenger returns TraceData captured in executor results
-- [ ] GraphEvaluator processes traces
-- [ ] LLMJudge processes traces (or falls back)
-- [ ] LatencyEvaluator processes traces
+- [ ] Tier 1: GraphEvaluator processes traces
+- [ ] Tier 2: LLMJudge processes traces (or falls back)
+- [ ] Tier 2: LatencyEvaluator processes traces
 - [ ] E2E test: submit task → traces captured → all evaluations run → results returned
+
+### Story Breakdown - Phase 5: Final Deliverables (2 stories total)
+
+- **Feature 6** → STORY-010-DOCS: Write extensibility documentation (depends: STORY-009-INTEGRATION)
+  - Document evaluator interface pattern (BaseEvaluator)
+  - Document tier structure (Tier 1/2/3)
+  - Provide TextEvaluator as Tier 3 plugin example
+- **STORY-011-DEMO**: Create demo video (depends: STORY-009-INTEGRATION)
+  - **Status**: Coming Soon
+  - Record server startup and A2A endpoint verification
+  - Show evaluation flow with trace capture
+  - Display multi-tier results (graph, LLM judge, latency)
+  - Max 3 minutes
 
 ### Platform Compatibility Checklist
 
@@ -294,7 +364,7 @@ purpose: Enhance evaluation system with real LLM integration, plugin architectur
 
 ### Dependency Graph
 
-```
+```text
 STORY-001-TEST
     ↓
 STORY-001-IMPL
@@ -305,28 +375,31 @@ STORY-002-IMPL
     ↓
 STORY-003-TEST
     ↓
-STORY-003-IMPL
+STORY-003-IMPL ─────────────────────┐
+    ↓                               ↓
+STORY-004                    STORY-GRAPH-TEST
+    ↓                               ↓
+STORY-005-TEST               STORY-GRAPH-IMPL
+    ↓                               │
+STORY-005-IMPL                      │
+    ↓                               │
+STORY-006-TEST                      │
+    ↓                               │
+STORY-006-IMPL                      │
+    ↓                               │
+STORY-007-TEST                      │
+    ↓                               │
+STORY-007-IMPL                      │
+    ↓                               │
+STORY-008-TEST                      │
+    ↓                               │
+STORY-008-IMPL ─────────────────────┘
     ↓
-STORY-004
+STORY-009-INTEGRATION
     ↓
-STORY-005-TEST
+STORY-010-DOCS
     ↓
-STORY-005-IMPL
-    ↓
-STORY-006-TEST
-    ↓
-STORY-006-IMPL
-    ↓
-STORY-007-TEST
-    ↓
-STORY-007-IMPL
-    ├────────────────┐
-    ↓                ↓
-STORY-008-TEST   STORY-GRAPH-IMPL (Feature 2: Implement graph evaluator)
-    ↓                ↓
-STORY-008-IMPL   ─┘
-    ↓
-    └─────→ STORY-009-INTEGRATION
+STORY-011-DEMO (Coming Soon)
 ```
 
 ### Verification After Each Phase

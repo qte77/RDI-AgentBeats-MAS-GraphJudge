@@ -8,78 +8,56 @@ skinparam participant {
 }
 
 actor "Benchmark\nCreator" as User
-participant "Green Agent\n(Assessor)" as Green <<Green>>
+participant "Green Agent" as Green <<Green>>
 participant "Messenger" as Msg <<Green>>
-participant "Purple Agent\n(Under Test)" as Purple <<Purple>>
-participant "Tier 1: Graph\nEvaluator" as Graph <<Eval>>
-participant "Tier 2: LLM\nJudge" as LLM <<Eval>>
-participant "Tier 2: Latency\nEvaluator" as Latency <<Eval>>
-participant "Tier 3: Text\n(plugin)" as Text <<Eval>>
+participant "Purple Agent" as Purple <<Purple>>
+participant "Graph\n(PRIMARY)" as Graph <<Eval>>
+participant "LLM Judge\n(PLUGIN)" as LLM <<Eval>>
+participant "Latency\n(PLUGIN)" as Latency <<Eval>>
+participant "Text\n(PLUGIN)" as Text <<Eval>>
 
 == Task Submission ==
-User -> Green: POST /tasks/send\n(A2A JSON-RPC)
+User -> Green: Submit task
 activate Green
 
 == Trace Capture ==
-Green -> Msg: talk_to_agent(urls, task)
+Green -> Msg: Orchestrate agents
 activate Msg
 
-loop For each Purple Agent URL
-    Msg -> Purple: A2A send_message()\n+ X-A2A-Extensions header
+loop For each Purple Agent
+    Msg -> Purple: Send task
     activate Purple
-    Purple --> Msg: TaskState events\n(pending → running → completed)
+    Purple --> Msg: Execute and respond
     deactivate Purple
-    Msg -> Msg: Capture InteractionStep\n(trace_id, latency, timestamps)
+    Msg -> Msg: Capture interactions
 end
 
-Msg --> Green: TraceData[]\n(all interactions)
+Msg --> Green: Return traces
 deactivate Msg
 
-== Multi-Tier Evaluation ==
-Green -> Graph: evaluate(TraceData)
+== Evaluation ==
+Green -> Graph: Evaluate coordination
 activate Graph
-note right of Graph
-  - Build DiGraph (nodes=agents, edges=interactions)
-  - Compute centrality (degree, betweenness, closeness)
-  - Detect bottlenecks, isolation
-  - Calculate density, clustering
-end note
-Graph --> Green: GraphMetrics
+Graph --> Green: Graph metrics
 deactivate Graph
 
-Green -> LLM: evaluate(TraceData)
+Green -> LLM: Evaluate quality
 activate LLM
-note right of LLM
-  - Serialize traces to prompt
-  - Call OpenAI-compatible API
-  - Parse JSON response
-  - Fallback to rule-based if unavailable
-end note
-LLM --> Green: LLMJudgment\n(score, reasoning, strengths, weaknesses)
+LLM --> Green: Judgment
 deactivate LLM
 
-Green -> Latency: evaluate(TraceData)
+Green -> Latency: Evaluate performance
 activate Latency
-note right of Latency
-  - Extract step.latency values
-  - Compute percentiles (avg, p50, p95, p99)
-  - Identify slowest agent
-end note
-Latency --> Green: LatencyMetrics
+Latency --> Green: Latency metrics
 deactivate Latency
 
-Green -> Text: evaluate(TraceData)
+Green -> Text: Evaluate text
 activate Text
-note right of Text
-  - Plugin example (extensibility)
-  - Basic text similarity
-  - Demonstrates evaluator pattern
-end note
-Text --> Green: TextMetrics
+Text --> Green: Text metrics
 deactivate Text
 
 == Response ==
-Green --> User: A2A TaskResult\n{tier1_graph, tier2_llm, tier2_latency, tier3_text}
+Green --> User: Return evaluation results
 deactivate Green
 
 @enduml

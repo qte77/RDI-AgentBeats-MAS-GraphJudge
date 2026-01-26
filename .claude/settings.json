@@ -67,7 +67,8 @@
       "Edit(pyproject.toml)",
       "Edit(README.md)"
     ]
-  },
+  },                                      
+  "diffTool": "terminal",
   "statusLine": {
     "type": "command",
     "command": "bash .claude/scripts/statusline.sh"

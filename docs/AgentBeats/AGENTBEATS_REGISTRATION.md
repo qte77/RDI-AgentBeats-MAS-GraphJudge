@@ -274,6 +274,275 @@ After successful registration:
 - **Project README**: [../README.md](../README.md)
 - **GHCR Deployment Guide**: [../README.md#ghcr-deployment](../README.md#ghcr-deployment)
 
+## Evaluator Extensibility
+
+The Green Agent evaluation system is designed with extensibility in mind. You can add custom evaluators to extend the multi-tier assessment pipeline.
+
+### Evaluator Interface Pattern
+
+All evaluators follow a consistent interface pattern:
+
+```python
+async def evaluate(
+    self,
+    traces: list[InteractionStep],
+    **context: Any
+) -> dict[str, Any]:
+    """Evaluate coordination quality from interaction traces.
+
+    Args:
+        traces: List of InteractionStep traces to analyze
+        **context: Optional context from other evaluators
+
+    Returns:
+        Evaluation results as dictionary
+    """
+    pass
+```
+
+Key principles:
+- **Asynchronous**: All evaluators use `async def` for non-blocking execution
+- **Trace-based**: Primary input is `list[InteractionStep]` from A2A Traceability Extension
+- **Contextual**: Evaluators can receive results from previous tiers via `**context`
+- **Structured output**: Return `dict[str, Any]` for JSON serialization
+
+### Tier-Based Architecture
+
+The evaluation system is organized into three tiers:
+
+#### Tier 1: Structural Analysis (Graph)
+
+**Purpose**: Analyze coordination structure using graph theory
+
+**Evaluators**:
+- `GraphEvaluator` (src/green/evals/graph.py): Builds directed graphs from interaction traces and computes centrality, clustering, and path metrics
+
+**Integration**: Executed first, results passed to Tier 2 evaluators
+
+**Output**: Graph metrics (centrality, density, bottlenecks, isolated agents)
+
+#### Tier 2: Semantic + Performance Analysis (LLM Judge + Latency)
+
+**Purpose**: Deep semantic assessment and performance metrics
+
+**Evaluators**:
+- `LLMJudge` (src/green/evals/llm_judge.py): Uses LLM to assess coordination quality with reasoning
+- `LatencyEvaluator` (src/green/evals/system.py): Computes latency percentiles and identifies bottlenecks
+
+**Integration**: Receives Tier 1 graph results as context for enriched analysis
+
+**Output**: Semantic judgments with reasoning, latency percentiles
+
+#### Tier 3: Custom Plugins (Text/Domain-Specific)
+
+**Purpose**: Domain-specific or experimental evaluators
+
+**Examples**:
+- `TextEvaluator`: Text similarity analysis for message content
+- Custom business logic evaluators
+- Domain-specific compliance checkers
+
+**Integration**: Can receive all previous tier results as context
+
+**Output**: Domain-specific metrics
+
+### Adding a Custom Evaluator
+
+Here's a complete example of adding a Tier 3 text similarity evaluator:
+
+#### Step 1: Create Evaluator Module
+
+Create `src/green/evals/text.py`:
+
+```python
+"""Text similarity evaluator for message content analysis."""
+
+from __future__ import annotations
+
+from pydantic import BaseModel
+
+from green.models import InteractionStep
+
+
+class TextMetrics(BaseModel):
+    """Text similarity metrics.
+
+    Attributes:
+        avg_message_length: Average message length in characters
+        unique_messages: Number of unique messages
+        similarity_score: Text similarity score (0-1)
+    """
+
+    avg_message_length: float
+    unique_messages: int
+    similarity_score: float
+
+
+async def evaluate_text(steps: list[InteractionStep]) -> TextMetrics:
+    """Evaluate text similarity from interaction traces.
+
+    Args:
+        steps: List of InteractionStep traces to analyze
+
+    Returns:
+        TextMetrics with similarity analysis
+    """
+    if not steps:
+        return TextMetrics(
+            avg_message_length=0,
+            unique_messages=0,
+            similarity_score=0.0,
+        )
+
+    # Example implementation (simplified)
+    # In real implementation, extract message content from traces
+    messages = [f"Message {i}" for i, _ in enumerate(steps)]
+
+    avg_length = sum(len(msg) for msg in messages) / len(messages)
+    unique_count = len(set(messages))
+    similarity = unique_count / len(messages)  # Simple uniqueness ratio
+
+    return TextMetrics(
+        avg_message_length=avg_length,
+        unique_messages=unique_count,
+        similarity_score=similarity,
+    )
+```
+
+#### Step 2: Add Tests
+
+Create `tests/test_text.py`:
+
+```python
+"""Tests for text similarity evaluator."""
+
+import pytest
+
+from green.evals.text import TextMetrics, evaluate_text
+from green.models import CallType, InteractionStep
+from datetime import datetime
+
+
+@pytest.mark.asyncio
+async def test_evaluate_text_empty():
+    """Test text evaluation with empty traces."""
+    result = await evaluate_text([])
+
+    assert result.avg_message_length == 0
+    assert result.unique_messages == 0
+    assert result.similarity_score == 0.0
+
+
+@pytest.mark.asyncio
+async def test_evaluate_text_with_steps():
+    """Test text evaluation with interaction steps."""
+    steps = [
+        InteractionStep(
+            step_id="1",
+            trace_id="trace1",
+            call_type=CallType.AGENT,
+            start_time=datetime.now(),
+            end_time=datetime.now(),
+        )
+    ]
+
+    result = await evaluate_text(steps)
+
+    assert isinstance(result, TextMetrics)
+    assert result.avg_message_length > 0
+```
+
+#### Step 3: Integrate with Executor Pipeline
+
+Update `src/green/executor.py` to include the new evaluator:
+
+```python
+from green.evals.text import evaluate_text
+
+class Executor:
+    # ... existing code ...
+
+    async def _evaluate_text(
+        self, traces: list[InteractionStep], text_evaluator: Any
+    ) -> dict[str, Any] | None:
+        """Execute Tier 3 text evaluation.
+
+        Args:
+            traces: List of interaction steps
+            text_evaluator: Text evaluator instance
+
+        Returns:
+            Text evaluation results or None if evaluator is None
+        """
+        if text_evaluator is None:
+            return None
+
+        try:
+            return await text_evaluator.evaluate(traces)
+        except Exception as e:
+            return {"error": str(e)}
+
+    async def evaluate_all(
+        self,
+        traces: list[InteractionStep],
+        graph_evaluator: Any,
+        llm_judge: Any,
+        latency_evaluator: Any,
+        text_evaluator: Any = None,  # Add new parameter
+    ) -> dict[str, Any]:
+        """Orchestrate evaluation across all tiers."""
+        # Tier 1: Graph
+        tier1_graph = await self._evaluate_graph(traces, graph_evaluator)
+
+        # Tier 2: LLM + Latency
+        tier2_llm = await self._evaluate_llm(traces, llm_judge, tier1_graph)
+        tier2_latency = await self._evaluate_latency_tier2(traces, latency_evaluator)
+
+        # Tier 3: Custom (Text)
+        tier3_text = await self._evaluate_text(traces, text_evaluator)
+
+        return {
+            "tier1_graph": tier1_graph,
+            "tier2_llm": tier2_llm,
+            "tier2_latency": tier2_latency,
+            "tier3_text": tier3_text,  # Add to output
+        }
+```
+
+### Integration Points
+
+The Executor pipeline (`src/green/executor.py:148`) provides integration points for custom evaluators:
+
+1. **Tier 1 Integration** (`_evaluate_graph`): First-tier structural analysis
+2. **Tier 2 Integration** (`_evaluate_llm`, `_evaluate_latency_tier2`): Semantic + performance analysis with Tier 1 context
+3. **Tier 3 Integration** (custom methods): Domain-specific plugins with full context
+
+The `evaluate_all` method orchestrates all tiers:
+- Executes Tier 1 first
+- Passes Tier 1 results to Tier 2 evaluators as context
+- Optionally executes Tier 3 plugins with all previous results
+- Aggregates all results into structured response
+
+### Best Practices
+
+1. **Follow the Interface**: Use `async def evaluate(traces, **context)` signature
+2. **Handle Empty Input**: Always check for empty traces list
+3. **Use Pydantic Models**: Define structured output with Pydantic for validation
+4. **Add Tests First**: Write failing tests before implementation (TDD)
+5. **Document Metrics**: Clearly document what each metric measures
+6. **Error Handling**: Wrap evaluator calls in try/except at integration points
+7. **Context Awareness**: Use results from previous tiers when relevant
+
+### Example Use Cases
+
+Custom evaluators can address domain-specific needs:
+
+- **Compliance**: Check if interactions follow regulatory requirements
+- **Security**: Analyze message content for sensitive data exposure
+- **Cost**: Track token usage or API call costs
+- **Business Logic**: Validate domain-specific coordination patterns
+- **Performance**: Add custom performance metrics beyond latency
+
 ## Support
 
 If you encounter issues:

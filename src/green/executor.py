@@ -85,3 +85,90 @@ class Executor:
             LatencyMetrics with percentiles and slowest agent identification
         """
         return evaluate_latency(steps)
+
+    async def _evaluate_graph(self, traces: list[InteractionStep], graph_evaluator: any) -> dict[str, any] | None:
+        """Execute Tier 1 graph evaluation.
+
+        Args:
+            traces: List of interaction steps
+            graph_evaluator: Graph evaluator instance
+
+        Returns:
+            Graph evaluation results or None if evaluator is None
+        """
+        if graph_evaluator is None:
+            return None
+
+        try:
+            return await graph_evaluator.evaluate(traces)
+        except Exception as e:
+            return {"error": str(e)}
+
+    async def _evaluate_llm(
+        self, traces: list[InteractionStep], llm_judge: any, graph_results: dict[str, any] | None
+    ) -> dict[str, any] | None:
+        """Execute Tier 2 LLM evaluation with graph context.
+
+        Args:
+            traces: List of interaction steps
+            llm_judge: LLM judge instance
+            graph_results: Tier 1 graph evaluation results for context
+
+        Returns:
+            LLM evaluation results or None if evaluator is None
+        """
+        if llm_judge is None:
+            return None
+
+        try:
+            return await llm_judge.evaluate(traces, graph_results=graph_results)
+        except Exception as e:
+            return {"error": str(e)}
+
+    async def evaluate_all(
+        self,
+        traces: list[InteractionStep],
+        graph_evaluator: any,
+        llm_judge: any,
+        latency_evaluator: any,
+    ) -> dict[str, any]:
+        """Orchestrate evaluation across all tiers.
+
+        Executes evaluation in two tiers:
+        1. Tier 1: Graph structural analysis
+        2. Tier 2: LLM semantic assessment + Latency performance metrics
+
+        Graph results are passed to LLM judge for enriched context.
+
+        Args:
+            traces: List of interaction steps to evaluate
+            graph_evaluator: Tier 1 graph analysis evaluator
+            llm_judge: Tier 2 semantic assessment evaluator
+            latency_evaluator: Tier 2 performance metrics evaluator
+
+        Returns:
+            Structured response with all evaluation results:
+            - tier1_graph: Graph structural metrics
+            - tier2_llm: Semantic assessment with reasoning
+            - tier2_latency: Performance metrics
+        """
+        # Tier 1: Graph evaluation (structural analysis)
+        tier1_graph = await self._evaluate_graph(traces, graph_evaluator)
+
+        # Tier 2: LLM Judge and Latency evaluation
+        # Pass graph results to LLM for enriched context
+        tier2_llm = await self._evaluate_llm(traces, llm_judge, tier1_graph)
+
+        # Tier 2: Latency evaluation
+        tier2_latency = None
+        if latency_evaluator is not None:
+            try:
+                tier2_latency = await latency_evaluator.evaluate(traces)
+            except Exception as e:
+                tier2_latency = {"error": str(e)}
+
+        return {
+            "tier1_graph": tier1_graph,
+            "tier2_llm": tier2_llm,
+            "tier2_latency": tier2_latency,
+        }

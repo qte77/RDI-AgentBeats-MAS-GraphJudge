@@ -16,11 +16,13 @@ package "PURPLE AGENT" as PurpleAgent #E8D5F2 {
 
 package "GREEN AGENT" as GreenAgent #C8E6C9 {
   component "Graph\n(PRIMARY)" as Graph <<Primary>>
-  component "LLM-as-Judge\n(SECONDARY)" as LLMJudge <<Secondary>>
-  component "Plugins" as Plugins <<Plugin>>
+  component "LLM-as-Judge\n(PLUGIN)" as LLMJudge <<Plugin>>
+  component "Latency\n(PLUGIN)" as Latency <<Plugin>>
+  component "Text\n(PLUGIN)" as TextPlugin <<Plugin>>
 
   Graph -[hidden]right- LLMJudge
-  LLMJudge -[hidden]right- Plugins
+  LLMJudge -[hidden]right- Latency
+  Latency -[hidden]right- TextPlugin
 }
 
 PurpleAgent -right-> GreenAgent

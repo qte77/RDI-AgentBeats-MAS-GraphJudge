@@ -22,6 +22,7 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "pymarkdownlnt>=0.9.34",
     "pyright>=1.1.408",
     "ruff>=0.14.11",
 ]
@@ -111,6 +112,15 @@ omit = [
     '*/tests/*',
 ]
 
+[tool.pymarkdown.plugins.md013]
+enabled = false
+
+[tool.pymarkdown.plugins.md025]
+enabled = false
+
+[tool.pymarkdown.extensions.front-matter]
+enabled = true
+
 [tool.bumpversion]
 current_version = "0.0.0"
 parse = "(?P<major>\\d+)\\.(?P<minor>\\d+)\\.(?P<patch>\\d+)"
@@ -131,7 +141,7 @@ search = 'version = "{current_version}"'
 replace = 'version = "{new_version}"'
 
 [[tool.bumpversion.files]]
-filename = "src/agentbeats/__init__.py"
+filename = "src/green/__init__.py"
 search = '__version__ = "{current_version}"'
 replace = '__version__ = "{new_version}"'
 

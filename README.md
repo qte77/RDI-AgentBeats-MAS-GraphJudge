@@ -1,4 +1,4 @@
-# MAS-GraphJudge 
+# MAS-GraphJudge
 
 > Measure how, not just whether
 
@@ -11,6 +11,11 @@ that evaluates **how agents coordinate**, not just whether they succeed.
 [![CodeFactor](https://www.codefactor.io/repository/github/qte77/RDI-AgentX-AgentBeats-CompetitionRDI-AgentX-AgentBeats-GraphJudge/badge)](https://www.codefactor.io/repository/github/qte77/RDI-AgentX-AgentBeats-CompetitionRDI-AgentX-AgentBeats-GraphJudge)
 [![ruff](https://github.com/qte77/RDI-AgentX-AgentBeats-CompetitionRDI-AgentX-AgentBeats-GraphJudge/actions/workflows/ruff.yaml/badge.svg)](https://github.com/qte77/RDI-AgentX-AgentBeats-CompetitionRDI-AgentX-AgentBeats-GraphJudge/actions/workflows/ruff.yaml)
 [![pytest](https://github.com/qte77/RDI-AgentX-AgentBeats-CompetitionRDI-AgentX-AgentBeats-GraphJudge/actions/workflows/pytest.yaml/badge.svg)](https://github.com/qte77/RDI-AgentX-AgentBeats-CompetitionRDI-AgentX-AgentBeats-GraphJudge/actions/workflows/pytest.yaml)
+
+## Product Vision
+
+GraphJudge transforms multi-agent interactions into coordination graphs and evaluates
+collaboration quality through graph theory, LLM assessment, and performance analysis.
 
 ## Novel Value
 
@@ -39,30 +44,17 @@ through NetworkX metrics and LLM-as-judge evaluation.
 
 ### Abstract
 
-GreenAgent is a novel evaluation framework that measures **how agents
-coordinate**, not just whether they succeed. The system combines graph-based
-structural analysis (NetworkX metrics), LLM-as-judge assessment, and text
-similarity scoring to provide comprehensive multi-tier evaluation of agent
-coordination quality. Through A2A-compliant trace capture and directed graph
-analysis, GreenAgent reveals coordination patterns, bottlenecks, and
-collaboration effectiveness. We demonstrate perfect reproducibility (0%
-variance) across metrics in independent evaluation runs, enabling fair and
-consistent assessment of multi-agent systems.
+See [docs/GreenAgent-UserStory.md](docs/GreenAgent-UserStory.md) for full problem statement and value proposition.
 
-Full abstract: [docs/ABSTRACT.md](docs/ABSTRACT.md)
+**TL;DR**: Graph-based structural analysis + LLM-as-judge + text similarity for
+multi-tier coordination evaluation. A2A-compliant trace capture enables
+reproducible assessment (0% variance) of multi-agent collaboration patterns.
 
 ### Demo Video
 
-**Video URL**: [To be added - demo video showing agent startup, evaluation
-flow, and results interpretation]
+**Status**: Coming Soon
 
-The demo video (max 3 minutes) demonstrates:
-
-- GreenAgent server startup and A2A endpoint verification
-- Purple agent evaluation flow with trace capture
-- Multi-tier evaluation results (graph metrics, LLM judge, text similarity)
-- Result interpretation and leaderboard integration
-- See [Demo Video Script](./docs/DEMO_VIDEO_SCRIPT.md)
+Demo video (max 3 minutes) will cover: server startup, evaluation flow, and results interpretation.
 
 ## Roadmap
 
@@ -82,9 +74,11 @@ evaluation with proven reproducibility.
 ### Run from GHCR (no build needed)
 
 ```bash
-# Pull and run GraphJudge container
 docker pull ghcr.io/qte77/agentbeats-greenagent:latest
 docker run -p 9009:9009 ghcr.io/qte77/agentbeats-greenagent:latest
-
-# Test (new terminal)
 curl localhost:9009/.well-known/agent.json
+```
+
+### Developer Setup
+
+See [docs/QUICKSTART.md](docs/QUICKSTART.md) for local development, Docker build, and environment configuration.

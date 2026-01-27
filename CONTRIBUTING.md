@@ -159,7 +159,7 @@ See `AGENTS.md` for agent behavioral requirements and task execution protocols.
 
 ### Python Best Practices
 
-See `docs/python-best-practices.md` for comprehensive Python standards.
+See `docs/best-practices/python-best-practices.md` for comprehensive Python standards.
 
 ---
 
@@ -177,7 +177,8 @@ docs/
 ├── ralph/        # Ralph-loop task tracking
 └── best-practices/  # Language-specific guidelines
 
-src/agentbeats/   # Main package
+src/green/        # Green Agent (Assessor) implementation
+src/purple/       # Purple Agent (test fixture)
 tests/            # Test suite
 ```
 

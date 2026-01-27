@@ -1,0 +1,72 @@
+@startuml ComponentDiagram
+title GraphJudge Component Architecture
+
+skinparam component {
+    BackgroundColor<<Agent>> #E8D5F2
+    BackgroundColor<<Core>> #C8E6C9
+    BackgroundColor<<Eval>> #B3E5FC
+    BackgroundColor<<External>> #FFECB3
+}
+
+skinparam package {
+    BackgroundColor #FAFAFA
+}
+
+package "Purple Agents (Under Test)" <<Agent>> #E8D5F2 {
+    component [Agent 1] as P1
+    component [Agent 2] as P2
+    component [Agent N] as PN
+}
+
+package "Green Agent (Assessor)" <<Core>> #C8E6C9 {
+
+    package "A2A Protocol Layer" {
+        component [Server] as Server
+        component [AgentCard] as Card
+        component [Messenger] as Messenger
+    }
+
+    package "Orchestration" {
+        component [Executor] as Executor
+        component [TraceCollector] as Trace
+    }
+
+    package "Evaluation System" <<Eval>> #B3E5FC {
+        component [Graph Evaluator\n(PRIMARY)] as GraphEval
+        component [LLM Judge\n(PLUGIN)] as LLMEval
+        component [Latency\n(PLUGIN)] as LatencyEval
+        component [Text\n(PLUGIN)] as TextEval
+    }
+}
+
+package "External Services" <<External>> #FFECB3 {
+    component [LLM API] as LLMApi
+}
+
+' Request flow
+Server --> Executor : tasks/send
+Executor --> Messenger : orchestrate
+
+' Purple Agent communication
+Messenger --> P1 : A2A protocol
+Messenger --> P2 : A2A protocol
+Messenger --> PN : A2A protocol
+
+' Trace collection
+Messenger --> Trace : capture
+Trace --> Executor : TraceData
+
+' Evaluation
+Executor --> GraphEval : evaluate
+Executor --> LLMEval : evaluate
+Executor --> LatencyEval : evaluate
+Executor --> TextEval : evaluate
+LLMEval --> LLMApi : API call
+
+' Results
+GraphEval --> Executor : metrics
+LLMEval --> Executor : judgment
+LatencyEval --> Executor : metrics
+TextEval --> Executor : metrics
+
+@enduml

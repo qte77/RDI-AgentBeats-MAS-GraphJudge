@@ -1,0 +1,63 @@
+@startuml EvaluationFlow
+title GraphJudge Evaluation Flow
+
+skinparam participant {
+    BackgroundColor<<Purple>> #E8D5F2
+    BackgroundColor<<Green>> #C8E6C9
+    BackgroundColor<<Eval>> #B3E5FC
+}
+
+actor "Benchmark\nCreator" as User
+participant "Green Agent" as Green <<Green>>
+participant "Messenger" as Msg <<Green>>
+participant "Purple Agent" as Purple <<Purple>>
+participant "Graph\n(PRIMARY)" as Graph <<Eval>>
+participant "LLM Judge\n(PLUGIN)" as LLM <<Eval>>
+participant "Latency\n(PLUGIN)" as Latency <<Eval>>
+participant "Text\n(PLUGIN)" as Text <<Eval>>
+
+== Task Submission ==
+User -> Green: Submit task
+activate Green
+
+== Trace Capture ==
+Green -> Msg: Orchestrate agents
+activate Msg
+
+loop For each Purple Agent
+    Msg -> Purple: Send task
+    activate Purple
+    Purple --> Msg: Execute and respond
+    deactivate Purple
+    Msg -> Msg: Capture interactions
+end
+
+Msg --> Green: Return traces
+deactivate Msg
+
+== Evaluation ==
+Green -> Graph: Evaluate coordination
+activate Graph
+Graph --> Green: Graph metrics
+deactivate Graph
+
+Green -> LLM: Evaluate quality
+activate LLM
+LLM --> Green: Judgment
+deactivate LLM
+
+Green -> Latency: Evaluate performance
+activate Latency
+Latency --> Green: Latency metrics
+deactivate Latency
+
+Green -> Text: Evaluate text
+activate Text
+Text --> Green: Text metrics
+deactivate Text
+
+== Response ==
+Green --> User: Return evaluation results
+deactivate Green
+
+@enduml

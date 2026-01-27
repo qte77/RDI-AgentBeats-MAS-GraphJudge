@@ -59,8 +59,10 @@ class TestGreenAgentCard:
             response = await client.get("/.well-known/agent-card.json")
             card = response.json()
 
-            assert "extensions" in card["capabilities"]["protocols"]["a2a"]
-            extensions = card["capabilities"]["protocols"]["a2a"]["extensions"]
+            # Verify extensions are declared at capabilities level
+            assert "capabilities" in card
+            assert "extensions" in card["capabilities"]
+            extensions = card["capabilities"]["extensions"]
             assert any("traceability" in ext for ext in extensions)
 
 

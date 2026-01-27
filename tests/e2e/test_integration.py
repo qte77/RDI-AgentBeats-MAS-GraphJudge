@@ -31,6 +31,7 @@ class TestGreenPurpleIntegration:
             result = await executor.execute_task(
                 task_description="Evaluate multi-agent coordination",
                 messenger=messenger,
+                agent_url="http://test-purple-agent.com",
             )
 
             # Verify evaluation completed
@@ -77,6 +78,7 @@ class TestGreenPurpleIntegration:
             await executor.execute_task(
                 task_description="Test evaluation",
                 messenger=messenger,
+                agent_url="http://test-agent.com",
             )
 
             # Check if results file would be created
@@ -109,14 +111,33 @@ class TestGroundTruthE2EValidation:
         # Pick a high coordination scenario
         scenario = next(s for s in ground_truth["scenarios"] if s["type"] == "high_coordination")
 
-        # Create interaction steps from scenario
+        # Create interaction steps from scenario - simplified approach
         steps = []
         from datetime import datetime, timezone
 
         base_time = datetime.now(timezone.utc)
+        agents_with_edges = set()
 
-        # Create root steps for each agent
-        for agent in scenario["interaction_pattern"]["agents"]:
+        # Track agents involved in edges
+        for edge in scenario["interaction_pattern"]["edges"]:
+            agents_with_edges.add(edge["from"])
+            agents_with_edges.add(edge["to"])
+
+        # Create steps for edges only
+        for edge in scenario["interaction_pattern"]["edges"]:
+            step = InteractionStep(
+                step_id=edge["to"],
+                trace_id="e2e_test",
+                call_type=CallType.AGENT,
+                start_time=base_time,
+                end_time=base_time,
+                latency=100,
+                parent_step_id=edge["from"],
+            )
+            steps.append(step)
+
+        # Add isolated agents
+        for agent in set(scenario["interaction_pattern"]["agents"]) - agents_with_edges:
             step = InteractionStep(
                 step_id=agent,
                 trace_id="e2e_test",
@@ -124,34 +145,19 @@ class TestGroundTruthE2EValidation:
                 start_time=base_time,
                 end_time=base_time,
                 latency=100,
+                parent_step_id=None,
             )
             steps.append(step)
 
-        # Create interaction steps for each edge
-        for i, edge in enumerate(scenario["interaction_pattern"]["edges"]):
-            from_agent = edge["from"]
-            to_agent = edge["to"]
-
-            edge_step = InteractionStep(
-                step_id=f"{from_agent}_to_{to_agent}_{i}",
-                trace_id="e2e_test",
-                call_type=CallType.AGENT,
-                start_time=base_time,
-                end_time=base_time,
-                latency=100,
-                parent_step_id=from_agent,
-            )
-            steps.append(edge_step)
-
         # Evaluate with Green Agent
         evaluator = GraphEvaluator()
-        metrics = evaluator.evaluate(steps)
+        metrics = await evaluator.evaluate(steps)
 
         # Verify results match expectations
-        assert "graph_density" in metrics
+        assert hasattr(metrics, "graph_density")
         expected_quality = scenario["expected_metrics"]["coordination_quality"]
         if expected_quality == "high":
-            assert metrics["graph_density"] >= 0.3
+            assert metrics.graph_density >= 0.3
 
     async def test_multiple_scenarios_batch_evaluation(self):
         """Batch evaluation of multiple ground truth scenarios."""
@@ -171,14 +177,33 @@ class TestGroundTruthE2EValidation:
 
         # Evaluate first 3 scenarios
         for scenario in ground_truth["scenarios"][:3]:
-            # Create steps
+            # Create steps - simplified approach
             steps = []
             from datetime import datetime, timezone
 
             base_time = datetime.now(timezone.utc)
+            agents_with_edges = set()
 
-            # Create root steps for each agent
-            for agent in scenario["interaction_pattern"]["agents"]:
+            # Track agents involved in edges
+            for edge in scenario["interaction_pattern"]["edges"]:
+                agents_with_edges.add(edge["from"])
+                agents_with_edges.add(edge["to"])
+
+            # Create steps for edges only
+            for edge in scenario["interaction_pattern"]["edges"]:
+                step = InteractionStep(
+                    step_id=edge["to"],
+                    trace_id=scenario["id"],
+                    call_type=CallType.AGENT,
+                    start_time=base_time,
+                    end_time=base_time,
+                    latency=100,
+                    parent_step_id=edge["from"],
+                )
+                steps.append(step)
+
+            # Add isolated agents
+            for agent in set(scenario["interaction_pattern"]["agents"]) - agents_with_edges:
                 step = InteractionStep(
                     step_id=agent,
                     trace_id=scenario["id"],
@@ -186,27 +211,12 @@ class TestGroundTruthE2EValidation:
                     start_time=base_time,
                     end_time=base_time,
                     latency=100,
+                    parent_step_id=None,
                 )
                 steps.append(step)
 
-            # Create interaction steps for each edge
-            for i, edge in enumerate(scenario["interaction_pattern"]["edges"]):
-                from_agent = edge["from"]
-                to_agent = edge["to"]
-
-                edge_step = InteractionStep(
-                    step_id=f"{from_agent}_to_{to_agent}_{i}",
-                    trace_id=scenario["id"],
-                    call_type=CallType.AGENT,
-                    start_time=base_time,
-                    end_time=base_time,
-                    latency=100,
-                    parent_step_id=from_agent,
-                )
-                steps.append(edge_step)
-
             # Evaluate
-            metrics = evaluator.evaluate(steps)
+            metrics = await evaluator.evaluate(steps)
             results.append(
                 {
                     "scenario_id": scenario["id"],
@@ -220,4 +230,4 @@ class TestGroundTruthE2EValidation:
         for result in results:
             assert "scenario_id" in result
             assert "metrics" in result
-            assert "graph_density" in result["metrics"]
+            assert hasattr(result["metrics"], "graph_density")

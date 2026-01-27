@@ -15,8 +15,9 @@ from green.messenger import Messenger
 @pytest.fixture
 def mock_client():
     """Mock A2A Client."""
-    client = AsyncMock()
+    client = MagicMock()
     client.close = AsyncMock()
+    client.send_message = MagicMock()
     return client
 
 
@@ -24,6 +25,8 @@ def mock_client():
 def mock_client_factory():
     """Mock ClientFactory.connect."""
     with patch("green.messenger.ClientFactory") as factory:
+        # Make connect an AsyncMock since ClientFactory.connect is async
+        factory.connect = AsyncMock()
         yield factory
 
 

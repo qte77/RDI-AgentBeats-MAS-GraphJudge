@@ -5,8 +5,6 @@ applies-to: Agents and humans
 purpose: High-ROI USP and value proposition for AgentBeats AAA benchmark
 ---
 
-# GraphJudge: Graph-Based Coordination Benchmark
-
 > **Green Agent (Assessor)** for AgentBeats AAA platform - evaluates multi-agent coordination quality through graph theory analysis.
 
 ## The Problem
@@ -21,6 +19,7 @@ Multi-agent systems often fail not from individual agent capability gaps, but fr
 **GraphJudge uniquely applies graph theory to analyze coordination patterns in multi-agent systems.**
 
 It transforms multi-agent interactions into coordination graphs and applies graph theory to reveal:
+
 - Coordination patterns (centralization, distribution, bottlenecks)
 - Communication efficiency (message patterns, redundancy, isolation)
 - Structural quality (centrality, clustering, path efficiency)
@@ -30,16 +29,19 @@ Built on **A2A (Agent-to-Agent) Protocol** standard (a2aprotocol.ai) with JSON-R
 ## Value Proposition & ROI
 
 ### Time Savings (Significant efficiency gain)
+
 - **Before**: Lengthy manual trace analysis per benchmark run
 - **After**: Rapid automated evaluation
 - **ROI**: Significant time reduction
 
 ### Insight Quality
+
 - Identifies coordination failures invisible to traditional task-completion metrics
 - Concrete, measurable metrics grounded in graph theory
 - LLM-based semantic assessment validates graph patterns correlate with task success
 
 ### Platform Compatibility
+
 - **AgentBeats AAA ready**: Complies with docs.agentbeats.org requirements
 - **A2A Protocol**: Any A2A-compatible agent can participate without custom integration
 - **Extensible**: Pluggable architecture for custom evaluation criteria
@@ -47,7 +49,9 @@ Built on **A2A (Agent-to-Agent) Protocol** standard (a2aprotocol.ai) with JSON-R
 ## Core Capabilities
 
 ### 1. Graph-Based Coordination Analysis (Primary - Required)
+
 **Pluggable metrics** across three categories:
+
 - **Centrality**: degree, betweenness, closeness, eigenvector, PageRank
 - **Structure**: density, clustering coefficient, connected components
 - **Path**: average path length, diameter
@@ -55,17 +59,20 @@ Built on **A2A (Agent-to-Agent) Protocol** standard (a2aprotocol.ai) with JSON-R
 **Detects**: Bottlenecks (high betweenness), isolation (degree=0), over-centralization
 
 ### 2. LLM-as-Judge Semantic Evaluation (Provided Plugin)
+
 - Qualitative assessment of collaboration quality
 - **Multi-plugin data ingestion**: Can synthesize Graph + Text + Latency metrics for holistic evaluation
 - Task outcome validation: Ensures coordination led to successful task completion
 - Graceful fallback if LLM unavailable
 
 ### 3. Performance Metrics (Provided Plugin)
+
 - **Primary focus**: Latency (avg, p50, p95, p99) for simplicity
 - **Extensible**: Can add throughput, memory, other system metrics via plugin pattern
 - Identifies slowest agents
 
 ### 4. Text Metrics (Provided Plugin - Reference Implementation)
+
 - Conventional NLP metrics
 - Demonstrates evaluator extensibility pattern
 

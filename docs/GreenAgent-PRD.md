@@ -5,13 +5,12 @@ applies-to: Agents and humans
 purpose: How, Enhance evaluation system with real LLM integration, plugin architecture, and additional metrics
 ---
 
-# Product Requirements Document: Graph-Based Coordination Benchmark
-
 > See [GreenAgent-UserStory.md](GreenAgent-UserStory.md) for vision and value proposition.
 >
 > **Scope**: This PRD covers the **Green Agent (Assessor)** implementation and the **Base Purple Agent** test fixture required for E2E validation.
 >
 > **Implementation Locations:**
+>
 > - **Green Agent**: `src/green/` → containerized by `Dockerfile.green` → pushed as `green-agent:latest` via `scripts/docker/push.sh`
 > - **Base Purple Agent**: `src/purple/` → containerized by `Dockerfile.purple` → pushed as `purple-agent:latest` via `scripts/docker/push.sh`
 >
@@ -41,7 +40,7 @@ purpose: How, Enhance evaluation system with real LLM integration, plugin archit
 
 <!-- PARSER REQUIREMENT: Use exactly "#### Feature N:" format -->
 
-#### Feature 1: A2A Protocol Communication
+### Feature 1: A2A Protocol Communication
 
 **Description:** Real agent-to-agent communication via A2A SDK for authentic coordination measurement. Replaces mock REST protocol with production-grade A2A JSON-RPC communication.
 
@@ -163,81 +162,7 @@ purpose: How, Enhance evaluation system with real LLM integration, plugin archit
 
 ---
 
-#### Feature 5: Platform Integration and Deployment
-
-**Description:** AgentBeats platform compatibility with CLI interface, Docker configuration, health checks, and scenario-based orchestration.
-
-**Acceptance Criteria:**
-- [ ] CLI args: `--host`, `--port`, `--card-url` (argparse-based)
-- [ ] Default port: 9009 (AgentBeats platform standard)
-- [ ] `--card-url` sets self-referencing URL for container networking (e.g., `http://green-agent:9009`)
-- [ ] AgentCard accessible at `/.well-known/agent-card.json`
-- [ ] Health check responds to: `curl -f http://localhost:{port}/.well-known/agent-card.json`
-- [ ] Writes evaluation results to `output/results.json`
-- [x] Docker images: linux/amd64, Python 3.13-slim *(Dockerfile.green, Dockerfile.purple)*
-- [x] ENTRYPOINT supports CLI arguments *(CMD with python -m module)*
-- [x] docker-compose orchestrates green + purple agents *(docker-compose-local.yaml)*
-- [x] Agents can reach each other via Docker network *(agentbeats bridge network)*
-- [x] No hardcoded secrets (environment variables via `${VAR}` interpolation)
-
-**Platform Workflow:**
-1. `scenario.toml` defines green_agent + participants with `agentbeats_id` or `image`
-2. `generate_compose.py` produces `docker-compose.yml` and `a2a-scenario.toml`
-3. `agentbeats-client` container runs scenario, writes `output/results.json`
-4. `record_provenance.py` captures image digests for reproducibility
-
-**scenario.toml Format:**
-```toml
-[green_agent]
-agentbeats_id = "agent_xyz123"  # Or use image = "ghcr.io/${GH_USERNAME}/green-agent:latest" for local testing
-env = { API_KEY = "${GITHUB_SECRET_NAME}" }
-
-[[participants]]
-agentbeats_id = "agent_abc456"  # Or use image = "ghcr.io/${GH_USERNAME}/purple-agent:latest" for local testing
-env = {}
-
-[config]
-# Benchmark-specific configuration
-```
-
-**Docker Image Names:**
-- Green Agent: `ghcr.io/${GH_USERNAME}/green-agent:latest`
-- Purple Agent: `ghcr.io/${GH_USERNAME}/purple-agent:latest` (Base Purple Agent implementation)
-
-**Technical Requirements:**
-- uvicorn>=0.38.0
-- Docker Compose v2+
-- GHCR deployment workflow (GitHub Actions)
-
-**Existing Infrastructure:**
-- `Dockerfile.green` - Green Agent container (Python 3.13-slim, uv) built from `src/green/`
-- `Dockerfile.purple` - Base Purple Agent container (Python 3.13-slim, uv) built from `src/purple/`
-- `docker-compose-local.yaml` - Local testing (8001:9009 for green, 8002:9009 for purple)
-- `scenario.toml` - Platform submission configuration
-- `scripts/docker/push.sh` - Pushes both agents to GHCR:
-  - Green Agent: `ghcr.io/${GH_USERNAME}/green-agent:latest`
-  - Purple Agent: `ghcr.io/${GH_USERNAME}/purple-agent:latest`
-- `scripts/leaderboard/generate_compose.py` - Generates docker-compose.yml from scenario.toml
-- `scripts/leaderboard/record_provenance.py` - Records image digests for submissions
-- `.github/workflows/agentbeats-run-scenario.yml` - Platform submission workflow
-
-**Files:**
-- `src/green/` (Green Agent implementation)
-  - `src/green/server.py` (entry point)
-  - `src/green/executor.py`
-  - `src/green/messenger.py`
-  - `src/green/models.py`
-  - `src/green/evals/` (evaluation modules)
-- `Dockerfile.green` *(exists)* - containerizes Green Agent from `src/green/`
-- `Dockerfile.purple` *(exists)* - containerizes Base Purple Agent from `src/purple/`
-- `docker-compose-local.yaml` *(exists)*
-- `scenario.toml` *(exists)*
-- `scripts/docker/push.sh` *(exists)*
-- `scripts/leaderboard/` *(exists)*
-
----
-
-#### Feature 6: Extensibility Documentation
+#### Feature 5: Extensibility Documentation
 
 **Description:** Clear patterns and examples for adding custom evaluators without modifying core code.
 
@@ -260,7 +185,7 @@ env = {}
 
 ---
 
-#### Feature 7: E2E Testing Infrastructure
+#### Feature 6: E2E Testing Infrastructure
 
 **Description:** Base Purple Agent (minimal test fixture) and ground truth dataset for validating the Green Agent evaluation pipeline. The Base Purple Agent is a simplified A2A-compliant agent implementation built into the `purple-agent` Docker image.
 
@@ -322,7 +247,8 @@ env = {}
 
 **Agent Template Structure:**
 Both Green and Purple agents follow RDI green-agent-template pattern in separate directories:
-```
+
+```text
 src/
 ├── green/              # Green Agent (assessor) - implement first
 │   ├── agent.py        # Agent logic and orchestration
@@ -423,6 +349,7 @@ class BaseEvaluator(ABC):
 ```
 
 **Adding a new evaluator:**
+
 1. Create `src/green/evals/my_evaluator.py` implementing `BaseEvaluator`
 2. Import and call in `Executor._run_evaluations()`
 3. Add result to response dict
@@ -443,52 +370,17 @@ class BaseEvaluator(ABC):
 <!-- PARSER REQUIREMENT: Include story count in parentheses -->
 <!-- PARSER REQUIREMENT: Use (depends: STORY-XXX, STORY-YYY) for dependencies -->
 
-### Story Breakdown - Phase 1: A2A Protocol Compliance (3 stories)
+Story Breakdown (17 stories total):
+- **Feature 1 (A2A Protocol Communication)** → STORY-001: Messenger with A2A SDK + extensions, STORY-002: InteractionStep model integration (depends: STORY-001), STORY-003: Executor with trace collection and cleanup (depends: STORY-002), STORY-004: Add OpenAI dependency to pyproject.toml (depends: STORY-003), STORY-005: Green Agent business logic (agent.py) (depends: STORY-004), STORY-006: Green Agent A2A HTTP server (server.py) (depends: STORY-005)
+- **Feature 2 (Graph-Based Coordination Analysis)** → STORY-013: Graph evaluator test suite (depends: STORY-003), STORY-014: Graph-based coordination analysis implementation (depends: STORY-013)
+- **Feature 3 (LLM-Based Qualitative Evaluation)** → STORY-007: LLM client configuration with environment variables (depends: STORY-006), STORY-008: LLM prompt engineering for coordination assessment (depends: STORY-007), STORY-009: LLM API integration with fallback to rule-based evaluation (depends: STORY-008)
+- **Feature 4 (Latency Metrics Evaluation)** → STORY-010: Latency metrics evaluator (depends: STORY-009)
+- STORY-011: Wire all evaluators in Executor pipeline (depends: STORY-003, STORY-010)
+- **Feature 5 (Extensibility Documentation)** → STORY-012: Extensibility documentation and examples (depends: STORY-011)
+- **Feature 6 (E2E Testing Infrastructure)** → STORY-015: Base Purple Agent implementation (depends: STORY-003), STORY-016: E2E test suite with ground truth validation (depends: STORY-015, STORY-011)
+- STORY-017: Create demo video script (depends: STORY-011)
 
-**PREREQUISITE**: Must complete before real coordination measurement is possible.
-
-- **Feature 1** → **STORY-001**: Messenger with A2A SDK + extensions
-- **Feature 1** → **STORY-002**: InteractionStep model integration (depends: STORY-001)
-- **Feature 1** → **STORY-003**: Executor with trace collection and cleanup (depends: STORY-002)
-
-### Story Breakdown - Phase 2: LLM Integration (4 stories)
-
-- **Feature 3** → **STORY-004**: Add OpenAI dependency to pyproject.toml (depends: STORY-003)
-- **Feature 3** → **STORY-005**: LLM client configuration with environment variables (depends: STORY-004)
-- **Feature 3** → **STORY-006**: LLM prompt engineering for coordination assessment (depends: STORY-005)
-- **Feature 3** → **STORY-007**: LLM API integration with fallback to rule-based evaluation (depends: STORY-006)
-
-### Story Breakdown - Phase 3: Latency Metrics (1 story)
-
-- **Feature 4** → **STORY-008**: Latency metrics evaluator (depends: STORY-007)
-
-### Story Breakdown - Phase 4: Integration (1 story)
-
-- **STORY-009**: Wire all evaluators in Executor pipeline (depends: STORY-003, STORY-008)
-
-### Story Breakdown - Phase 5: Documentation and Testing (4 stories)
-
-- **Feature 6** → **STORY-010**: Extensibility documentation and examples (depends: STORY-009)
-- **Feature 2** → **STORY-011**: Graph evaluator test suite (depends: STORY-003)
-- **Feature 2** → **STORY-012**: Graph-based coordination analysis implementation (depends: STORY-011)
-- **STORY-015**: Create demo video script (depends: STORY-009)
-  - Output: `docs/demo-video-script.md` (~3 minutes of content)
-  - Scene 1: Server startup and A2A endpoint verification
-  - Scene 2: Evaluation flow with trace capture
-  - Scene 3: Multi-tier results display (graph, LLM judge, latency)
-  - Include narration text, screen actions, and timing cues
-
-### Story Breakdown - Phase 6: E2E Infrastructure (2 stories)
-
-- **Feature 7** → **STORY-013**: Base Purple Agent implementation (depends: STORY-003)
-- **Feature 7** → **STORY-014**: E2E test suite with ground truth validation (depends: STORY-013, STORY-009)
-
-### Feature 5: Platform Integration - No Stories Required
-
-**Note**: Feature 5 (Platform Integration and Deployment) has no dedicated stories because:
-1. **Infrastructure already exists**: Docker images, docker-compose, container networking (marked ✅ in acceptance criteria)
-2. **Runtime implementation**: Server entry point (`src/green/server.py`), CLI args, and endpoints are considered basic agent setup, integrated into Feature 1-7 implementations
-3. **AgentBeats platform**: All acceptance criteria are satisfied through existing infrastructure in `scripts/leaderboard/` and deployment workflows
+---
 
 ### Dependency Graph
 
@@ -500,28 +392,34 @@ STORY-002 (InteractionStep model)
 STORY-003 (Executor with trace collection)
     ├─────────────────┬─────────────┬─────────────────┐
     ↓                 ↓             ↓                 ↓
-STORY-004      STORY-011      STORY-013         STORY-009
+STORY-004      STORY-013      STORY-015         STORY-011
 (OpenAI dep)   (Graph test)   (Purple Agent)    (Integration)
     ↓                 ↓                               ↑
-STORY-005      STORY-012                              │
-(LLM config)   (Graph impl)                           │
+STORY-005      STORY-014                              │
+(Agent.py)     (Graph impl)                           │
     ↓                                                 │
 STORY-006                                             │
-(LLM prompt)                                          │
+(Server.py)                                           │
     ↓                                                 │
 STORY-007                                             │
+(LLM config)                                          │
+    ↓                                                 │
+STORY-008                                             │
+(LLM prompt)                                          │
+    ↓                                                 │
+STORY-009                                             │
 (LLM API)                                             │
     ↓                                                 │
-STORY-008 ────────────────────────────────────────────┘
+STORY-010 ────────────────────────────────────────────┘
 (Latency)
     ↓
-STORY-009 (Integration) ──────────┬──────────────────┬──────────────┐
+STORY-011 (Integration) ──────────┬──────────────────┬──────────────┐
     ↓                             ↓                  ↓              ↓
-STORY-010                   STORY-015          STORY-014        (merged)
+STORY-012                   STORY-017          STORY-016        (merged)
 (Extensibility docs)        (Demo script)      (E2E tests)          │
                                                     ↑               │
                                                     │               │
-                                             STORY-013 ─────────────┘
+                                             STORY-015 ─────────────┘
                                              (Purple Agent)
 ```
 

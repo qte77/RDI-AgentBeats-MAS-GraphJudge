@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from green.evals.system import LatencyMetrics, evaluate_latency
 from green.models import CallType, InteractionStep
@@ -86,7 +86,7 @@ class Executor:
         """
         return evaluate_latency(steps)
 
-    async def _evaluate_graph(self, traces: list[InteractionStep], graph_evaluator: any) -> dict[str, any] | None:
+    async def _evaluate_graph(self, traces: list[InteractionStep], graph_evaluator: Any) -> dict[str, Any] | None:
         """Execute Tier 1 graph evaluation.
 
         Args:
@@ -105,8 +105,8 @@ class Executor:
             return {"error": str(e)}
 
     async def _evaluate_llm(
-        self, traces: list[InteractionStep], llm_judge: any, graph_results: dict[str, any] | None
-    ) -> dict[str, any] | None:
+        self, traces: list[InteractionStep], llm_judge: Any, graph_results: dict[str, Any] | None
+    ) -> dict[str, Any] | None:
         """Execute Tier 2 LLM evaluation with graph context.
 
         Args:
@@ -125,13 +125,33 @@ class Executor:
         except Exception as e:
             return {"error": str(e)}
 
+    async def _evaluate_latency_tier2(
+        self, traces: list[InteractionStep], latency_evaluator: Any
+    ) -> dict[str, Any] | None:
+        """Execute Tier 2 latency evaluation.
+
+        Args:
+            traces: List of interaction steps
+            latency_evaluator: Latency evaluator instance
+
+        Returns:
+            Latency evaluation results or None if evaluator is None
+        """
+        if latency_evaluator is None:
+            return None
+
+        try:
+            return await latency_evaluator.evaluate(traces)
+        except Exception as e:
+            return {"error": str(e)}
+
     async def evaluate_all(
         self,
         traces: list[InteractionStep],
-        graph_evaluator: any,
-        llm_judge: any,
-        latency_evaluator: any,
-    ) -> dict[str, any]:
+        graph_evaluator: Any,
+        llm_judge: Any,
+        latency_evaluator: Any,
+    ) -> dict[str, Any]:
         """Orchestrate evaluation across all tiers.
 
         Executes evaluation in two tiers:
@@ -158,14 +178,7 @@ class Executor:
         # Tier 2: LLM Judge and Latency evaluation
         # Pass graph results to LLM for enriched context
         tier2_llm = await self._evaluate_llm(traces, llm_judge, tier1_graph)
-
-        # Tier 2: Latency evaluation
-        tier2_latency = None
-        if latency_evaluator is not None:
-            try:
-                tier2_latency = await latency_evaluator.evaluate(traces)
-            except Exception as e:
-                tier2_latency = {"error": str(e)}
+        tier2_latency = await self._evaluate_latency_tier2(traces, latency_evaluator)
 
         return {
             "tier1_graph": tier1_graph,

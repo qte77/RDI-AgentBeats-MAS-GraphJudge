@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
+import json
 import os
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+
+from green.models import InteractionStep
 
 
 class LLMConfig(BaseModel):
@@ -23,6 +26,24 @@ class LLMConfig(BaseModel):
     model: str = "gpt-4o-mini"
 
 
+class LLMJudgment(BaseModel):
+    """Structured output from LLM-based coordination assessment.
+
+    Fields requested in prompt:
+    - overall_score: Numeric score between 0 and 1
+    - reasoning: Explanation of the assessment
+    - coordination_quality: Qualitative assessment (low/medium/high)
+    - strengths: List of observed coordination strengths
+    - weaknesses: List of observed coordination weaknesses
+    """
+
+    overall_score: float = Field(ge=0.0, le=1.0)
+    reasoning: str
+    coordination_quality: str
+    strengths: list[str]
+    weaknesses: list[str]
+
+
 def get_llm_config() -> LLMConfig:
     """Get LLM configuration from environment variables.
 
@@ -34,3 +55,70 @@ def get_llm_config() -> LLMConfig:
         base_url=os.environ.get("AGENTBEATS_LLM_BASE_URL", "https://api.openai.com/v1"),
         model=os.environ.get("AGENTBEATS_LLM_MODEL", "gpt-4o-mini"),
     )
+
+
+def build_prompt(steps: list[InteractionStep]) -> str:
+    """Build LLM prompt for coordination quality assessment.
+
+    Constructs a prompt that includes:
+    - Serialized TraceData from InteractionSteps
+    - Evaluation criteria for coordination quality
+    - JSON schema for structured LLMJudgment output
+    - Request for temperature=0 for consistency
+
+    Args:
+        steps: List of InteractionStep traces to evaluate
+
+    Returns:
+        Formatted prompt string for LLM evaluation
+    """
+    # Serialize interaction steps to JSON
+    trace_data = json.dumps(
+        [
+            {
+                "step_id": step.step_id,
+                "trace_id": step.trace_id,
+                "call_type": step.call_type.value,
+                "start_time": step.start_time.isoformat(),
+                "end_time": step.end_time.isoformat(),
+                "latency": step.latency,
+                "error": step.error,
+                "parent_step_id": step.parent_step_id,
+            }
+            for step in steps
+        ],
+        indent=2,
+    )
+
+    # Build prompt with evaluation criteria and JSON schema
+    prompt = f"""You are evaluating the coordination quality of multi-agent interactions based on trace data.
+
+# Trace Data
+{trace_data}
+
+# Evaluation Criteria
+Assess the coordination quality based on:
+- Communication patterns and efficiency
+- Task delegation and distribution
+- Response times and latency
+- Error handling and recovery
+- Overall coordination effectiveness
+
+# Output Format
+Respond with a JSON object following this schema:
+{{
+  "overall_score": <float between 0 and 1>,
+  "reasoning": "<explanation of the assessment>",
+  "coordination_quality": "<low|medium|high>",
+  "strengths": ["<strength 1>", "<strength 2>", ...],
+  "weaknesses": ["<weakness 1>", "<weakness 2>", ...]
+}}
+
+The overall_score must be a number between 0 and 1, where:
+- 0.0-0.3: Poor coordination
+- 0.3-0.7: Moderate coordination
+- 0.7-1.0: Excellent coordination
+
+Provide your assessment as JSON only, with no additional text."""
+
+    return prompt

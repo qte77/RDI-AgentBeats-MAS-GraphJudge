@@ -353,8 +353,8 @@
         "src/purple/messenger.py",
         "Dockerfile.purple"
       ],
-      "passes": false,
-      "completed_at": null,
+      "passes": true,
+      "completed_at": "2026-01-27T19:46:55Z",
       "content_hash": "5a4c0d7f2e5b8a1d4c7f0a3d6e9f2c5e8a1d4c7f0a3d6e9f2c5e8a1d4c7",
       "depends_on": [
         "STORY-003"
@@ -381,8 +381,8 @@
         "tests/e2e/",
         "docker-compose-local.yaml"
       ],
-      "passes": false,
-      "completed_at": null,
+      "passes": true,
+      "completed_at": "2026-01-27T19:57:02Z",
       "content_hash": "6b5d1e8a3f6c9e2b5d0f3c7a0e4b1f5c9d2e6a3f7b0e4c8d1f5a9e2b6d0",
       "depends_on": [
         "STORY-015",
@@ -403,8 +403,8 @@
       "files": [
         "docs/demo-video-script.md"
       ],
-      "passes": false,
-      "completed_at": null,
+      "passes": true,
+      "completed_at": "2026-01-27T21:10:48Z",
       "content_hash": "7c6e2f9b4a7d0e1c5f8a3d6e9b2c5f8a1d4e7a0c3f6a9d2e5c8b1d4e7a0c",
       "depends_on": [
         "STORY-011"

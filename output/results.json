@@ -1,0 +1,11 @@
+{
+  "tier1_graph": {
+    "graph_density": 0.5
+  },
+  "tier2_llm": {
+    "overall_score": 0.8
+  },
+  "tier2_latency": {
+    "avg": 1250.0
+  }
+}

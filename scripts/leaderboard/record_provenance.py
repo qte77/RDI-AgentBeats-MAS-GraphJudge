@@ -5,7 +5,7 @@ import json
 import os
 import subprocess
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 try:
@@ -88,7 +88,7 @@ def write_provenance(output_path: Path, image_digests: dict[str, str]) -> None:
     """Write provenance information to a JSON file."""
     provenance = {
         "image_digests": image_digests,
-        "timestamp": datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
+        "timestamp": datetime.now(UTC).isoformat(timespec="seconds").replace("+00:00", "Z"),
     }
     github_actions = collect_github_actions_metadata()
     if github_actions:

@@ -43,7 +43,7 @@ class Messenger:
         async for task, _error in client.send_message(msg, extensions=extensions):
             if task.state == TaskState.completed:
                 # Extract response from completed task artifacts
-                if task.artifacts and len(task.artifacts) > 0:
+                if task.artifacts:
                     return task.artifacts[0].text
                 return ""
 

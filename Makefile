@@ -24,7 +24,13 @@ setup_claude_code:  ## Setup claude code CLI
 	echo "Claude Code CLI version: $$(claude --version)"
 
 setup_sandbox:  ## Install sandbox deps (bubblewrap, socat) for Linux/WSL2
+	# Required for Claude Code sandboxing on Linux/WSL2:
+	# - bubblewrap: Provides filesystem and process isolation
+	# - socat: Handles network socket communication for sandbox proxy
+	# Without these, sandbox falls back to unsandboxed execution (security risk)
 	# https://code.claude.com/docs/en/sandboxing
+	# https://code.claude.com/docs/en/settings#sandbox-settings
+	# https://code.claude.com/docs/en/security
 	echo "Installing sandbox dependencies ..."
 	if command -v apt-get > /dev/null; then \
 		sudo apt-get update -qq && sudo apt-get install -y bubblewrap socat; \

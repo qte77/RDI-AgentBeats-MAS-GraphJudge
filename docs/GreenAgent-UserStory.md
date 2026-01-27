@@ -168,17 +168,18 @@ This benchmark transforms abstract "collaboration quality" into concrete, measur
 - [ ] Comprehensive tests report accuracy metrics against ground truth
 - [ ] Container orchestration supports isolated testing
 
-### Demo Video: Showcase Evaluation Flow **[Phase 2]**
+### Demo Video Script: Showcase Evaluation Flow
 
 **As a** competition judge,
-**I want** a demo video showing the evaluation system in action,
-**So that** I can understand the full evaluation flow and results interpretation.
+**I want** a demo video script documenting the evaluation system flow,
+**So that** I can understand the full evaluation flow and guide video production.
 
 **Acceptance Criteria:**
-- [ ] Video shows server startup and A2A endpoint verification
-- [ ] Demonstrates purple agent evaluation with trace capture
-- [ ] Displays multi-tier results (graph, LLM judge, latency)
-- [ ] Max 3 minutes duration
+- [ ] Script output: `docs/demo-video-script.md` (~3 minutes of content)
+- [ ] Scene 1: Server startup and A2A endpoint verification
+- [ ] Scene 2: Evaluation flow with trace capture
+- [ ] Scene 3: Multi-tier results display (graph, LLM judge, latency)
+- [ ] Includes narration text, screen actions, and timing cues
 
 ## Success Criteria
 

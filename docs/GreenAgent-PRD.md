@@ -5,9 +5,11 @@ applies-to: Agents and humans
 purpose: How, Enhance evaluation system with real LLM integration, plugin architecture, and additional metrics
 ---
 
+# Product Requirements Document: Graph-Based Coordination Benchmark
+
 > See [GreenAgent-UserStory.md](GreenAgent-UserStory.md) for vision and value proposition.
 >
-> **Scope**: This PRD covers the **Green Agent (Assessor)** implementation only. The **Purple Agent (Assessee)** - multi-agent system under test - will be added in a future phase.
+> **Scope**: This PRD covers the **Green Agent (Assessor)** implementation and the **Base Purple Agent** test fixture required for E2E validation. Full Purple Agent capabilities may be expanded in future phases.
 
 ## Project Overview
 
@@ -29,9 +31,9 @@ purpose: How, Enhance evaluation system with real LLM integration, plugin archit
 
 ## Functional Requirements
 
-<!-- PARSER REQUIREMENT: Use exactly "### Feature N:" format -->
+<!-- PARSER REQUIREMENT: Use exactly "#### Feature N:" format -->
 
-### Feature 1: A2A Protocol Communication
+#### Feature 1: A2A Protocol Communication
 
 **Description:** Real agent-to-agent communication via A2A SDK for authentic coordination measurement. Replaces mock REST protocol with production-grade A2A JSON-RPC communication.
 
@@ -55,8 +57,8 @@ purpose: How, Enhance evaluation system with real LLM integration, plugin archit
 - Proper error handling for A2A protocol errors
 
 **Files:**
-- `src/agentbeats/messenger.py`
-- `src/agentbeats/executor.py`
+- `src/green/messenger.py`
+- `src/green/executor.py`
 - `tests/test_messenger.py`
 - `tests/test_executor.py`
 
@@ -94,7 +96,7 @@ purpose: How, Enhance evaluation system with real LLM integration, plugin archit
 - Plugin interface allows adding custom metrics without modifying core code
 
 **Files:**
-- `src/agentbeats/evals/graph.py`
+- `src/green/evals/graph.py`
 - `tests/test_graph.py`
 
 ---
@@ -113,6 +115,8 @@ purpose: How, Enhance evaluation system with real LLM integration, plugin archit
 - [ ] Falls back to rule-based if API unavailable (logs warning, not error)
 - [ ] Uses temperature=0 for consistency
 - [ ] Handles API errors gracefully (timeout, invalid JSON)
+- [ ] Multi-plugin data ingestion: Can receive outputs from Graph, Text, Latency evaluators for holistic assessment
+- [ ] Task outcome assessment: Evaluates whether coordination led to successful task completion
 
 **Technical Requirements:**
 - openai>=1.0
@@ -120,7 +124,7 @@ purpose: How, Enhance evaluation system with real LLM integration, plugin archit
 - JSON response parsing with validation
 
 **Files:**
-- `src/agentbeats/evals/llm_judge.py`
+- `src/green/evals/llm_judge.py`
 - `tests/test_llm_judge.py`
 
 ---
@@ -145,38 +149,71 @@ purpose: How, Enhance evaluation system with real LLM integration, plugin archit
 **Use Case:** Identify coordination bottlenecks (e.g., Agent A waits 10x longer than Agent B for responses), not absolute performance rating.
 
 **Files:**
-- `src/agentbeats/evals/latency.py`
-- `src/agentbeats/executor.py`
-- `tests/test_latency.py`
+- `src/green/evals/system.py`
+- `src/green/executor.py`
+- `tests/test_system.py`
 
 ---
 
 #### Feature 5: Platform Integration and Deployment
 
-**Description:** AgentBeats platform compatibility with proper CLI interface, Docker configuration, and discovery endpoints.
-
-> **Implementation Guide:** See [IMPLEMENTATION_CHECKLIST.md](IMPLEMENTATION_CHECKLIST.md) for detailed Dockerfile patterns, server entry point code, test structure, and validation gates.
+**Description:** AgentBeats platform compatibility with CLI interface, Docker configuration, health checks, and scenario-based orchestration.
 
 **Acceptance Criteria:**
 - [ ] CLI args: `--host`, `--port`, `--card-url` (argparse-based)
-- [ ] Default port: 8000 (local dev uses 8001:8000, AgentBeats platform uses 9009)
+- [ ] Default port: 9009 (AgentBeats platform standard)
+- [ ] `--card-url` sets self-referencing URL for container networking (e.g., `http://green-agent:9009`)
 - [ ] AgentCard accessible at `/.well-known/agent-card.json`
-- [ ] Docker images: linux/amd64, Python 3.13-slim, multi-stage build
-- [ ] ENTRYPOINT supports CLI arguments
-- [ ] docker-compose.yml orchestrates green + purple agents
-- [ ] Agents can reach each other via Docker network
-- [ ] No hardcoded secrets (environment variables only)
+- [ ] Health check responds to: `curl -f http://localhost:{port}/.well-known/agent-card.json`
+- [ ] Writes evaluation results to `output/results.json`
+- [x] Docker images: linux/amd64, Python 3.13-slim *(Dockerfile.green, Dockerfile.purple)*
+- [x] ENTRYPOINT supports CLI arguments *(CMD with python -m module)*
+- [x] docker-compose orchestrates green + purple agents *(docker-compose-local.yaml)*
+- [x] Agents can reach each other via Docker network *(agentbeats bridge network)*
+- [x] No hardcoded secrets (environment variables via `${VAR}` interpolation)
+
+**Platform Workflow:**
+1. `scenario.toml` defines green_agent + participants with `agentbeats_id` or `image`
+2. `generate_compose.py` produces `docker-compose.yml` and `a2a-scenario.toml`
+3. `agentbeats-client` container runs scenario, writes `output/results.json`
+4. `record_provenance.py` captures image digests for reproducibility
+
+**scenario.toml Format:**
+```toml
+[green_agent]
+agentbeats_id = "agent_xyz123"  # Or use image = "ghcr.io/..." for local testing
+env = { API_KEY = "${GITHUB_SECRET_NAME}" }
+
+[[participants]]
+name = "purple-agent"
+agentbeats_id = "agent_abc456"
+env = {}
+
+[config]
+# Benchmark-specific configuration
+```
 
 **Technical Requirements:**
 - uvicorn>=0.38.0
 - Docker Compose v2+
 - GHCR deployment workflow (GitHub Actions)
 
+**Existing Infrastructure:**
+- `Dockerfile.green` - Green agent container (Python 3.13-slim, uv)
+- `Dockerfile.purple` - Purple agent container (Python 3.13-slim, uv)
+- `docker-compose-local.yaml` - Local testing (8001:9009, 8002:9009)
+- `scenario.toml` - Platform submission configuration
+- `scripts/leaderboard/generate_compose.py` - Generates docker-compose.yml from scenario.toml
+- `scripts/leaderboard/record_provenance.py` - Records image digests for submissions
+- `.github/workflows/agentbeats-run-scenario.yml` - Platform submission workflow
+
 **Files:**
-- `src/agentbeats/server.py` (entry point)
-- `Dockerfile.green`
-- `docker-compose.yaml`
-- `.github/workflows/ghcr-push.yaml`
+- `src/green/server.py` (entry point)
+- `Dockerfile.green` *(exists)*
+- `Dockerfile.purple` *(exists)*
+- `docker-compose-local.yaml` *(exists)*
+- `scenario.toml` *(exists)*
+- `scripts/leaderboard/` *(exists)*
 
 ---
 
@@ -199,8 +236,34 @@ purpose: How, Enhance evaluation system with real LLM integration, plugin archit
 - Code examples with comments
 
 **Files:**
-- `docs/AgentBeats/Technical-Implementation-Guide.md`
-- `docs/AgentBeats/AGENTBEATS_REGISTRATION.md`
+- `docs/AgentBeats/AGENTBEATS_REGISTRATION.md` *(exists)*
+
+---
+
+#### Feature 7: E2E Testing Infrastructure
+
+**Description:** Base Purple Agent and ground truth dataset for validating the Green Agent evaluation pipeline.
+
+**Acceptance Criteria:**
+- [ ] Base Purple Agent implemented as A2A-compliant test fixture
+- [ ] Ground truth dataset with labeled test scenarios (`data/ground_truth.json`)
+- [ ] E2E tests validate both agents' AgentCards are accessible
+- [ ] E2E tests verify Purple Agent generates expected outputs
+- [ ] E2E tests verify Green Agent correctly classifies ground truth scenarios
+- [ ] Comprehensive tests report accuracy metrics against ground truth
+- [x] Container orchestration supports isolated testing *(docker-compose-local.yaml)*
+
+**Technical Requirements:**
+- Purple Agent follows RDI green-agent-template pattern
+- Ground truth format: JSON with labeled coordination scenarios
+- Docker Compose orchestration for isolated testing
+
+**Files:**
+- `src/purple/` (Purple Agent implementation)
+- `Dockerfile.purple` *(exists)*
+- `data/ground_truth.json`
+- `tests/e2e/`
+- `docker-compose-local.yaml` *(exists)*
 
 ---
 
@@ -211,6 +274,11 @@ purpose: How, Enhance evaluation system with real LLM integration, plugin archit
 - A2A task timeout: 300 seconds (5 minutes)
 - Latency evaluation: <5 seconds
 - **Note**: Latency metrics are relative (same-system comparisons), not cross-environment benchmarks
+
+**Statistical Validity:**
+- Minimum 10 diverse scenarios recommended for statistically meaningful results
+- Multiple evaluation runs supported to handle agent non-determinism
+- Results include confidence indicators when sample size is small
 
 **A2A Protocol:**
 - JSON-RPC 2.0 message format
@@ -293,21 +361,23 @@ Reference: `github.com/RDI-Foundation/green-agent-template/tree/example/debate_j
 
 ## Out of Scope
 
-1. **Real-time streaming evaluation**: Evaluation happens post-execution, not during task runtime
-2. **Persistent metrics storage**: Results returned via A2A response only, no database
-3. **Metrics visualization UI**: Output is structured JSON, no built-in dashboard
-4. **Custom LLM fine-tuning**: Uses general-purpose LLMs with prompting only
-5. **Performance profiling tools**: Basic latency metrics only, no deep profiling (scalene/py-spy)
-6. **Plugin registry/discovery**: Manual evaluator integration only (see Evaluator Extension Pattern below)
-7. **Advanced NLP metrics**: BLEU, semantic embeddings deferred (TextEvaluator demonstrates plugin pattern with basic similarity)
-8. **Error pattern categorization**: Defer to future work
+The following are explicitly excluded from this benchmark's scope:
+
+1. **Individual agent capabilities evaluation**: Not evaluating coding, reasoning, tool use, or domain-specific task success (covered by other AgentBeats benchmarks)
+2. **Task completion quality metrics**: Not measuring whether agents completed tasks correctly, only how they coordinated
+3. **Real-time streaming evaluation**: Evaluation happens post-execution after all interactions captured
+4. **Persistent storage or database**: Results returned via A2A response only, no historical storage
+5. **Visualization UI or dashboards**: Output is structured JSON for programmatic consumption
+6. **Non-coordination benchmarks**: Domain-specific compliance, legal requirements, or single-agent performance tests
+7. **Agent implementation details**: Not evaluating internal agent architecture, model choice, or prompt engineering
+8. **Human-agent interaction patterns**: Focus on agent-to-agent (A2A) coordination only
 
 ### Evaluator Extension Pattern
 
 Simple interface for adding custom evaluators without complex plugin registry:
 
 ```python
-# src/agentbeats/evals/base.py
+# src/green/evals/base.py
 from abc import ABC, abstractmethod
 from typing import Any
 from ..models import TraceData
@@ -322,7 +392,7 @@ class BaseEvaluator(ABC):
 ```
 
 **Adding a new evaluator:**
-1. Create `src/agentbeats/evals/my_evaluator.py` implementing `BaseEvaluator`
+1. Create `src/green/evals/my_evaluator.py` implementing `BaseEvaluator`
 2. Import and call in `Executor._run_evaluations()`
 3. Add result to response dict
 
@@ -334,7 +404,6 @@ class BaseEvaluator(ABC):
 
 1. **A2A SDK Installation**: a2a-sdk may not be on PyPI; check GitHub for git+https install URL
 2. **LLM API Credentials**: `AGENTBEATS_LLM_API_KEY` required; fallback to rule-based evaluation implemented
-3. **Purple Agent for Testing**: Need minimal echo agent; create baseline responder for integration tests
 
 ---
 
@@ -359,45 +428,50 @@ class BaseEvaluator(ABC):
   - STORY-003-TEST: Write Executor A2A cleanup tests (depends: STORY-002-IMPL)
   - STORY-003-IMPL: Implement Executor with trace collection + cleanup (depends: STORY-003-TEST)
 
-### Story Breakdown - Phase 1b: Graph Evaluation (2 stories total)
+### Story Breakdown - Phase 1b: Graph Evaluation (1 story total)
 
 **Can run in parallel with Phase 2 after STORY-003-IMPL completes.**
 
-- **Feature 2** → **STORY-GRAPH-TEST**: Write graph evaluator tests (depends: STORY-003-IMPL)
-  - Test directed graph construction from TraceData
-  - Test centrality metrics (degree, betweenness, closeness)
-  - Test bottleneck detection
-  - Test edge cases (empty traces, single agent, isolated agents)
-- **Feature 2** → **STORY-GRAPH-IMPL**: Implement graph evaluator (depends: STORY-GRAPH-TEST)
-  - Build DiGraph from TraceData (nodes=agents, edges=interactions)
-  - Compute centrality metrics via NetworkX
-  - Detect coordination patterns (bottlenecks, isolation, over-centralization)
-  - Return structured GraphMetrics
+- **Feature 2** → **STORY-004**: Graph evaluator
+  - STORY-004-TEST: Write graph evaluator tests (depends: STORY-003-IMPL)
+    - Test directed graph construction from TraceData
+    - Test centrality metrics (degree, betweenness, closeness)
+    - Test bottleneck detection
+    - Test edge cases (empty traces, single agent, isolated agents)
+  - STORY-004-IMPL: Implement graph evaluator (depends: STORY-004-TEST)
+    - Build DiGraph from TraceData (nodes=agents, edges=interactions)
+    - Compute centrality metrics via NetworkX
+    - Detect coordination patterns (bottlenecks, isolation, over-centralization)
+    - Return structured GraphMetrics
 
 **Files:**
-- `src/agentbeats/evals/graph.py`
+- `src/green/evals/graph.py`
 - `tests/test_graph.py`
 
-### Story Breakdown - Phase 2: Real LLM Integration (5 stories total)
+### Story Breakdown - Phase 2: Real LLM Integration (4 stories total)
 
-- **Feature 3** → STORY-004: Add OpenAI dependency (depends: STORY-003-IMPL)
-- **Feature 3** → STORY-005-TEST: Write LLM client config tests (depends: STORY-004)
-- **Feature 3** → STORY-005-IMPL: Implement LLM client config (depends: STORY-005-TEST)
-- **Feature 3** → STORY-006-TEST: Write LLM prompt tests (depends: STORY-005-IMPL)
-- **Feature 3** → STORY-006-IMPL: Implement LLM prompt (depends: STORY-006-TEST)
-- **Feature 3** → STORY-007-TEST: Write LLM API fallback tests (depends: STORY-006-IMPL)
-- **Feature 3** → STORY-007-IMPL: Implement LLM API with fallback (depends: STORY-007-TEST)
+- **Feature 3** → STORY-005: Add OpenAI dependency (depends: STORY-003-IMPL)
+- **Feature 3** → STORY-006: LLM client config
+  - STORY-006-TEST: Write LLM client config tests (depends: STORY-005)
+  - STORY-006-IMPL: Implement LLM client config (depends: STORY-006-TEST)
+- **Feature 3** → STORY-007: LLM prompt
+  - STORY-007-TEST: Write LLM prompt tests (depends: STORY-006-IMPL)
+  - STORY-007-IMPL: Implement LLM prompt (depends: STORY-007-TEST)
+- **Feature 3** → STORY-008: LLM API with fallback
+  - STORY-008-TEST: Write LLM API fallback tests (depends: STORY-007-IMPL)
+  - STORY-008-IMPL: Implement LLM API with fallback (depends: STORY-008-TEST)
 
-### Story Breakdown - Phase 3: Latency Metrics (2 stories total)
+### Story Breakdown - Phase 3: Latency Metrics (1 story total)
 
-- **Feature 4** → STORY-008-TEST: Write latency evaluator tests (depends: STORY-007-IMPL)
-- **Feature 4** → STORY-008-IMPL: Implement latency evaluator (depends: STORY-008-TEST)
+- **Feature 4** → STORY-009: Latency evaluator
+  - STORY-009-TEST: Write latency evaluator tests (depends: STORY-008-IMPL)
+  - STORY-009-IMPL: Implement latency evaluator (depends: STORY-009-TEST)
 
 ### Story Breakdown - Phase 4: Integration Testing (1 story)
 
 **Type**: integration
 
-- STORY-009-INTEGRATION: Wire all evaluators in Executor pipeline (depends: STORY-003-IMPL, STORY-GRAPH-IMPL, STORY-007-IMPL, STORY-008-IMPL)
+- STORY-010-INTEGRATION: Wire all evaluators in Executor pipeline (depends: STORY-003-IMPL, STORY-004-IMPL, STORY-008-IMPL, STORY-009-IMPL)
 
 **Acceptance Criteria:**
 - [ ] Executor calls messenger.talk_to_agent() for each agent URL
@@ -407,28 +481,24 @@ class BaseEvaluator(ABC):
 - [ ] Tier 2: LatencyEvaluator processes traces
 - [ ] E2E test: submit task → traces captured → all evaluations run → results returned
 
-### Story Breakdown - Phase 5: Final Deliverables (2 stories total)
+### Story Breakdown - Phase 5: Final Deliverables (4 stories total)
 
-- **Feature 6** → STORY-010-DOCS: Write extensibility documentation (depends: STORY-009-INTEGRATION)
+- **Feature 6** → STORY-011-DOCS: Write extensibility documentation (depends: STORY-010-INTEGRATION)
   - Document evaluator interface pattern (BaseEvaluator)
   - Document tier structure (Tier 1/2/3)
   - Provide TextEvaluator as Tier 3 plugin example
-- **STORY-011-DEMO**: Create demo video (depends: STORY-009-INTEGRATION)
-  - **Status**: Coming Soon
-  - Record server startup and A2A endpoint verification
-  - Show evaluation flow with trace capture
-  - Display multi-tier results (graph, LLM judge, latency)
-  - Max 3 minutes
-
-### Platform Compatibility Checklist
-
-- [ ] CLI interface: `--host`, `--port`, `--card-url` (argparse)
-- [ ] Entry point: argparse-based, not uvicorn factory pattern
-- [ ] Default port: 8000 (local: 8001:8000, platform: 9009)
-- [ ] Endpoints: `/.well-known/agent-card.json` accessible
-- [ ] Validated against: AgentBeats `generate_compose.py`
-- [ ] Docker ENTRYPOINT supports positional CLI args
-- [ ] Agent card URL configurable (for proxies/load balancers)
+- **STORY-012-DEMO**: Create demo video script (depends: STORY-010-INTEGRATION)
+  - Output: `docs/demo-video-script.md` (~3 minutes of content)
+  - Scene 1: Server startup and A2A endpoint verification
+  - Scene 2: Evaluation flow with trace capture
+  - Scene 3: Multi-tier results display (graph, LLM judge, latency)
+  - Include narration text, screen actions, and timing cues
+- **Feature 7** → STORY-013-PURPLE: Implement base Purple Agent (depends: STORY-003-IMPL)
+  - A2A-compliant test fixture
+  - Configurable response patterns
+- **Feature 7** → STORY-014-E2E: Create E2E test suite (depends: STORY-013-PURPLE, STORY-010-INTEGRATION)
+  - Ground truth dataset
+  - Accuracy metrics reporting
 
 ### Dependency Graph
 
@@ -443,31 +513,33 @@ STORY-002-IMPL
     ↓
 STORY-003-TEST
     ↓
-STORY-003-IMPL ─────────────────────┐
-    ↓                               ↓
-STORY-004                    STORY-GRAPH-TEST
-    ↓                               ↓
-STORY-005-TEST               STORY-GRAPH-IMPL
-    ↓                               │
-STORY-005-IMPL                      │
-    ↓                               │
-STORY-006-TEST                      │
-    ↓                               │
-STORY-006-IMPL                      │
-    ↓                               │
-STORY-007-TEST                      │
-    ↓                               │
-STORY-007-IMPL                      │
-    ↓                               │
-STORY-008-TEST                      │
-    ↓                               │
-STORY-008-IMPL ─────────────────────┘
+STORY-003-IMPL ─────────────────────┬───────────────────┐
+    ↓                               ↓                   ↓
+STORY-005                    STORY-004-TEST    STORY-013-PURPLE
+    ↓                               ↓                   │
+STORY-006-TEST               STORY-004-IMPL             │
+    ↓                               │                   │
+STORY-006-IMPL                      │                   │
+    ↓                               │                   │
+STORY-007-TEST                      │                   │
+    ↓                               │                   │
+STORY-007-IMPL                      │                   │
+    ↓                               │                   │
+STORY-008-TEST                      │                   │
+    ↓                               │                   │
+STORY-008-IMPL                      │                   │
+    ↓                               │                   │
+STORY-009-TEST                      │                   │
+    ↓                               │                   │
+STORY-009-IMPL ─────────────────────┘                   │
+    ↓                                                   │
+STORY-010-INTEGRATION ──────────────────────────────────┘
+    │
+    ├──────────────────────┐
+    ↓                      ↓
+STORY-011-DOCS      STORY-014-E2E
     ↓
-STORY-009-INTEGRATION
-    ↓
-STORY-010-DOCS
-    ↓
-STORY-011-DEMO (Coming Soon)
+STORY-012-DEMO (Video Script)
 ```
 
 ### Verification After Each Phase

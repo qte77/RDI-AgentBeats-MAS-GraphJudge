@@ -16,7 +16,7 @@ services:
       dockerfile: Dockerfile.green
     platform: linux/amd64
     ports:
-      - "8001:8000"
+      - "8001:9009"
     networks:
       - agentbeats
     container_name: green
@@ -28,7 +28,7 @@ services:
       dockerfile: Dockerfile.purple
     platform: linux/amd64
     ports:
-      - "8002:8000"
+      - "8002:9009"
     networks:
       - agentbeats
     container_name: purple

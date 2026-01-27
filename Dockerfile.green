@@ -19,9 +19,9 @@ COPY src/green ./src/green/
 # Install the green agent dependencies (a2a-sdk[http-server]>=0.3.0, uvicorn>=0.30.0)
 RUN uv pip install --system -e ".[green]"
 
-# Expose port 8000 for A2A server
-EXPOSE 8000
+# Expose port 9009 for A2A server (AgentBeats platform standard)
+EXPOSE 9009
 
 # Run the green agent server
-# Use python -m to run as module, binding to all interfaces on port 8000
-CMD ["python", "-m", "green.server", "--host", "0.0.0.0", "--port", "8000"]
+# Use python -m to run as module, binding to all interfaces on port 9009
+CMD ["python", "-m", "green.server", "--host", "0.0.0.0", "--port", "9009"]

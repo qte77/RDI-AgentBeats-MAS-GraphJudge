@@ -177,7 +177,8 @@ docs/
 ├── ralph/        # Ralph-loop task tracking
 └── best-practices/  # Language-specific guidelines
 
-src/agentbeats/   # Main package
+src/green/        # Green Agent (Assessor) implementation
+src/purple/       # Purple Agent (test fixture)
 tests/            # Test suite
 ```
 

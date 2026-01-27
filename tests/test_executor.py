@@ -176,3 +176,35 @@ class TestExecutorTaskExecution:
         # Each step should have unique step_id
         step_ids = [trace.step_id for trace in traces]
         assert len(step_ids) == len(set(step_ids))  # All unique
+
+
+class TestExecutorLatencyEvaluation:
+    """Test Executor latency evaluation functionality."""
+
+    def test_executor_has_evaluate_latency_method(self):
+        """Executor includes _evaluate_latency() method for Tier 2 assessment."""
+        executor = Executor()
+        assert hasattr(executor, "_evaluate_latency")
+        assert callable(executor._evaluate_latency)
+
+    async def test_executor_evaluate_latency_returns_metrics(self, mock_messenger):
+        """Executor._evaluate_latency() returns LatencyMetrics."""
+        from green.evals.system import LatencyMetrics
+
+        executor = Executor()
+
+        # Collect traces
+        traces = await executor.execute_task(
+            task_description="Test task", messenger=mock_messenger, agent_url="http://agent.example.com:9009"
+        )
+
+        # Evaluate latency
+        result = executor._evaluate_latency(traces)
+
+        # Should return LatencyMetrics
+        assert isinstance(result, LatencyMetrics)
+        assert hasattr(result, "avg")
+        assert hasattr(result, "p50")
+        assert hasattr(result, "p95")
+        assert hasattr(result, "p99")
+        assert hasattr(result, "slowest_agent")

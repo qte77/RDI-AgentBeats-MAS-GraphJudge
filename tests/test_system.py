@@ -46,7 +46,7 @@ def sample_steps() -> list[InteractionStep]:
             trace_id="trace-1",
             call_type=CallType.AGENT,
             start_time=datetime(2024, 1, 1, 12, 0, 3),
-            end_time=datetime(2024, 1, 1, 12, 0, 3, 1000000),
+            end_time=datetime(2024, 1, 1, 12, 0, 4),
             latency=1000,
         ),
     ]
@@ -105,7 +105,7 @@ def test_evaluate_latency_identifies_slowest_agent(sample_steps: list[Interactio
             trace_id="trace-1",
             call_type=CallType.AGENT,
             start_time=datetime(2024, 1, 1, 12, 0, 1),
-            end_time=datetime(2024, 1, 1, 12, 0, 1, 2000000),
+            end_time=datetime(2024, 1, 1, 12, 0, 3),
             latency=2000,
         ),
     ]

@@ -10,6 +10,7 @@ import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING
 
+from green.evals.system import LatencyMetrics, evaluate_latency
 from green.models import CallType, InteractionStep
 
 if TYPE_CHECKING:
@@ -70,3 +71,17 @@ class Executor:
         finally:
             # Always cleanup messenger connections
             await messenger.close()
+
+    def _evaluate_latency(self, steps: list[InteractionStep]) -> LatencyMetrics:
+        """Evaluate latency metrics from interaction steps.
+
+        Part of Tier 2 assessment. Computes percentiles and identifies
+        performance bottlenecks within the same system/run.
+
+        Args:
+            steps: List of InteractionStep traces to analyze
+
+        Returns:
+            LatencyMetrics with percentiles and slowest agent identification
+        """
+        return evaluate_latency(steps)

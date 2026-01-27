@@ -8,7 +8,7 @@ from __future__ import annotations
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from httpx import AsyncClient
+from httpx import ASGITransport, AsyncClient
 
 from purple.server import create_app
 
@@ -19,14 +19,14 @@ class TestPurpleAgentCard:
     async def test_agent_card_endpoint_exists(self):
         """AgentCard accessible at /.well-known/agent-card.json."""
         app = create_app()
-        async with AsyncClient(app=app, base_url="http://test") as client:
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             response = await client.get("/.well-known/agent-card.json")
             assert response.status_code == 200
 
     async def test_agent_card_has_required_fields(self):
         """AgentCard contains required A2A fields."""
         app = create_app()
-        async with AsyncClient(app=app, base_url="http://test") as client:
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             response = await client.get("/.well-known/agent-card.json")
             card = response.json()
 
@@ -46,7 +46,7 @@ class TestPurpleAgentJSONRPC:
     async def test_supports_jsonrpc_tasks_send(self):
         """Supports A2A JSON-RPC 2.0 protocol with tasks.send method."""
         app = create_app()
-        async with AsyncClient(app=app, base_url="http://test") as client:
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             request = {
                 "jsonrpc": "2.0",
                 "method": "tasks.send",
@@ -69,7 +69,7 @@ class TestPurpleAgentJSONRPC:
     async def test_jsonrpc_method_not_found(self):
         """Returns error for unsupported JSON-RPC methods."""
         app = create_app()
-        async with AsyncClient(app=app, base_url="http://test") as client:
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             request = {
                 "jsonrpc": "2.0",
                 "method": "unsupported.method",
@@ -133,7 +133,7 @@ class TestPurpleAgentHealthCheck:
     async def test_health_check_endpoint(self):
         """Health check endpoint returns healthy status."""
         app = create_app()
-        async with AsyncClient(app=app, base_url="http://test") as client:
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             response = await client.get("/health")
             assert response.status_code == 200
             result = response.json()

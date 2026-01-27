@@ -18,6 +18,7 @@ from green.executor import Executor
 from green.messenger import Messenger
 from green.models import InteractionStep, get_agent_extensions
 
+# TODO: Change to results/results.json (update prd.json STORY-006, STORY-011 first)
 OUTPUT_FILE = Path("output/results.json")
 
 

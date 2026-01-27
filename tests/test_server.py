@@ -141,7 +141,10 @@ async def test_server_delegates_to_executor_and_agent(mock_agent: MagicMock, moc
 async def test_server_writes_results_to_output_file(
     mock_agent: MagicMock, mock_executor: MagicMock, tmp_path: Path
 ) -> None:
-    """Test that server writes evaluation results to output/results.json."""
+    """Test that server writes evaluation results to output/results.json.
+
+    TODO: Change to results/results.json (update prd.json STORY-006, STORY-011 first)
+    """
     from green.server import create_app
 
     output_file = tmp_path / "results.json"

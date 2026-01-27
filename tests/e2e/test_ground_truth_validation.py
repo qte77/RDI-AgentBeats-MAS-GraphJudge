@@ -246,7 +246,12 @@ class TestGreenAgentAccuracyMetrics:
 
 
 def _create_interaction_steps_from_scenario(scenario: dict) -> list:
-    """Convert ground truth scenario to InteractionStep list for evaluation."""
+    """Convert ground truth scenario to InteractionStep list for evaluation.
+
+    Maps ground truth agent interactions to step-based graph representation:
+    - Each agent becomes a root step (no parent_step_id)
+    - Each edge A->B is modeled as a step with parent_step_id=A pointing to B
+    """
     from datetime import datetime, timezone
 
     from green.models import CallType, InteractionStep
@@ -258,9 +263,10 @@ def _create_interaction_steps_from_scenario(scenario: dict) -> list:
     steps = []
     base_time = datetime.now(timezone.utc)
 
-    for i, edge in enumerate(edges):
+    # Create root steps for each agent
+    for agent in agents:
         step = InteractionStep(
-            step_id=f"step_{i}",
+            step_id=agent,
             trace_id="test_trace",
             call_type=CallType.AGENT,
             start_time=base_time,
@@ -269,10 +275,26 @@ def _create_interaction_steps_from_scenario(scenario: dict) -> list:
             error=None,
             parent_step_id=None,
         )
-        # Store edge information for graph construction
-        step.from_agent = edge["from"]  # type: ignore
-        step.to_agent = edge["to"]  # type: ignore
         steps.append(step)
+
+    # Create interaction steps for each edge
+    # Edge from A to B means: create step with parent_step_id=A
+    for i, edge in enumerate(edges):
+        from_agent = edge["from"]
+        to_agent = edge["to"]
+
+        # Create step representing the interaction
+        edge_step = InteractionStep(
+            step_id=f"{from_agent}_to_{to_agent}_{i}",
+            trace_id="test_trace",
+            call_type=CallType.AGENT,
+            start_time=base_time,
+            end_time=base_time,
+            latency=100,
+            error=None,
+            parent_step_id=from_agent,
+        )
+        steps.append(edge_step)
 
     return steps
 

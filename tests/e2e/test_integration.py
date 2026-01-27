@@ -115,18 +115,33 @@ class TestGroundTruthE2EValidation:
 
         base_time = datetime.now(timezone.utc)
 
-        for i, edge in enumerate(scenario["interaction_pattern"]["edges"]):
+        # Create root steps for each agent
+        for agent in scenario["interaction_pattern"]["agents"]:
             step = InteractionStep(
-                step_id=f"step_{i}",
+                step_id=agent,
                 trace_id="e2e_test",
                 call_type=CallType.AGENT,
                 start_time=base_time,
                 end_time=base_time,
                 latency=100,
             )
-            step.from_agent = edge["from"]  # type: ignore
-            step.to_agent = edge["to"]  # type: ignore
             steps.append(step)
+
+        # Create interaction steps for each edge
+        for i, edge in enumerate(scenario["interaction_pattern"]["edges"]):
+            from_agent = edge["from"]
+            to_agent = edge["to"]
+
+            edge_step = InteractionStep(
+                step_id=f"{from_agent}_to_{to_agent}_{i}",
+                trace_id="e2e_test",
+                call_type=CallType.AGENT,
+                start_time=base_time,
+                end_time=base_time,
+                latency=100,
+                parent_step_id=from_agent,
+            )
+            steps.append(edge_step)
 
         # Evaluate with Green Agent
         evaluator = GraphEvaluator()
@@ -162,18 +177,33 @@ class TestGroundTruthE2EValidation:
 
             base_time = datetime.now(timezone.utc)
 
-            for i, edge in enumerate(scenario["interaction_pattern"]["edges"]):
+            # Create root steps for each agent
+            for agent in scenario["interaction_pattern"]["agents"]:
                 step = InteractionStep(
-                    step_id=f"step_{i}",
+                    step_id=agent,
                     trace_id=scenario["id"],
                     call_type=CallType.AGENT,
                     start_time=base_time,
                     end_time=base_time,
                     latency=100,
                 )
-                step.from_agent = edge["from"]  # type: ignore
-                step.to_agent = edge["to"]  # type: ignore
                 steps.append(step)
+
+            # Create interaction steps for each edge
+            for i, edge in enumerate(scenario["interaction_pattern"]["edges"]):
+                from_agent = edge["from"]
+                to_agent = edge["to"]
+
+                edge_step = InteractionStep(
+                    step_id=f"{from_agent}_to_{to_agent}_{i}",
+                    trace_id=scenario["id"],
+                    call_type=CallType.AGENT,
+                    start_time=base_time,
+                    end_time=base_time,
+                    latency=100,
+                    parent_step_id=from_agent,
+                )
+                steps.append(edge_step)
 
             # Evaluate
             metrics = evaluator.evaluate(steps)

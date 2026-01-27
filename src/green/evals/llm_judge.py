@@ -35,6 +35,33 @@ class LLMJudgment(BaseModel):
     - coordination_quality: Qualitative assessment (low/medium/high)
     - strengths: List of observed coordination strengths
     - weaknesses: List of observed coordination weaknesses
+
+    Example output (high coordination):
+    {
+        "overall_score": 0.85,
+        "reasoning": "Agents demonstrated efficient task delegation with clear communication...",
+        "coordination_quality": "high",
+        "strengths": ["Fast response times", "Clear delegation", "No errors"],
+        "weaknesses": ["Could optimize parallel execution"]
+    }
+
+    Example output (moderate coordination):
+    {
+        "overall_score": 0.55,
+        "reasoning": "Coordination was adequate but showed some inefficiencies...",
+        "coordination_quality": "medium",
+        "strengths": ["Task completion achieved", "Basic communication established"],
+        "weaknesses": ["High latency", "Sequential execution", "Bottleneck at coordinator"]
+    }
+
+    Example output (poor coordination):
+    {
+        "overall_score": 0.20,
+        "reasoning": "Significant coordination issues with multiple failures...",
+        "coordination_quality": "low",
+        "strengths": ["Agents attempted communication"],
+        "weaknesses": ["Multiple errors", "Very high latency", "Poor task distribution", "Failed to complete"]
+    }
     """
 
     overall_score: float = Field(ge=0.0, le=1.0)

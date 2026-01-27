@@ -1,0 +1,24 @@
+# AgentBeats Scenario Configuration
+# Based on: https://github.com/RDI-Foundation/agentbeats-leaderboard-template
+#
+# IMPORTANT: agentbeats_id values are assigned by the AgentBeats platform
+# after agent registration. These remain empty until deployment.
+# See docs/AgentBeats/AGENTBEATS_REGISTRATION.md for registration process.
+#
+# Workflow:
+# 1. Register agents on agentbeats.dev
+# 2. Copy assigned IDs (format: "agent_xyz123abc456")
+# 3. Update this file before platform submission
+
+[green_agent]
+agentbeats_id = ""  # Assigned after registration at agentbeats.dev
+env = { API_KEY = "${GITHUB_SECRET_NAME}", LOG_LEVEL = "INFO" }
+
+[[participants]]
+agentbeats_id = ""  # Assigned after registration at agentbeats.dev
+env = {}
+
+[config]
+# Project-specific benchmark configuration
+# max_iterations = 5
+# evaluation_mode = "strict"

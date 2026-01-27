@@ -83,25 +83,26 @@ class GraphEvaluator:
         graph = self._build_graph(traces)
 
         # Compute centrality metrics (pluggable)
-        degree_centrality = nx.degree_centrality(graph)
-        betweenness_centrality = nx.betweenness_centrality(graph)
+        degree_centrality: dict[str, float] = nx.degree_centrality(graph)
+        betweenness_centrality: dict[str, float] = nx.betweenness_centrality(graph)
         closeness_centrality = self._compute_closeness_centrality(graph)
         eigenvector_centrality = self._compute_eigenvector_centrality(graph)
-        pagerank = nx.pagerank(graph)
+        pagerank: dict[str, float] = nx.pagerank(graph)
 
         # Compute structure metrics (pluggable)
-        graph_density = nx.density(graph)
-        clustering_coefficient = nx.average_clustering(graph.to_undirected())
-        connected_components = nx.number_weakly_connected_components(graph)
+        density_result = nx.density(graph)
+        graph_density = float(density_result) if density_result is not None else 0.0  # type: ignore[arg-type]
+        clustering_coefficient: float = nx.average_clustering(graph.to_undirected())
+        connected_components: int = nx.number_weakly_connected_components(graph)
 
         # Compute path metrics (pluggable)
         average_path_length, diameter = self._compute_path_metrics(graph)
 
         # Detect bottlenecks (betweenness > 0.5)
-        bottlenecks = [agent for agent, centrality in betweenness_centrality.items() if centrality > 0.5]
+        bottlenecks: list[str] = [agent for agent, centrality in betweenness_centrality.items() if centrality > 0.5]
 
         # Detect isolated agents (degree = 0)
-        isolated_agents = [agent for agent, degree in degree_centrality.items() if degree == 0.0]
+        isolated_agents: list[str] = [agent for agent, degree in degree_centrality.items() if degree == 0.0]
 
         # Detect over-centralization (single agent > 70% interactions)
         over_centralized = self._detect_over_centralization(graph)
@@ -122,7 +123,7 @@ class GraphEvaluator:
             over_centralized=over_centralized,
         )
 
-    def _build_graph(self, traces: list[InteractionStep]) -> nx.DiGraph:
+    def _build_graph(self, traces: list[InteractionStep]) -> nx.DiGraph[str]:
         """Build directed graph from interaction traces.
 
         Nodes represent agents (identified by step_id).
@@ -134,7 +135,7 @@ class GraphEvaluator:
         Returns:
             Directed graph representing agent interactions
         """
-        graph = nx.DiGraph()
+        graph: nx.DiGraph[str] = nx.DiGraph()
 
         # Add nodes for all steps
         for step in traces:
@@ -147,7 +148,7 @@ class GraphEvaluator:
 
         return graph
 
-    def _compute_closeness_centrality(self, graph: nx.DiGraph) -> dict[str, float]:
+    def _compute_closeness_centrality(self, graph: nx.DiGraph[str]) -> dict[str, float]:
         """Compute closeness centrality with handling for disconnected graphs.
 
         Args:
@@ -160,11 +161,12 @@ class GraphEvaluator:
             return {}
 
         try:
-            return nx.closeness_centrality(graph)
+            result: dict[str, float] = nx.closeness_centrality(graph)
+            return result
         except nx.NetworkXError:
-            return {node: 0.0 for node in graph.nodes()}
+            return {str(node): 0.0 for node in graph.nodes()}
 
-    def _compute_eigenvector_centrality(self, graph: nx.DiGraph) -> dict[str, float]:
+    def _compute_eigenvector_centrality(self, graph: nx.DiGraph[str]) -> dict[str, float]:
         """Compute eigenvector centrality with handling for convergence issues.
 
         Args:
@@ -177,11 +179,12 @@ class GraphEvaluator:
             return {}
 
         try:
-            return nx.eigenvector_centrality(graph, max_iter=1000)
+            result: dict[str, float] = nx.eigenvector_centrality(graph, max_iter=1000)
+            return result
         except (nx.PowerIterationFailedConvergence, nx.NetworkXError):
-            return {node: 0.0 for node in graph.nodes()}
+            return {str(node): 0.0 for node in graph.nodes()}
 
-    def _compute_path_metrics(self, graph: nx.DiGraph) -> tuple[float, int]:
+    def _compute_path_metrics(self, graph: nx.DiGraph[str]) -> tuple[float, int]:
         """Compute path metrics (average path length and diameter).
 
         Handles disconnected graphs by computing metrics on largest component.
@@ -198,28 +201,29 @@ class GraphEvaluator:
         # For disconnected graphs, compute on largest weakly connected component
         if not nx.is_weakly_connected(graph):
             # Get largest weakly connected component
-            largest_cc = max(nx.weakly_connected_components(graph), key=len)
+            components = list(nx.weakly_connected_components(graph))
+            largest_cc = max(components, key=len)
             subgraph = graph.subgraph(largest_cc)
 
             if len(subgraph) <= 1:
                 return 0.0, 0
 
             try:
-                avg_path_length = nx.average_shortest_path_length(subgraph)
-                diameter = nx.diameter(subgraph)
+                avg_path_length: float = nx.average_shortest_path_length(subgraph)
+                diameter: int = nx.diameter(subgraph)
                 return avg_path_length, diameter
             except nx.NetworkXError:
                 return 0.0, 0
 
         # For connected graphs
         try:
-            avg_path_length = nx.average_shortest_path_length(graph)
-            diameter = nx.diameter(graph)
-            return avg_path_length, diameter
+            avg_path_length_connected: float = nx.average_shortest_path_length(graph)
+            diameter_connected: int = nx.diameter(graph)
+            return avg_path_length_connected, diameter_connected
         except nx.NetworkXError:
             return 0.0, 0
 
-    def _detect_over_centralization(self, graph: nx.DiGraph) -> bool:
+    def _detect_over_centralization(self, graph: nx.DiGraph[str]) -> bool:
         """Detect over-centralization (single agent handles > 70% interactions).
 
         Args:
@@ -237,7 +241,9 @@ class GraphEvaluator:
 
         # Check if any single node has > 70% of total degree (in + out)
         for node in graph.nodes():
-            node_degree = graph.in_degree(node) + graph.out_degree(node)
+            in_deg: int = graph.in_degree(node)
+            out_deg: int = graph.out_degree(node)
+            node_degree = in_deg + out_deg
             if node_degree / (2 * total_edges) > 0.7:
                 return True
 

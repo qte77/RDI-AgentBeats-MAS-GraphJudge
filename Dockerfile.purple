@@ -19,9 +19,9 @@ COPY src/purple ./src/purple/
 # Install the purple agent dependencies (a2a-sdk[http-server]>=0.3.0, uvicorn>=0.30.0)
 RUN uv pip install --system -e ".[purple]"
 
-# Expose port 9009 for A2A server (AgentBeats platform standard)
-EXPOSE 9009
+# Expose port 9010 for A2A server (Purple Agent standard)
+EXPOSE 9010
 
 # Run the purple agent server
-# Use python -m to run as module, binding to all interfaces on port 9009
-CMD ["python", "-m", "purple.server", "--host", "0.0.0.0", "--port", "9009"]
+# Use python -m to run as module, binding to all interfaces on port 9010
+CMD ["python", "-m", "purple.server", "--host", "0.0.0.0", "--port", "9010"]

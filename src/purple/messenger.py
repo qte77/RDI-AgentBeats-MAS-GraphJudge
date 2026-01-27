@@ -47,7 +47,7 @@ class Messenger:
         # Send message and iterate over events
         async for result in client.send_message(msg, extensions=extensions):
             if isinstance(result, tuple):
-                task, _event = result
+                task, _ = result
                 if task.status.state == TaskState.completed:
                     # Extract response from completed task artifacts
                     if task.artifacts:

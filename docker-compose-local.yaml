@@ -28,7 +28,7 @@ services:
       dockerfile: Dockerfile.purple
     platform: linux/amd64
     ports:
-      - "8002:9009"
+      - "8002:9010"
     networks:
       - agentbeats
     container_name: purple

@@ -11,7 +11,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from pydantic import BaseModel
 
 from green.agent import Agent
@@ -49,7 +49,7 @@ def create_app() -> FastAPI:
     app = FastAPI(title="Green Agent A2A Server")
 
     @app.get("/.well-known/agent-card.json")
-    async def get_agent_card() -> dict[str, Any]:
+    async def get_agent_card() -> dict[str, Any]:  # pyright: ignore[reportUnusedFunction]
         """Return AgentCard per A2A protocol specification.
 
         Returns:
@@ -58,7 +58,9 @@ def create_app() -> FastAPI:
         return {
             "agentId": "green-agent",
             "name": "Green Agent (Assessor)",
-            "description": "Multi-agent coordination quality evaluator using graph analysis, LLM assessment, and latency metrics",
+            "description": (
+                "Multi-agent coordination quality evaluator using graph analysis, LLM assessment, and latency metrics"
+            ),
             "capabilities": {
                 "protocols": ["a2a"],
                 "extensions": get_agent_extensions(),
@@ -70,7 +72,7 @@ def create_app() -> FastAPI:
         }
 
     @app.get("/health")
-    async def health_check() -> dict[str, str]:
+    async def health_check() -> dict[str, str]:  # pyright: ignore[reportUnusedFunction]
         """Health check endpoint.
 
         Returns:
@@ -79,7 +81,7 @@ def create_app() -> FastAPI:
         return {"status": "healthy"}
 
     @app.post("/")
-    async def handle_jsonrpc(request: JSONRPCRequest) -> JSONRPCResponse:
+    async def handle_jsonrpc(request: JSONRPCRequest) -> JSONRPCResponse:  # pyright: ignore[reportUnusedFunction]
         """Handle A2A JSON-RPC 2.0 protocol requests.
 
         Args:

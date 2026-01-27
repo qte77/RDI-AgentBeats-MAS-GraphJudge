@@ -57,9 +57,7 @@ class TestMessengerInitialization:
         # Should only connect once for same URL
         assert mock_client_factory.connect.call_count == 1
 
-    async def test_messenger_creates_separate_clients_for_different_urls(
-        self, mock_client_factory, mock_client
-    ):
+    async def test_messenger_creates_separate_clients_for_different_urls(self, mock_client_factory, mock_client):
         """Different URLs get different clients."""
         mock_client_factory.connect.return_value = mock_client
 
@@ -74,9 +72,7 @@ class TestMessengerInitialization:
 class TestMessengerMessageSending:
     """Test message sending with A2A SDK."""
 
-    async def test_messenger_creates_messages_via_create_text_message_object(
-        self, mock_client_factory, mock_client
-    ):
+    async def test_messenger_creates_messages_via_create_text_message_object(self, mock_client_factory, mock_client):
         """Messages created via create_text_message_object()."""
         mock_client_factory.connect.return_value = mock_client
 
@@ -92,9 +88,7 @@ class TestMessengerMessageSending:
             # Verify message was sent via client
             mock_client.send_message.assert_called_once_with(mock_message, extensions=None)
 
-    async def test_messenger_extracts_response_from_completed_events(
-        self, mock_client_factory, mock_client
-    ):
+    async def test_messenger_extracts_response_from_completed_events(self, mock_client_factory, mock_client):
         """Response extracted from TaskState.completed events."""
         from a2a.types import Task, TaskState
 

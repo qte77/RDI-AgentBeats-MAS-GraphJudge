@@ -6,7 +6,7 @@ RED phase: These tests should FAIL initially since Executor doesn't exist yet.
 from __future__ import annotations
 
 from datetime import datetime
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 

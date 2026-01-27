@@ -5,10 +5,8 @@ RED phase: These tests should FAIL initially since InteractionStep model doesn't
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
-
-import pytest
 
 from green.models import CallType, InteractionStep
 
@@ -41,8 +39,8 @@ class TestInteractionStepModel:
             step_id="step-001",
             trace_id="trace-123",
             call_type=CallType.AGENT,
-            start_time=datetime.now(timezone.utc),
-            end_time=datetime.now(timezone.utc),
+            start_time=datetime.now(UTC),
+            end_time=datetime.now(UTC),
         )
         assert step.step_id == "step-001"
 
@@ -52,8 +50,8 @@ class TestInteractionStepModel:
             step_id="step-001",
             trace_id="trace-123",
             call_type=CallType.AGENT,
-            start_time=datetime.now(timezone.utc),
-            end_time=datetime.now(timezone.utc),
+            start_time=datetime.now(UTC),
+            end_time=datetime.now(UTC),
         )
         assert step.trace_id == "trace-123"
 
@@ -63,27 +61,27 @@ class TestInteractionStepModel:
             step_id="step-001",
             trace_id="trace-123",
             call_type=CallType.TOOL,
-            start_time=datetime.now(timezone.utc),
-            end_time=datetime.now(timezone.utc),
+            start_time=datetime.now(UTC),
+            end_time=datetime.now(UTC),
         )
         assert step.call_type == CallType.TOOL
 
     def test_interaction_step_has_start_time_field(self):
         """InteractionStep model includes start_time field."""
-        start = datetime.now(timezone.utc)
+        start = datetime.now(UTC)
         step = InteractionStep(
             step_id="step-001",
             trace_id="trace-123",
             call_type=CallType.AGENT,
             start_time=start,
-            end_time=datetime.now(timezone.utc),
+            end_time=datetime.now(UTC),
         )
         assert step.start_time == start
 
     def test_interaction_step_has_end_time_field(self):
         """InteractionStep model includes end_time field."""
-        start = datetime.now(timezone.utc)
-        end = datetime.now(timezone.utc)
+        start = datetime.now(UTC)
+        end = datetime.now(UTC)
         step = InteractionStep(
             step_id="step-001",
             trace_id="trace-123",
@@ -99,8 +97,8 @@ class TestInteractionStepModel:
             step_id="step-001",
             trace_id="trace-123",
             call_type=CallType.AGENT,
-            start_time=datetime.now(timezone.utc),
-            end_time=datetime.now(timezone.utc),
+            start_time=datetime.now(UTC),
+            end_time=datetime.now(UTC),
             latency=150,
         )
         assert step.latency == 150
@@ -111,8 +109,8 @@ class TestInteractionStepModel:
             step_id="step-001",
             trace_id="trace-123",
             call_type=CallType.AGENT,
-            start_time=datetime.now(timezone.utc),
-            end_time=datetime.now(timezone.utc),
+            start_time=datetime.now(UTC),
+            end_time=datetime.now(UTC),
             error="Connection timeout",
         )
         assert step.error == "Connection timeout"
@@ -123,8 +121,8 @@ class TestInteractionStepModel:
             step_id="step-001",
             trace_id="trace-123",
             call_type=CallType.AGENT,
-            start_time=datetime.now(timezone.utc),
-            end_time=datetime.now(timezone.utc),
+            start_time=datetime.now(UTC),
+            end_time=datetime.now(UTC),
         )
         assert step.error is None
 
@@ -134,8 +132,8 @@ class TestInteractionStepModel:
             step_id="step-002",
             trace_id="trace-123",
             call_type=CallType.TOOL,
-            start_time=datetime.now(timezone.utc),
-            end_time=datetime.now(timezone.utc),
+            start_time=datetime.now(UTC),
+            end_time=datetime.now(UTC),
             parent_step_id="step-001",
         )
         assert step.parent_step_id == "step-001"
@@ -146,8 +144,8 @@ class TestInteractionStepModel:
             step_id="step-001",
             trace_id="trace-123",
             call_type=CallType.AGENT,
-            start_time=datetime.now(timezone.utc),
-            end_time=datetime.now(timezone.utc),
+            start_time=datetime.now(UTC),
+            end_time=datetime.now(UTC),
         )
         assert step.parent_step_id is None
 
@@ -161,8 +159,8 @@ class TestCallTypeClassification:
             step_id="step-001",
             trace_id="trace-123",
             call_type=CallType.AGENT,
-            start_time=datetime.now(timezone.utc),
-            end_time=datetime.now(timezone.utc),
+            start_time=datetime.now(UTC),
+            end_time=datetime.now(UTC),
         )
         assert step.call_type == CallType.AGENT
 
@@ -172,8 +170,8 @@ class TestCallTypeClassification:
             step_id="step-002",
             trace_id="trace-123",
             call_type=CallType.TOOL,
-            start_time=datetime.now(timezone.utc),
-            end_time=datetime.now(timezone.utc),
+            start_time=datetime.now(UTC),
+            end_time=datetime.now(UTC),
         )
         assert step.call_type == CallType.TOOL
 
@@ -183,8 +181,8 @@ class TestCallTypeClassification:
             step_id="step-003",
             trace_id="trace-123",
             call_type=CallType.HOST,
-            start_time=datetime.now(timezone.utc),
-            end_time=datetime.now(timezone.utc),
+            start_time=datetime.now(UTC),
+            end_time=datetime.now(UTC),
         )
         assert step.call_type == CallType.HOST
 
@@ -198,16 +196,16 @@ class TestInteractionStepA2AConformance:
             step_id="step-001",
             trace_id="trace-123",
             call_type=CallType.AGENT,
-            start_time=datetime.now(timezone.utc),
-            end_time=datetime.now(timezone.utc),
+            start_time=datetime.now(UTC),
+            end_time=datetime.now(UTC),
         )
 
         child_step = InteractionStep(
             step_id="step-002",
             trace_id="trace-123",
             call_type=CallType.TOOL,
-            start_time=datetime.now(timezone.utc),
-            end_time=datetime.now(timezone.utc),
+            start_time=datetime.now(UTC),
+            end_time=datetime.now(UTC),
             parent_step_id=parent_step.step_id,
         )
 
@@ -220,8 +218,8 @@ class TestInteractionStepA2AConformance:
             step_id="step-001",
             trace_id="trace-123",
             call_type=CallType.AGENT,
-            start_time=datetime.now(timezone.utc),
-            end_time=datetime.now(timezone.utc),
+            start_time=datetime.now(UTC),
+            end_time=datetime.now(UTC),
             latency=250,
         )
         # Latency should be a positive integer representing milliseconds

@@ -39,9 +39,7 @@ class Agent:
         self.llm_judge = llm_judge
         self.latency_evaluator = latency_evaluator
 
-    async def evaluate(
-        self, traces: list[InteractionStep]
-    ) -> dict[str, Any]:
+    async def evaluate(self, traces: list[InteractionStep]) -> dict[str, Any]:
         """Evaluate agent coordination quality across all tiers.
 
         Orchestrates evaluation in two tiers:
@@ -69,9 +67,7 @@ class Agent:
         tier2_latency = await self._evaluate_tier2_latency(traces)
 
         # Generate coordination summary
-        coordination_summary = self._generate_coordination_summary(
-            tier1_graph, tier2_llm, tier2_latency
-        )
+        coordination_summary = self._generate_coordination_summary(tier1_graph, tier2_llm, tier2_latency)
 
         return {
             "tier1_graph": tier1_graph,
@@ -80,9 +76,7 @@ class Agent:
             "coordination_summary": coordination_summary,
         }
 
-    async def _evaluate_tier1_graph(
-        self, traces: list[InteractionStep]
-    ) -> dict[str, Any] | None:
+    async def _evaluate_tier1_graph(self, traces: list[InteractionStep]) -> dict[str, Any] | None:
         """Execute Tier 1 graph evaluation.
 
         Args:
@@ -111,15 +105,11 @@ class Agent:
             LLM evaluation results or None if evaluation fails
         """
         try:
-            return await self.llm_judge.evaluate(
-                traces, graph_results=graph_results
-            )
+            return await self.llm_judge.evaluate(traces, graph_results=graph_results)
         except Exception as e:
             return {"error": str(e)}
 
-    async def _evaluate_tier2_latency(
-        self, traces: list[InteractionStep]
-    ) -> dict[str, Any] | None:
+    async def _evaluate_tier2_latency(self, traces: list[InteractionStep]) -> dict[str, Any] | None:
         """Execute Tier 2 latency evaluation.
 
         Args:
@@ -179,18 +169,11 @@ class Agent:
         overall_score = (
             weights["graph"] * quality_scores.get(graph_quality, 0.0)
             + weights["semantic"] * quality_scores.get(semantic_quality, 0.0)
-            + weights["performance"]
-            * quality_scores.get(performance_quality, 0.0)
+            + weights["performance"] * quality_scores.get(performance_quality, 0.0)
         )
 
         return {
-            "overall_quality": (
-                "high"
-                if overall_score > 0.7
-                else "medium"
-                if overall_score > 0.4
-                else "low"
-            ),
+            "overall_quality": ("high" if overall_score > 0.7 else "medium" if overall_score > 0.4 else "low"),
             "overall_score": overall_score,
             "graph_quality": graph_quality,
             "semantic_quality": semantic_quality,

@@ -6,10 +6,33 @@ metrics using graph theory.
 
 from __future__ import annotations
 
+from abc import ABC, abstractmethod
+from typing import Any
+
 import networkx as nx
 from pydantic import BaseModel
 
 from green.models import InteractionStep
+
+
+class GraphMetricPlugin(ABC):
+    """Base interface for graph metric plugins.
+
+    Enables adding custom metrics without modifying core GraphEvaluator code.
+    Each metric plugin computes a single metric from the graph.
+    """
+
+    @abstractmethod
+    def compute(self, graph: nx.DiGraph[str]) -> Any:
+        """Compute metric from graph.
+
+        Args:
+            graph: Directed graph representing agent interactions
+
+        Returns:
+            Computed metric value (type depends on specific metric)
+        """
+        pass
 
 
 class GraphMetrics(BaseModel):
@@ -34,6 +57,8 @@ class GraphMetrics(BaseModel):
         over_centralized: True if single agent handles > 70% interactions
     """
 
+    model_config = {"extra": "allow"}
+
     degree_centrality: dict[str, float]
     betweenness_centrality: dict[str, float]
     closeness_centrality: dict[str, float]
@@ -49,6 +74,75 @@ class GraphMetrics(BaseModel):
     over_centralized: bool
 
 
+class DegreeCentralityPlugin(GraphMetricPlugin):
+    """Degree centrality metric plugin."""
+
+    def compute(self, graph: nx.DiGraph[str]) -> dict[str, float]:
+        return nx.degree_centrality(graph)
+
+
+class BetweennessCentralityPlugin(GraphMetricPlugin):
+    """Betweenness centrality metric plugin."""
+
+    def compute(self, graph: nx.DiGraph[str]) -> dict[str, float]:
+        return nx.betweenness_centrality(graph)
+
+
+class ClosenessCentralityPlugin(GraphMetricPlugin):
+    """Closeness centrality metric plugin with disconnected graph handling."""
+
+    def compute(self, graph: nx.DiGraph[str]) -> dict[str, float]:
+        if len(graph) == 0:
+            return {}
+        try:
+            result: dict[str, float] = nx.closeness_centrality(graph)
+            return result
+        except nx.NetworkXError:
+            return {str(node): 0.0 for node in graph.nodes()}
+
+
+class EigenvectorCentralityPlugin(GraphMetricPlugin):
+    """Eigenvector centrality metric plugin with convergence handling."""
+
+    def compute(self, graph: nx.DiGraph[str]) -> dict[str, float]:
+        if len(graph) == 0:
+            return {}
+        try:
+            result: dict[str, float] = nx.eigenvector_centrality(graph, max_iter=1000)
+            return result
+        except (nx.PowerIterationFailedConvergence, nx.NetworkXError):
+            return {str(node): 0.0 for node in graph.nodes()}
+
+
+class PageRankPlugin(GraphMetricPlugin):
+    """PageRank metric plugin."""
+
+    def compute(self, graph: nx.DiGraph[str]) -> dict[str, float]:
+        return nx.pagerank(graph)
+
+
+class GraphDensityPlugin(GraphMetricPlugin):
+    """Graph density metric plugin."""
+
+    def compute(self, graph: nx.DiGraph[str]) -> float:
+        density_result: float = nx.density(graph)  # type: ignore[assignment]
+        return density_result
+
+
+class ClusteringCoefficientPlugin(GraphMetricPlugin):
+    """Clustering coefficient metric plugin."""
+
+    def compute(self, graph: nx.DiGraph[str]) -> float:
+        return nx.average_clustering(graph.to_undirected())
+
+
+class ConnectedComponentsPlugin(GraphMetricPlugin):
+    """Connected components count metric plugin."""
+
+    def compute(self, graph: nx.DiGraph[str]) -> int:
+        return nx.number_weakly_connected_components(graph)
+
+
 class GraphEvaluator:
     """Graph-based coordination analysis evaluator.
 
@@ -57,8 +151,27 @@ class GraphEvaluator:
     """
 
     def __init__(self) -> None:
-        """Initialize graph evaluator."""
-        pass
+        """Initialize graph evaluator with built-in metric plugins."""
+        self._plugins: dict[str, GraphMetricPlugin] = {}
+
+        # Register built-in plugins
+        self.register_plugin("degree_centrality", DegreeCentralityPlugin())
+        self.register_plugin("betweenness_centrality", BetweennessCentralityPlugin())
+        self.register_plugin("closeness_centrality", ClosenessCentralityPlugin())
+        self.register_plugin("eigenvector_centrality", EigenvectorCentralityPlugin())
+        self.register_plugin("pagerank", PageRankPlugin())
+        self.register_plugin("graph_density", GraphDensityPlugin())
+        self.register_plugin("clustering_coefficient", ClusteringCoefficientPlugin())
+        self.register_plugin("connected_components", ConnectedComponentsPlugin())
+
+    def register_plugin(self, name: str, plugin: GraphMetricPlugin) -> None:
+        """Register a custom metric plugin.
+
+        Args:
+            name: Plugin name (will be used as key in metrics output)
+            plugin: GraphMetricPlugin instance
+        """
+        self._plugins[name] = plugin
 
     async def evaluate(self, traces: list[InteractionStep]) -> GraphMetrics:
         """Evaluate coordination quality using graph analysis.
@@ -82,20 +195,22 @@ class GraphEvaluator:
         # Build directed graph from traces
         graph = self._build_graph(traces)
 
-        # Compute centrality metrics (pluggable)
-        degree_centrality: dict[str, float] = nx.degree_centrality(graph)
-        betweenness_centrality: dict[str, float] = nx.betweenness_centrality(graph)
-        closeness_centrality = self._compute_closeness_centrality(graph)
-        eigenvector_centrality = self._compute_eigenvector_centrality(graph)
-        pagerank: dict[str, float] = nx.pagerank(graph)
+        # Compute all registered plugin metrics
+        plugin_results: dict[str, Any] = {}
+        for name, plugin in self._plugins.items():
+            plugin_results[name] = plugin.compute(graph)
 
-        # Compute structure metrics (pluggable)
-        density_result = nx.density(graph)
-        graph_density = float(density_result) if density_result is not None else 0.0  # type: ignore[arg-type]
-        clustering_coefficient: float = nx.average_clustering(graph.to_undirected())
-        connected_components: int = nx.number_weakly_connected_components(graph)
+        # Extract required metrics from plugin results with type assertions
+        degree_centrality: dict[str, float] = plugin_results.get("degree_centrality", {})
+        betweenness_centrality: dict[str, float] = plugin_results.get("betweenness_centrality", {})
+        closeness_centrality: dict[str, float] = plugin_results.get("closeness_centrality", {})
+        eigenvector_centrality: dict[str, float] = plugin_results.get("eigenvector_centrality", {})
+        pagerank: dict[str, float] = plugin_results.get("pagerank", {})
+        graph_density: float = plugin_results.get("graph_density", 0.0)
+        clustering_coefficient: float = plugin_results.get("clustering_coefficient", 0.0)
+        connected_components: int = plugin_results.get("connected_components", 0)
 
-        # Compute path metrics (pluggable)
+        # Compute path metrics (not yet pluginized)
         average_path_length, diameter = self._compute_path_metrics(graph)
 
         # Detect bottlenecks (betweenness > 0.5)
@@ -107,21 +222,39 @@ class GraphEvaluator:
         # Detect over-centralization (single agent > 70% interactions)
         over_centralized = self._detect_over_centralization(graph)
 
-        return GraphMetrics(
-            degree_centrality=degree_centrality,
-            betweenness_centrality=betweenness_centrality,
-            closeness_centrality=closeness_centrality,
-            eigenvector_centrality=eigenvector_centrality,
-            pagerank=pagerank,
-            graph_density=graph_density,
-            clustering_coefficient=clustering_coefficient,
-            connected_components=connected_components,
-            average_path_length=average_path_length,
-            diameter=diameter,
-            bottlenecks=bottlenecks,
-            isolated_agents=isolated_agents,
-            over_centralized=over_centralized,
-        )
+        # Build metrics dict with required fields
+        metrics_dict: dict[str, Any] = {
+            "degree_centrality": degree_centrality,
+            "betweenness_centrality": betweenness_centrality,
+            "closeness_centrality": closeness_centrality,
+            "eigenvector_centrality": eigenvector_centrality,
+            "pagerank": pagerank,
+            "graph_density": graph_density,
+            "clustering_coefficient": clustering_coefficient,
+            "connected_components": connected_components,
+            "average_path_length": average_path_length,
+            "diameter": diameter,
+            "bottlenecks": bottlenecks,
+            "isolated_agents": isolated_agents,
+            "over_centralized": over_centralized,
+        }
+
+        # Add custom plugin results (those not in built-in metrics)
+        builtin_keys = {
+            "degree_centrality",
+            "betweenness_centrality",
+            "closeness_centrality",
+            "eigenvector_centrality",
+            "pagerank",
+            "graph_density",
+            "clustering_coefficient",
+            "connected_components",
+        }
+        for key, value in plugin_results.items():
+            if key not in builtin_keys:
+                metrics_dict[key] = value
+
+        return GraphMetrics(**metrics_dict)
 
     def _build_graph(self, traces: list[InteractionStep]) -> nx.DiGraph[str]:
         """Build directed graph from interaction traces.
@@ -147,42 +280,6 @@ class GraphEvaluator:
                 graph.add_edge(step.parent_step_id, step.step_id)
 
         return graph
-
-    def _compute_closeness_centrality(self, graph: nx.DiGraph[str]) -> dict[str, float]:
-        """Compute closeness centrality with handling for disconnected graphs.
-
-        Args:
-            graph: Directed graph
-
-        Returns:
-            Closeness centrality for each agent
-        """
-        if len(graph) == 0:
-            return {}
-
-        try:
-            result: dict[str, float] = nx.closeness_centrality(graph)
-            return result
-        except nx.NetworkXError:
-            return {str(node): 0.0 for node in graph.nodes()}
-
-    def _compute_eigenvector_centrality(self, graph: nx.DiGraph[str]) -> dict[str, float]:
-        """Compute eigenvector centrality with handling for convergence issues.
-
-        Args:
-            graph: Directed graph
-
-        Returns:
-            Eigenvector centrality for each agent
-        """
-        if len(graph) == 0:
-            return {}
-
-        try:
-            result: dict[str, float] = nx.eigenvector_centrality(graph, max_iter=1000)
-            return result
-        except (nx.PowerIterationFailedConvergence, nx.NetworkXError):
-            return {str(node): 0.0 for node in graph.nodes()}
 
     def _compute_path_metrics(self, graph: nx.DiGraph[str]) -> tuple[float, int]:
         """Compute path metrics (average path length and diameter).

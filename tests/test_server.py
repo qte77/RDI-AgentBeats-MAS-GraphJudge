@@ -34,6 +34,13 @@ def mock_executor() -> MagicMock:
     """Mock Executor instance for testing."""
     executor = MagicMock()
     executor.execute_task = AsyncMock(return_value=[])
+    executor.evaluate_all = AsyncMock(
+        return_value={
+            "tier1_graph": {"graph_density": 0.5},
+            "tier2_llm": {"overall_score": 0.8},
+            "tier2_latency": {"avg_latency": 1000},
+        }
+    )
     return executor
 
 
@@ -73,10 +80,7 @@ async def test_server_handles_a2a_jsonrpc_request(mock_agent: MagicMock, mock_ex
     """Test that server handles A2A JSON-RPC protocol requests."""
     from green.server import create_app
 
-    with (
-        patch("green.server.Agent", return_value=mock_agent),
-        patch("green.server.Executor", return_value=mock_executor),
-    ):
+    with patch("green.server.Executor", return_value=mock_executor):
         app = create_app()
 
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
@@ -106,13 +110,10 @@ async def test_server_handles_a2a_jsonrpc_request(mock_agent: MagicMock, mock_ex
 
 
 async def test_server_delegates_to_executor_and_agent(mock_agent: MagicMock, mock_executor: MagicMock) -> None:
-    """Test that server delegates task execution to Executor -> Agent."""
+    """Test that server delegates task execution to Executor."""
     from green.server import create_app
 
-    with (
-        patch("green.server.Agent", return_value=mock_agent),
-        patch("green.server.Executor", return_value=mock_executor),
-    ):
+    with patch("green.server.Executor", return_value=mock_executor):
         app = create_app()
 
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
@@ -133,8 +134,8 @@ async def test_server_delegates_to_executor_and_agent(mock_agent: MagicMock, moc
             # Verify Executor was called
             mock_executor.execute_task.assert_called_once()
 
-            # Verify Agent.evaluate was called with traces
-            mock_agent.evaluate.assert_called_once()
+            # Verify Executor.evaluate_all was called with traces
+            mock_executor.evaluate_all.assert_called_once()
 
 
 async def test_server_writes_results_to_output_file(
@@ -146,7 +147,6 @@ async def test_server_writes_results_to_output_file(
     output_file = tmp_path / "results.json"
 
     with (
-        patch("green.server.Agent", return_value=mock_agent),
         patch("green.server.Executor", return_value=mock_executor),
         patch("green.server.OUTPUT_FILE", output_file),
     ):
@@ -203,10 +203,7 @@ async def test_server_handles_multiple_concurrent_requests(mock_agent: MagicMock
     """Test that server can handle multiple concurrent requests."""
     from green.server import create_app
 
-    with (
-        patch("green.server.Agent", return_value=mock_agent),
-        patch("green.server.Executor", return_value=mock_executor),
-    ):
+    with patch("green.server.Executor", return_value=mock_executor):
         app = create_app()
 
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:

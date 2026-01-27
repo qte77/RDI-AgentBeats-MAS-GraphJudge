@@ -122,22 +122,36 @@ def create_app() -> FastAPI:
                 agent_url="http://localhost:9009",  # Placeholder
             )
 
-            # Evaluate traces via Agent
-            # Create mock evaluators for minimal implementation
-            from unittest.mock import AsyncMock, MagicMock
+            # Create evaluator instances
+            # Graph evaluator (Tier 1) - placeholder until STORY-014
+            graph_evaluator = None  # Will be implemented in STORY-014
 
-            mock_graph = MagicMock()
-            mock_graph.evaluate = AsyncMock(return_value={"graph_density": 0.5})
+            # LLM Judge (Tier 2) - use evaluator wrapper
+            from green.evals.llm_judge import llm_evaluate
 
-            mock_llm = MagicMock()
-            mock_llm.evaluate = AsyncMock(return_value={"overall_score": 0.8})
+            class LLMJudgeEvaluator:
+                async def evaluate(self, traces, graph_results=None):
+                    return await llm_evaluate(traces, graph_metrics=graph_results)
 
-            mock_latency = MagicMock()
-            mock_latency.evaluate = AsyncMock(return_value={"avg_latency": 1000})
+            llm_judge = LLMJudgeEvaluator()
 
-            agent = Agent(graph_evaluator=mock_graph, llm_judge=mock_llm, latency_evaluator=mock_latency)
+            # Latency evaluator (Tier 2) - use evaluator wrapper
+            from green.evals.system import evaluate_latency
 
-            evaluation_results = await agent.evaluate(traces)
+            class LatencyEvaluator:
+                async def evaluate(self, traces):
+                    metrics = evaluate_latency(traces)
+                    return metrics.model_dump()
+
+            latency_evaluator = LatencyEvaluator()
+
+            # Evaluate all traces using executor pipeline
+            evaluation_results = await executor.evaluate_all(
+                traces=traces,
+                graph_evaluator=graph_evaluator,
+                llm_judge=llm_judge,
+                latency_evaluator=latency_evaluator,
+            )
 
             # Write results to output file
             OUTPUT_FILE.parent.mkdir(parents=True, exist_ok=True)

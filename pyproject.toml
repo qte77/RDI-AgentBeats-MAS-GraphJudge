@@ -24,6 +24,7 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "complexipy>=0.6.0",
     "pymarkdownlnt>=0.9.34",
     "pyright>=1.1.408",
     "ruff>=0.14.11",
@@ -35,45 +36,42 @@ test = [
 ]
 
 [tool.uv]
-exclude-newer = "2026-01-25T00:00:00Z"
+exclude-newer = "2026-01-26T00:00:00Z"
 
 [tool.pyright]
-include = ["src"]
+pythonVersion = "3.13"
+include = ["src", "tests"]
+typeCheckingMode = "strict"
 extraPaths = ["./venv/lib/python3.13/site-packages"]
 useLibraryCodeForTypes = true
-pythonVersion = "3.13"
-typeCheckingMode = "strict"
-reportMissingTypeStubs = "none"
+reportMissingImports = true
+reportMissingTypeStubs = false
 reportUnknownMemberType = "none"
 reportUnknownVariableType = "none"
 
 [tool.ruff]
 target-version = "py313"
 src = ["src", "tests"]
-line-length = 120
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP"]
+# ignore = ["E203"]  # Whitespace before ':'
+unfixable = ["B"]
 
 [tool.ruff.format]
 docstring-code-format = true
 
-[tool.ruff.lint]
-# ignore = ["E203"]  # Whitespace before ':'
-unfixable = ["B"]
-select = [
-    # pycodestyle
-    "E",
-    # Pyflakes
-    "F",
-    # pyupgrade
-    "UP",
-    # isort
-    "I",
-]
+[tool.ruff.lint.pydocstyle]
+convention = "google"
 
 [tool.ruff.lint.isort]
 known-first-party = ["src", "tests"]
 
-[tool.ruff.lint.pydocstyle]
-convention = "google"
+[tool.complexipy]
+paths = ["src"]
+max-complexity-allowed = 15
+exclude = ["tests/*"]
 
 [tool.pytest.ini_options]
 addopts = "--strict-markers"  # addopts = "-v --tb=short"
@@ -82,7 +80,6 @@ asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 pythonpath = ["src"]
 testpaths = ["tests"]
-# "integration: marks tests as integration tests (requires docker-compose services running)"
 markers = [
     "integration: marks tests as integration tests",
     "benchmark: marks tests as benchmark tests",

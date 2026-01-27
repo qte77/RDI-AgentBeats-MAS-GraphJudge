@@ -5,7 +5,7 @@
 
 .SILENT:
 .ONESHELL:
-.PHONY: setup_dev setup_claude_code setup_sandbox setup_project setup_devc_project setup_devc_template run_markdownlint ruff test_all type_check validate quick_validate ralph_userstory ralph_prd_md ralph_prd_json ralph_init ralph_run ralph_status ralph_clean ralph_reorganize help
+.PHONY: setup_dev setup_claude_code setup_sandbox setup_project setup_devc_project setup_devc_template markdownlint ruff complexity test_all test_quick test_coverage type_check validate quick_validate ralph_userstory ralph_prd_md ralph_prd_json ralph_init ralph_run ralph_status ralph_clean ralph_reorganize help
 .DEFAULT_GOAL := help
 
 
@@ -67,18 +67,30 @@ ruff:  ## Lint: Format and check with ruff
 	uv run ruff format --exclude tests
 	uv run ruff check --fix --exclude tests
 
+complexity:  ## Check cognitive complexity with complexipy
+	uv run complexipy
+
 test_all:  ## Run all tests
 	uv run pytest
+
+test_quick:  ## Quick test - rerun only failed tests (use during fix iterations)
+	uv run pytest --lf -x
+
+test_coverage:  ## Run tests with coverage threshold (configured in pyproject.toml)
+	echo "Running tests with coverage gate (fail_under=70% in pyproject.toml)..."
+	uv run pytest --cov
 
 type_check:  ## Check for static typing errors
 	uv run pyright src
 
 validate:  ## Complete pre-commit validation sequence
-	echo "Running complete validation sequence ..."
+	set -e
+	echo "Running complete validation sequence..."
 	$(MAKE) -s ruff
 	$(MAKE) -s type_check
-	$(MAKE) -s test_all
-	echo "Validation sequence completed (check output for any failures)"
+	$(MAKE) -s complexity
+	$(MAKE) -s test_coverage
+	echo "Validation completed successfully"
 
 quick_validate:  ## Fast development cycle validation
 	echo "Running quick validation ..."
@@ -88,7 +100,6 @@ quick_validate:  ## Fast development cycle validation
 
 markdownlint:  ## Fix markdown files. Usage: make run_markdownlint [INPUT_FILES="docs/**/*.md"] (default: docs/)
 	INPUT=$${INPUT_FILES:-docs/}
-	echo $$INPUT
 	uv run pymarkdown fix --recurse $$INPUT
 	uv run pymarkdown scan --recurse $$INPUT
 

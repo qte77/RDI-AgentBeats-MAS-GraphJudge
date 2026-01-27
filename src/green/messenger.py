@@ -5,8 +5,13 @@ Implements real agent communication using A2A SDK for authentic coordination mea
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from a2a.client import Client, ClientFactory, create_text_message_object
 from a2a.types import TaskState
+
+if TYPE_CHECKING:
+    pass
 
 
 class Messenger:
@@ -16,7 +21,7 @@ class Messenger:
         """Initialize messenger with client cache."""
         self._clients: dict[str, Client] = {}
 
-    async def send_message(self, url: str, message: str, extensions: dict[str, str] | None = None) -> str:
+    async def send_message(self, url: str, message: str, extensions: list[str] | None = None) -> str:
         """Send message to agent via A2A protocol.
 
         Args:
@@ -40,17 +45,19 @@ class Messenger:
         msg = create_text_message_object(content=message)
 
         # Send message and iterate over events
-        async for task, _error in client.send_message(msg, extensions=extensions):
-            if task.state == TaskState.completed:
-                # Extract response from completed task artifacts
-                if task.artifacts:
-                    return task.artifacts[0].text
-                return ""
+        async for result in client.send_message(msg, extensions=extensions):
+            if isinstance(result, tuple):
+                task, _event = result
+                if task.status.state == TaskState.completed:
+                    # Extract response from completed task artifacts
+                    if task.artifacts:
+                        return task.artifacts[0].parts[0].root.text  # type: ignore[union-attr]
+                    return ""
 
         return ""
 
     async def close(self) -> None:
         """Close all cached client connections."""
         for client in self._clients.values():
-            await client.close()
+            await client.close()  # type: ignore[attr-defined]
         self._clients.clear()

@@ -102,8 +102,15 @@ class TestMessengerMessageSending:
 
         # Create mock completed task
         completed_task = MagicMock(spec=Task)
-        completed_task.state = TaskState.completed
-        completed_task.artifacts = [MagicMock(text="Response from agent")]
+        completed_task.status = MagicMock()
+        completed_task.status.state = TaskState.completed
+        mock_text_part = MagicMock()
+        mock_text_part.text = "Response from agent"
+        mock_part = MagicMock()
+        mock_part.root = mock_text_part
+        mock_artifact = MagicMock()
+        mock_artifact.parts = [mock_part]
+        completed_task.artifacts = [mock_artifact]
 
         # Mock send_message to return async iterator with completed task
         async def mock_send_iter(*args, **kwargs):
@@ -124,8 +131,15 @@ class TestMessengerMessageSending:
             from a2a.types import Task, TaskState
 
             task = MagicMock(spec=Task)
-            task.state = TaskState.completed
-            task.artifacts = [MagicMock(text="Done")]
+            task.status = MagicMock()
+            task.status.state = TaskState.completed
+            mock_text_part = MagicMock()
+            mock_text_part.text = "Done"
+            mock_part = MagicMock()
+            mock_part.root = mock_text_part
+            mock_artifact = MagicMock()
+            mock_artifact.parts = [mock_part]
+            task.artifacts = [mock_artifact]
             yield (task, None)
 
         mock_client.send_message.return_value = mock_send_iter()
@@ -155,8 +169,15 @@ class TestMessengerCleanup:
             from a2a.types import Task, TaskState
 
             task = MagicMock(spec=Task)
-            task.state = TaskState.completed
-            task.artifacts = [MagicMock(text="Done")]
+            task.status = MagicMock()
+            task.status.state = TaskState.completed
+            mock_text_part = MagicMock()
+            mock_text_part.text = "Done"
+            mock_part = MagicMock()
+            mock_part.root = mock_text_part
+            mock_artifact = MagicMock()
+            mock_artifact.parts = [mock_part]
+            task.artifacts = [mock_artifact]
             yield (task, None)
 
         mock_client.send_message.return_value = mock_send_iter()

@@ -319,15 +319,22 @@ async def llm_evaluate(
 
     except (ConnectionError, TimeoutError) as e:
         # Log warning (not error) for API unavailability
-        logger.warning("LLM API unavailable (%s), falling back to rule-based evaluation", type(e).__name__)
+        logger.warning(
+            "LLM API unavailable (%s), falling back to rule-based evaluation", type(e).__name__
+        )
         return rule_based_evaluate(steps)
 
     except (json.JSONDecodeError, ValidationError) as e:
         # Handle invalid JSON or validation errors
-        logger.warning("LLM response parsing failed (%s), falling back to rule-based evaluation", type(e).__name__)
+        logger.warning(
+            "LLM response parsing failed (%s), falling back to rule-based evaluation",
+            type(e).__name__,
+        )
         return rule_based_evaluate(steps)
 
     except Exception as e:
         # Catch-all for any other errors
-        logger.warning("LLM evaluation failed (%s), falling back to rule-based evaluation", type(e).__name__)
+        logger.warning(
+            "LLM evaluation failed (%s), falling back to rule-based evaluation", type(e).__name__
+        )
         return rule_based_evaluate(steps)

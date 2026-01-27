@@ -67,7 +67,9 @@ class Agent:
         tier2_latency = await self._evaluate_tier2_latency(traces)
 
         # Generate coordination summary
-        coordination_summary = self._generate_coordination_summary(tier1_graph, tier2_llm, tier2_latency)
+        coordination_summary = self._generate_coordination_summary(
+            tier1_graph, tier2_llm, tier2_latency
+        )
 
         return {
             "tier1_graph": tier1_graph,
@@ -173,7 +175,9 @@ class Agent:
         )
 
         return {
-            "overall_quality": ("high" if overall_score > 0.7 else "medium" if overall_score > 0.4 else "low"),
+            "overall_quality": (
+                "high" if overall_score > 0.7 else "medium" if overall_score > 0.4 else "low"
+            ),
             "overall_score": overall_score,
             "graph_quality": graph_quality,
             "semantic_quality": semantic_quality,

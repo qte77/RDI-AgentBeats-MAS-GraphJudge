@@ -18,7 +18,9 @@ class Executor:
         """Initialize executor."""
         pass
 
-    async def execute_task(self, task_description: str, messenger: Messenger, agent_url: str) -> str:
+    async def execute_task(
+        self, task_description: str, messenger: Messenger, agent_url: str
+    ) -> str:
         """Execute task and return result.
 
         Args:

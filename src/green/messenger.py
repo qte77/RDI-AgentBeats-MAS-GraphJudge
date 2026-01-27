@@ -21,7 +21,9 @@ class Messenger:
         """Initialize messenger with client cache."""
         self._clients: dict[str, Client] = {}
 
-    async def send_message(self, url: str, message: str, extensions: list[str] | None = None) -> str:
+    async def send_message(
+        self, url: str, message: str, extensions: list[str] | None = None
+    ) -> str:
         """Send message to agent via A2A protocol.
 
         Args:

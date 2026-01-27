@@ -125,7 +125,9 @@ def resolve_image(agent: dict, name: str) -> None:
         sys.exit(1)
     elif has_image:
         if os.environ.get("GITHUB_ACTIONS"):
-            print(f"Error: {name} requires 'agentbeats_id' for GitHub Actions (use 'image' for local testing only)")
+            print(
+                f"Error: {name} requires 'agentbeats_id' for GitHub Actions (use 'image' for local testing only)"
+            )
             sys.exit(1)
         print(f"Using {name} image: {agent['image']}")
     elif has_id:
@@ -184,7 +186,10 @@ def generate_docker_compose(scenario: dict[str, Any]) -> str:
     participant_services = "\n".join(
         [
             PARTICIPANT_TEMPLATE.format(
-                name=p["name"], image=p["image"], port=DEFAULT_PORT, env=format_env_vars(p.get("env", {}))
+                name=p["name"],
+                image=p["image"],
+                port=DEFAULT_PORT,
+                env=format_env_vars(p.get("env", {})),
             )
             for p in participants
         ]
@@ -221,7 +226,9 @@ def generate_a2a_scenario(scenario: dict[str, Any]) -> str:
     config_lines = [tomli_w.dumps({"config": config_section})]
 
     return A2A_SCENARIO_TEMPLATE.format(
-        green_port=DEFAULT_PORT, participants="\n".join(participant_lines), config="\n".join(config_lines)
+        green_port=DEFAULT_PORT,
+        participants="\n".join(participant_lines),
+        config="\n".join(config_lines),
     )
 
 

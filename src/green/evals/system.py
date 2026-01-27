@@ -77,8 +77,16 @@ def evaluate_latency(steps: list[InteractionStep]) -> LatencyMetrics:
     # Compute percentiles
     sorted_latencies = sorted(latencies)
     p50 = statistics.median(sorted_latencies)
-    p95 = statistics.quantiles(sorted_latencies, n=100)[94] if len(sorted_latencies) > 1 else sorted_latencies[0]
-    p99 = statistics.quantiles(sorted_latencies, n=100)[98] if len(sorted_latencies) > 1 else sorted_latencies[0]
+    p95 = (
+        statistics.quantiles(sorted_latencies, n=100)[94]
+        if len(sorted_latencies) > 1
+        else sorted_latencies[0]
+    )
+    p99 = (
+        statistics.quantiles(sorted_latencies, n=100)[98]
+        if len(sorted_latencies) > 1
+        else sorted_latencies[0]
+    )
 
     # Identify slowest agent (agent with highest latency)
     slowest_agent = None

@@ -24,7 +24,9 @@ class Executor:
         """Initialize executor."""
         pass
 
-    async def execute_task(self, task_description: str, messenger: Messenger, agent_url: str) -> list[InteractionStep]:
+    async def execute_task(
+        self, task_description: str, messenger: Messenger, agent_url: str
+    ) -> list[InteractionStep]:
         """Execute task and collect interaction traces.
 
         Args:
@@ -86,7 +88,9 @@ class Executor:
         """
         return evaluate_latency(steps)
 
-    async def _evaluate_graph(self, traces: list[InteractionStep], graph_evaluator: Any) -> dict[str, Any] | None:
+    async def _evaluate_graph(
+        self, traces: list[InteractionStep], graph_evaluator: Any
+    ) -> dict[str, Any] | None:
         """Execute Tier 1 graph evaluation.
 
         Args:

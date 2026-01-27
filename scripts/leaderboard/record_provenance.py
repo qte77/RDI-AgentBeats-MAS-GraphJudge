@@ -99,9 +99,13 @@ def write_provenance(output_path: Path, image_digests: dict[str, str]) -> None:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Record provenance information for assessment results")
+    parser = argparse.ArgumentParser(
+        description="Record provenance information for assessment results"
+    )
     parser.add_argument("--compose", type=Path, required=True, help="Path to docker-compose.yml")
-    parser.add_argument("--output", type=Path, required=True, help="Path to output provenance JSON file")
+    parser.add_argument(
+        "--output", type=Path, required=True, help="Path to output provenance JSON file"
+    )
     args = parser.parse_args()
 
     if not args.compose.exists():

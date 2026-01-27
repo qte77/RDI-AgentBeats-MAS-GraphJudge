@@ -214,10 +214,14 @@ class GraphEvaluator:
         average_path_length, diameter = self._compute_path_metrics(graph)
 
         # Detect bottlenecks (betweenness > 0.5)
-        bottlenecks: list[str] = [agent for agent, centrality in betweenness_centrality.items() if centrality > 0.5]
+        bottlenecks: list[str] = [
+            agent for agent, centrality in betweenness_centrality.items() if centrality > 0.5
+        ]
 
         # Detect isolated agents (degree = 0)
-        isolated_agents: list[str] = [agent for agent, degree in degree_centrality.items() if degree == 0.0]
+        isolated_agents: list[str] = [
+            agent for agent, degree in degree_centrality.items() if degree == 0.0
+        ]
 
         # Detect over-centralization (single agent > 70% interactions)
         over_centralized = self._detect_over_centralization(graph)

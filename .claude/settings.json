@@ -17,7 +17,24 @@
     "network": {
       "allowLocalBinding": true
     },
-    "enableWeakerNestedSandbox": false
+    "enableWeakerNestedSandbox": false,
+    "filesystem": {
+      "write": {
+        "allowOnly": [
+          "/dev/stdout",
+          "/dev/stderr",
+          "/dev/null",
+          "/tmp/claude",
+          "/home/vscode/.claude/projects",
+          "/home/vscode/.claude/debug",
+          ".",
+          "docs/",
+          "tests/",
+          "src/",
+          "ralph/"
+        ]
+      }
+    }
   },
   "permissions": {
     "allow": [

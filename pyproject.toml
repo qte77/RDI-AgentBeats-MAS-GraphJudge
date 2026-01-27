@@ -112,14 +112,28 @@ omit = [
     '*/tests/*',
 ]
 
-[tool.pymarkdown.plugins.md013]
-enabled = false
-
-[tool.pymarkdown.plugins.md025]
-enabled = false
-
-[tool.pymarkdown.extensions.front-matter]
-enabled = true
+# Pymarkdown configuration for markdown linting
+# Rules: https://github.com/jackdewinter/pymarkdown/blob/master/docs/rules.md
+[tool.pymarkdown]
+log.level = "CRITICAL"
+# MD013: Line too long
+plugins.md013.enabled = false
+# MD025: Multiple top-level headings in the same document
+plugins.md025.enabled = false
+# MD032: Lists should be surrounded by blank lines
+# Note: Autofix pending (scheduled after v1.0.0 release
+# violations must be fixed manually before that
+# https://pymarkdown.readthedocs.io/en/stable/plugins/rule_md032/
+plugins.md032.enabled = true
+# frontmatter extension suppresses violations as of v0.9.34
+# the specific rules have toe be disabled instead
+# extensions.front-matter.enabled = true
+# MD041: First line should be a top-level heading
+plugins.md041.enabled = false
+# MD022: Headings need blank lines around
+# plugins.md022.enabled = false
+# MD003: Inconsistent heading styles (setext vs atx)
+plugins.md003.enabled = false
 
 [tool.bumpversion]
 current_version = "0.0.0"

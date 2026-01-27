@@ -60,17 +60,6 @@ setup_devc_template:  ## Devcontainer: Template editing env (sandbox + Claude Co
 	$(MAKE) -s setup_claude_code
 
 
-# MARK: run markdownlint
-
-
-run_markdownlint:  ## Lint markdown files. Usage from root dir: make run_markdownlint INPUT_FILES="docs/**/*.md"
-	if [ -z "$(INPUT_FILES)" ]; then
-		echo "Error: No input files specified. Use INPUT_FILES=\"docs/**/*.md\""
-		exit 1
-	fi
-	uv run pymarkdown fix $(INPUT_FILES)
-
-
 # MARK: Sanity
 
 
@@ -96,6 +85,12 @@ quick_validate:  ## Fast development cycle validation
 	$(MAKE) -s ruff
 	$(MAKE) -s type_check
 	echo "Quick validation completed (check output for any failures)"
+
+markdownlint:  ## Fix markdown files. Usage: make run_markdownlint [INPUT_FILES="docs/**/*.md"] (default: docs/)
+	INPUT=$${INPUT_FILES:-docs/}
+	echo $$INPUT
+	uv run pymarkdown fix --recurse $$INPUT
+	uv run pymarkdown scan --recurse $$INPUT
 
 
 # MARK: ralph

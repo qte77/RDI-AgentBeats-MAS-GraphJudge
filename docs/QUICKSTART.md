@@ -23,10 +23,10 @@ uv sync
 make validate
 
 # Start server
-uv run src/agentbeats/server.py --port 8000
+uv run src/green/server.py --port 9009
 
 # Test endpoint (in another terminal)
-curl http://localhost:8000/.well-known/agent-card.json
+curl http://localhost:9009/.well-known/agent-card.json
 ```
 
 ---

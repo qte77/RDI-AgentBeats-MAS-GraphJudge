@@ -228,3 +228,32 @@ class TestInteractionStepA2AConformance:
         assert isinstance(step.latency, (int, type(None)))
         if step.latency is not None:
             assert step.latency >= 0
+
+
+class TestAgentCardExtensions:
+    """Test AgentCard extension declarations for A2A compliance."""
+
+    def test_get_agent_extensions_returns_list(self):
+        """get_agent_extensions() returns list of extension URIs."""
+        from green.models import get_agent_extensions
+
+        extensions = get_agent_extensions()
+        assert isinstance(extensions, list)
+
+    def test_agent_extensions_include_traceability(self):
+        """AgentCard declares traceability extension support."""
+        from green.models import get_agent_extensions
+
+        extensions = get_agent_extensions()
+        # Check for traceability extension (URI may vary based on spec version)
+        traceability_extensions = [ext for ext in extensions if "traceability" in ext.lower()]
+        assert len(traceability_extensions) > 0, "Traceability extension not declared"
+
+    def test_agent_extensions_include_timestamp(self):
+        """AgentCard declares timestamp extension support."""
+        from green.models import get_agent_extensions
+
+        extensions = get_agent_extensions()
+        # Check for timestamp extension
+        timestamp_extensions = [ext for ext in extensions if "timestamp" in ext.lower()]
+        assert len(timestamp_extensions) > 0, "Timestamp extension not declared"

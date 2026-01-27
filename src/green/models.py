@@ -51,3 +51,19 @@ class InteractionStep(BaseModel):
     latency: int | None = None
     error: str | None = None
     parent_step_id: str | None = None
+
+
+def get_agent_extensions() -> list[str]:
+    """Get list of A2A protocol extensions supported by this agent.
+
+    Returns URIs for extensions that should be declared in AgentCard:
+    - Traceability extension: For distributed tracing of agent interactions
+    - Timestamp extension: For adding timestamps to messages and artifacts
+
+    Returns:
+        List of extension URIs supported by this agent
+    """
+    return [
+        "github.com/a2aproject/a2a-samples/extensions/traceability/v1",
+        "github.com/a2aproject/a2a-samples/extensions/timestamp/v1",
+    ]

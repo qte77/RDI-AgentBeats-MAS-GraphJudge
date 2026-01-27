@@ -7,7 +7,6 @@ environment. Computes percentiles and identifies performance bottlenecks.
 from __future__ import annotations
 
 import statistics
-from typing import Any
 
 from pydantic import BaseModel
 
@@ -38,6 +37,17 @@ class LatencyMetrics(BaseModel):
     warning: str = "Latency values only comparable within same system/run"
 
 
+def _empty_metrics() -> LatencyMetrics:
+    """Return empty latency metrics when no data is available."""
+    return LatencyMetrics(
+        avg=0,
+        p50=0,
+        p95=0,
+        p99=0,
+        slowest_agent=None,
+    )
+
+
 def evaluate_latency(steps: list[InteractionStep]) -> LatencyMetrics:
     """Evaluate latency metrics from interaction steps.
 
@@ -52,26 +62,14 @@ def evaluate_latency(steps: list[InteractionStep]) -> LatencyMetrics:
     """
     # Handle empty steps
     if not steps:
-        return LatencyMetrics(
-            avg=0,
-            p50=0,
-            p95=0,
-            p99=0,
-            slowest_agent=None,
-        )
+        return _empty_metrics()
 
     # Extract latency values, filtering out None
     latencies = [step.latency for step in steps if step.latency is not None]
 
     # Handle case where all latencies are None
     if not latencies:
-        return LatencyMetrics(
-            avg=0,
-            p50=0,
-            p95=0,
-            p99=0,
-            slowest_agent=None,
-        )
+        return _empty_metrics()
 
     # Compute average
     avg = statistics.mean(latencies)

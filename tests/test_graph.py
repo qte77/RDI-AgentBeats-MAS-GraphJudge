@@ -467,3 +467,87 @@ class TestGraphEvaluatorHealthyCollaboration:
         evaluator = GraphEvaluator()
         metrics = await evaluator.evaluate(simple_trace)
         assert isinstance(metrics.graph_density, float)
+
+
+class TestPluggableMetricSystem:
+    """Test pluggable metric system for custom metrics.
+
+    STORY-014 requirement: Plugin interface allows adding custom metrics
+    without modifying core code.
+    """
+
+    async def test_custom_metric_plugin_can_be_registered(self, simple_trace):
+        """Custom metric plugin can be registered without modifying core code."""
+        from green.evals.graph import GraphMetricPlugin
+
+        # Define custom metric plugin
+        class CustomDegreeRatio(GraphMetricPlugin):
+            """Custom metric: ratio of max to min degree."""
+
+            def compute(self, graph):
+                degrees = dict(graph.degree())
+                if not degrees:
+                    return 0.0
+                max_deg = max(degrees.values())
+                min_deg = min(degrees.values())
+                return max_deg / min_deg if min_deg > 0 else float(max_deg)
+
+        # Register plugin
+        evaluator = GraphEvaluator()
+        evaluator.register_plugin("custom_degree_ratio", CustomDegreeRatio())
+
+        # Should not raise error
+        metrics = await evaluator.evaluate(simple_trace)
+        assert metrics is not None
+
+    async def test_custom_metric_plugin_result_included_in_metrics(self, simple_trace):
+        """Custom metric plugin result is included in returned metrics."""
+        from green.evals.graph import GraphMetricPlugin
+
+        class CustomMetric(GraphMetricPlugin):
+            def compute(self, graph):
+                return 42.0
+
+        evaluator = GraphEvaluator()
+        evaluator.register_plugin("custom_test_metric", CustomMetric())
+
+        metrics = await evaluator.evaluate(simple_trace)
+        metrics_dict = metrics.model_dump()
+        assert "custom_test_metric" in metrics_dict
+        assert metrics_dict["custom_test_metric"] == 42.0
+
+    async def test_multiple_custom_plugins_can_be_registered(self, simple_trace):
+        """Multiple custom plugins can be registered and all execute."""
+        from green.evals.graph import GraphMetricPlugin
+
+        class PluginA(GraphMetricPlugin):
+            def compute(self, graph):
+                return 1.0
+
+        class PluginB(GraphMetricPlugin):
+            def compute(self, graph):
+                return 2.0
+
+        evaluator = GraphEvaluator()
+        evaluator.register_plugin("plugin_a", PluginA())
+        evaluator.register_plugin("plugin_b", PluginB())
+
+        metrics = await evaluator.evaluate(simple_trace)
+        metrics_dict = metrics.model_dump()
+
+        assert metrics_dict["plugin_a"] == 1.0
+        assert metrics_dict["plugin_b"] == 2.0
+
+    async def test_builtin_metrics_are_implemented_as_plugins(self):
+        """Built-in metrics use the same plugin system for consistency."""
+        evaluator = GraphEvaluator()
+
+        # Verify built-in metrics are registered as plugins
+        assert hasattr(evaluator, "_plugins")
+        assert len(evaluator._plugins) > 0
+
+        # Check some expected built-in plugin names
+        plugin_names = list(evaluator._plugins.keys())
+        assert "degree_centrality" in plugin_names
+        assert "betweenness_centrality" in plugin_names
+        assert "graph_density" in plugin_names

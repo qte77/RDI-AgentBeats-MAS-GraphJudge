@@ -226,8 +226,8 @@ def rule_based_evaluate(steps: list[InteractionStep]) -> LLMJudgment:
         quality = "low"
 
     # Build strengths and weaknesses
-    strengths = []
-    weaknesses = []
+    strengths: list[str] = []
+    weaknesses: list[str] = []
 
     if not has_errors:
         strengths.append("No errors in coordination")

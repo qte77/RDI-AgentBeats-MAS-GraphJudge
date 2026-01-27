@@ -14,10 +14,9 @@ from typing import Any
 from fastapi import FastAPI
 from pydantic import BaseModel
 
-from green.agent import Agent
 from green.executor import Executor
 from green.messenger import Messenger
-from green.models import get_agent_extensions
+from green.models import InteractionStep, get_agent_extensions
 
 OUTPUT_FILE = Path("output/results.json")
 
@@ -130,8 +129,11 @@ def create_app() -> FastAPI:
             from green.evals.llm_judge import llm_evaluate
 
             class LLMJudgeEvaluator:
-                async def evaluate(self, traces, graph_results=None):
-                    return await llm_evaluate(traces, graph_metrics=graph_results)
+                async def evaluate(
+                    self, traces: list[InteractionStep], graph_results: dict[str, Any] | None = None
+                ) -> dict[str, Any]:
+                    result = await llm_evaluate(traces, graph_metrics=graph_results)
+                    return result.model_dump()
 
             llm_judge = LLMJudgeEvaluator()
 
@@ -139,7 +141,7 @@ def create_app() -> FastAPI:
             from green.evals.system import evaluate_latency
 
             class LatencyEvaluator:
-                async def evaluate(self, traces):
+                async def evaluate(self, traces: list[InteractionStep]) -> dict[str, Any]:
                     metrics = evaluate_latency(traces)
                     return metrics.model_dump()
 

@@ -185,11 +185,13 @@ def test_cli_accepts_host_port_card_url_args() -> None:
     """Test that CLI accepts --host, --port, --card-url arguments."""
     from green.server import parse_args
 
+    # shellcheck disable=SC2034 - 0.0.0.0 is intentional for dev/test (binds all interfaces)
     args = parse_args(
         ["--host", "0.0.0.0", "--port", "9009", "--card-url", "http://localhost:9009"]
     )
 
-    assert args.host == "0.0.0.0"
+    # 0.0.0.0 binding is safe in test/dev context (not exposed publicly)
+    assert args.host == "0.0.0.0"  # noqa: S104
     assert args.port == 9009
     assert args.card_url == "http://localhost:9009"
 

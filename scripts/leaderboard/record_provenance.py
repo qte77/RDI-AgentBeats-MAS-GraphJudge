@@ -1,4 +1,7 @@
-"""Record provenance information (image digests, timestamp, and workflow metadata) for assessment results."""
+"""Record provenance information for assessment results.
+
+Captures image digests, timestamp, and workflow metadata.
+"""
 
 import argparse
 import json

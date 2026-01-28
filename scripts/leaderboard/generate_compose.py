@@ -126,7 +126,8 @@ def resolve_image(agent: dict, name: str) -> None:
     elif has_image:
         if os.environ.get("GITHUB_ACTIONS"):
             print(
-                f"Error: {name} requires 'agentbeats_id' for GitHub Actions (use 'image' for local testing only)"
+                f"Error: {name} requires 'agentbeats_id' for GitHub Actions "
+                f"(use 'image' for local testing only)"
             )
             sys.exit(1)
         print(f"Using {name} image: {agent['image']}")

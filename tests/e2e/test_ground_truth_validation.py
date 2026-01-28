@@ -6,6 +6,7 @@ RED phase: These tests should FAIL initially until Green Agent correctly classif
 from __future__ import annotations
 
 import json
+from datetime import UTC
 from pathlib import Path
 
 import pytest
@@ -61,7 +62,6 @@ class TestGreenAgentGroundTruthClassification:
     async def test_green_agent_classifies_high_coordination(self, ground_truth_data):
         """Green Agent correctly classifies high coordination scenarios."""
         from green.evals.graph import GraphEvaluator
-        from green.models import InteractionStep
 
         # Get high coordination scenario
         high_coord_scenarios = [s for s in ground_truth_data["scenarios"] if s["type"] == "high_coordination"]
@@ -81,7 +81,6 @@ class TestGreenAgentGroundTruthClassification:
     async def test_green_agent_classifies_low_coordination(self, ground_truth_data):
         """Green Agent correctly classifies low coordination scenarios."""
         from green.evals.graph import GraphEvaluator
-        from green.models import InteractionStep
 
         # Get low coordination scenario
         low_coord_scenarios = [s for s in ground_truth_data["scenarios"] if s["type"] == "low_coordination"]
@@ -101,7 +100,6 @@ class TestGreenAgentGroundTruthClassification:
     async def test_green_agent_detects_bottlenecks(self, ground_truth_data):
         """Green Agent correctly detects coordination bottlenecks."""
         from green.evals.graph import GraphEvaluator
-        from green.models import InteractionStep
 
         # Get bottleneck scenario
         bottleneck_scenarios = [s for s in ground_truth_data["scenarios"] if s["type"] == "bottleneck"]
@@ -123,7 +121,6 @@ class TestGreenAgentGroundTruthClassification:
     async def test_green_agent_detects_isolated_agents(self, ground_truth_data):
         """Green Agent correctly detects isolated agents."""
         from green.evals.graph import GraphEvaluator
-        from green.models import InteractionStep
 
         # Get scenarios with isolated agents
         scenarios_with_isolation = [
@@ -151,7 +148,6 @@ class TestGreenAgentAccuracyMetrics:
     async def test_classification_accuracy_across_all_scenarios(self, ground_truth_data):
         """Measure Green Agent classification accuracy across all ground truth scenarios."""
         from green.evals.graph import GraphEvaluator
-        from green.models import InteractionStep
 
         scenarios = ground_truth_data["scenarios"]
         correct_classifications = 0
@@ -181,7 +177,6 @@ class TestGreenAgentAccuracyMetrics:
     async def test_bottleneck_detection_accuracy(self, ground_truth_data):
         """Measure Green Agent bottleneck detection accuracy."""
         from green.evals.graph import GraphEvaluator
-        from green.models import InteractionStep
 
         scenarios = ground_truth_data["scenarios"]
         correct_detections = 0
@@ -211,7 +206,6 @@ class TestGreenAgentAccuracyMetrics:
     async def test_isolated_agent_detection_accuracy(self, ground_truth_data):
         """Measure Green Agent isolated agent detection accuracy."""
         from green.evals.graph import GraphEvaluator
-        from green.models import InteractionStep
 
         scenarios = ground_truth_data["scenarios"]
         correct_detections = 0
@@ -254,7 +248,7 @@ def _create_interaction_steps_from_scenario(scenario: dict) -> list:
 
     For isolated agents (no edges), creates a standalone step.
     """
-    from datetime import datetime, timezone
+    from datetime import datetime
 
     from green.models import CallType, InteractionStep
 
@@ -263,7 +257,7 @@ def _create_interaction_steps_from_scenario(scenario: dict) -> list:
     edges = pattern["edges"]
 
     steps = []
-    base_time = datetime.now(timezone.utc)
+    base_time = datetime.now(UTC)
     agents_with_edges = set()
 
     # For each edge, track which agents are involved

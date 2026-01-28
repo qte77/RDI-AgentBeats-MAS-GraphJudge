@@ -5,6 +5,7 @@ RED phase: These tests should FAIL initially until full integration works.
 
 from __future__ import annotations
 
+from datetime import UTC
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -113,9 +114,9 @@ class TestGroundTruthE2EValidation:
 
         # Create interaction steps from scenario - simplified approach
         steps = []
-        from datetime import datetime, timezone
+        from datetime import datetime
 
-        base_time = datetime.now(timezone.utc)
+        base_time = datetime.now(UTC)
         agents_with_edges = set()
 
         # Track agents involved in edges
@@ -179,9 +180,9 @@ class TestGroundTruthE2EValidation:
         for scenario in ground_truth["scenarios"][:3]:
             # Create steps - simplified approach
             steps = []
-            from datetime import datetime, timezone
+            from datetime import datetime
 
-            base_time = datetime.now(timezone.utc)
+            base_time = datetime.now(UTC)
             agents_with_edges = set()
 
             # Track agents involved in edges

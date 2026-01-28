@@ -5,7 +5,6 @@ RED phase: These tests should FAIL initially until agents properly expose AgentC
 
 from __future__ import annotations
 
-import pytest
 from httpx import ASGITransport, AsyncClient
 
 

@@ -9,8 +9,8 @@ from pydantic import ValidationError
 
 from green.models import (
     AgentBeatsOutputModel,
-    GreenAgentOutput,
     GraphMetrics,
+    GreenAgentOutput,
     LatencyMetricsOutput,
     ParticipantsModel,
     ResultModel,

@@ -11,7 +11,7 @@ import pytest
 from httpx import ASGITransport, AsyncClient
 
 if TYPE_CHECKING:
-    from green.models import InteractionStep
+    pass
 
 
 @pytest.fixture

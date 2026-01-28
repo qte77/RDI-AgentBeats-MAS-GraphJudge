@@ -10,7 +10,6 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from green.evals.system import LatencyMetrics
 from green.executor import Executor
 from green.models import CallType, InteractionStep
 

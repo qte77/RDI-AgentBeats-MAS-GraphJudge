@@ -264,3 +264,44 @@ pytest tests/properties/ --hypothesis-show-statistics
    - String formats
    - Collection sizes
    - State transitions
+
+## Naming Convention Recommendation
+
+**Format**: `test_{agent}_{component}_{behavior}`
+
+```python
+# Examples
+test_green_server_exposes_agentcard_endpoint()
+test_green_executor_collects_interaction_traces()
+test_green_graph_evaluator_detects_bottlenecks()
+test_purple_server_handles_jsonrpc_requests()
+test_purple_messenger_sends_a2a_messages()
+```
+
+**Benefits**:
+- Clear agent ownership
+- Easier filtering: `pytest -k test_green_`
+- Better organization in test output
+- Scales as project grows
+
+## Test Categories
+
+**Pytest (Core Functionality)**:
+- Known input/output pairs
+- Business logic validation
+- API contract verification
+- Integration flows
+- Regression tests
+
+**Hypothesis (Edge Cases)**:
+- Numeric bounds (scores, metrics, latencies)
+- Input validation boundaries
+- Format conversions
+- Invariant checking
+
+## Priority Test Areas
+
+1. **Core business logic** - Graph metrics, coordination scoring, evaluator pipelines
+2. **API contracts** - A2A protocol, AgentCard format, JSON-RPC handling
+3. **Edge cases** - Empty/null inputs, boundary values, numeric stability
+4. **Integration points** - Green-Purple E2E, LLM connectivity, AgentBeats output

@@ -14,11 +14,17 @@ class PurpleSettings(BaseSettings):
     Environment variables:
         PURPLE_HOST: Server host (default: 0.0.0.0)
         PURPLE_PORT: Server port (default: 9010)
-        PURPLE_CARD_URL: AgentCard URL (default: http://localhost:9010)
+        PURPLE_CARD_URL: AgentCard URL (default: http://{host}:{port})
     """
 
     model_config = SettingsConfigDict(env_prefix="PURPLE_")
 
     host: str = "0.0.0.0"
     port: int = 9010
-    card_url: str = "http://localhost:9010"
+    card_url: str | None = None
+
+    def get_card_url(self) -> str:
+        """Get AgentCard URL, constructing from host/port if not explicitly set."""
+        if self.card_url:
+            return self.card_url
+        return f"http://{self.host}:{self.port}"

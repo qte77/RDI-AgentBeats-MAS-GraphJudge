@@ -98,7 +98,7 @@ def create_app(settings: PurpleSettings | None = None) -> FastAPI:
             result = await executor.execute_task(
                 task_description=task_description,
                 messenger=messenger,
-                agent_url=settings.card_url,
+                agent_url=settings.get_card_url(),
             )
 
             # Return JSON-RPC success response
@@ -153,8 +153,8 @@ def parse_args(
     parser.add_argument(
         "--card-url",
         type=str,
-        default=settings.card_url,
-        help=f"AgentCard URL (default: {settings.card_url})",
+        default=settings.get_card_url(),
+        help=f"AgentCard URL (default: {settings.get_card_url()}, override via PURPLE_CARD_URL)",
     )
 
     return parser.parse_args(args)

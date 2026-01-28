@@ -91,6 +91,7 @@ validate:  ## Complete pre-commit validation sequence
 	set -e
 	echo "Running complete validation sequence..."
 	$(MAKE) -s ruff
+	$(MAKE) -s ruff_tests
 	$(MAKE) -s type_check
 	$(MAKE) -s complexity
 	$(MAKE) -s test_coverage

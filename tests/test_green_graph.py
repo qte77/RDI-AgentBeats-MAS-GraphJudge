@@ -1,7 +1,7 @@
 """Tests for graph-based coordination analysis.
 
-RED phase: These tests should FAIL initially since graph.py doesn't exist yet.
-Tests validate metric computation and bottleneck detection.
+Tests validate metric computation, bottleneck detection, and model_validate() usage.
+GraphMetrics consolidated in green.models for single source of truth.
 """
 
 from __future__ import annotations
@@ -10,8 +10,8 @@ from datetime import UTC, datetime
 
 import pytest
 
-from green.evals.graph import GraphEvaluator, GraphMetrics
-from green.models import CallType, InteractionStep
+from green.evals.graph import GraphEvaluator
+from green.models import CallType, GraphMetrics, InteractionStep
 
 
 @pytest.fixture
@@ -95,197 +95,68 @@ def isolated_trace() -> list[InteractionStep]:
 
 
 class TestGraphMetricsModel:
-    """Test GraphMetrics model structure."""
+    """Test GraphMetrics model structure using model_validate()."""
 
-    def test_graph_metrics_has_degree_centrality(self):
-        """GraphMetrics includes degree_centrality field."""
-        metrics = GraphMetrics(
-            degree_centrality={},
-            betweenness_centrality={},
-            closeness_centrality={},
-            eigenvector_centrality={},
-            pagerank={},
-            graph_density=0.0,
-            clustering_coefficient=0.0,
-            connected_components=1,
-            average_path_length=0.0,
-            diameter=0,
-            bottlenecks=[],
-            isolated_agents=[],
-            over_centralized=False,
-        )
+    def test_graph_metrics_from_dict(self):
+        """GraphMetrics created via model_validate from dict."""
+        metrics = GraphMetrics.model_validate({
+            "degree_centrality": {},
+            "betweenness_centrality": {},
+            "closeness_centrality": {},
+            "eigenvector_centrality": {},
+            "pagerank": {},
+            "graph_density": 0.0,
+            "clustering_coefficient": 0.0,
+            "connected_components": 1,
+            "average_path_length": 0.0,
+            "diameter": 0,
+            "bottlenecks": [],
+            "has_bottleneck": False,
+            "isolated_agents": [],
+            "over_centralized": False,
+            "coordination_quality": "low",
+        })
         assert hasattr(metrics, "degree_centrality")
-
-    def test_graph_metrics_has_betweenness_centrality(self):
-        """GraphMetrics includes betweenness_centrality field."""
-        metrics = GraphMetrics(
-            degree_centrality={},
-            betweenness_centrality={},
-            closeness_centrality={},
-            eigenvector_centrality={},
-            pagerank={},
-            graph_density=0.0,
-            clustering_coefficient=0.0,
-            connected_components=1,
-            average_path_length=0.0,
-            diameter=0,
-            bottlenecks=[],
-            isolated_agents=[],
-            over_centralized=False,
-        )
         assert hasattr(metrics, "betweenness_centrality")
-
-    def test_graph_metrics_has_closeness_centrality(self):
-        """GraphMetrics includes closeness_centrality field."""
-        metrics = GraphMetrics(
-            degree_centrality={},
-            betweenness_centrality={},
-            closeness_centrality={},
-            eigenvector_centrality={},
-            pagerank={},
-            graph_density=0.0,
-            clustering_coefficient=0.0,
-            connected_components=1,
-            average_path_length=0.0,
-            diameter=0,
-            bottlenecks=[],
-            isolated_agents=[],
-            over_centralized=False,
-        )
         assert hasattr(metrics, "closeness_centrality")
-
-    def test_graph_metrics_has_eigenvector_centrality(self):
-        """GraphMetrics includes eigenvector_centrality field."""
-        metrics = GraphMetrics(
-            degree_centrality={},
-            betweenness_centrality={},
-            closeness_centrality={},
-            eigenvector_centrality={},
-            pagerank={},
-            graph_density=0.0,
-            clustering_coefficient=0.0,
-            connected_components=1,
-            average_path_length=0.0,
-            diameter=0,
-            bottlenecks=[],
-            isolated_agents=[],
-            over_centralized=False,
-        )
         assert hasattr(metrics, "eigenvector_centrality")
-
-    def test_graph_metrics_has_pagerank(self):
-        """GraphMetrics includes pagerank field."""
-        metrics = GraphMetrics(
-            degree_centrality={},
-            betweenness_centrality={},
-            closeness_centrality={},
-            eigenvector_centrality={},
-            pagerank={},
-            graph_density=0.0,
-            clustering_coefficient=0.0,
-            connected_components=1,
-            average_path_length=0.0,
-            diameter=0,
-            bottlenecks=[],
-            isolated_agents=[],
-            over_centralized=False,
-        )
         assert hasattr(metrics, "pagerank")
 
-    def test_graph_metrics_has_graph_density(self):
-        """GraphMetrics includes graph_density field."""
-        metrics = GraphMetrics(
-            degree_centrality={},
-            betweenness_centrality={},
-            closeness_centrality={},
-            eigenvector_centrality={},
-            pagerank={},
-            graph_density=0.5,
-            clustering_coefficient=0.0,
-            connected_components=1,
-            average_path_length=0.0,
-            diameter=0,
-            bottlenecks=[],
-            isolated_agents=[],
-            over_centralized=False,
-        )
+    def test_graph_metrics_with_values(self):
+        """GraphMetrics with actual values via model_validate."""
+        metrics = GraphMetrics.model_validate({
+            "degree_centrality": {"agent-1": 0.6},
+            "betweenness_centrality": {"agent-1": 0.3},
+            "closeness_centrality": {"agent-1": 1.0},
+            "eigenvector_centrality": {"agent-1": 0.7},
+            "pagerank": {"agent-1": 0.5},
+            "graph_density": 0.5,
+            "clustering_coefficient": 0.3,
+            "connected_components": 2,
+            "average_path_length": 2.5,
+            "diameter": 5,
+            "bottlenecks": ["agent-1"],
+            "has_bottleneck": True,
+            "isolated_agents": [],
+            "over_centralized": False,
+            "coordination_quality": "high",
+        })
         assert metrics.graph_density == 0.5
-
-    def test_graph_metrics_has_clustering_coefficient(self):
-        """GraphMetrics includes clustering_coefficient field."""
-        metrics = GraphMetrics(
-            degree_centrality={},
-            betweenness_centrality={},
-            closeness_centrality={},
-            eigenvector_centrality={},
-            pagerank={},
-            graph_density=0.0,
-            clustering_coefficient=0.3,
-            connected_components=1,
-            average_path_length=0.0,
-            diameter=0,
-            bottlenecks=[],
-            isolated_agents=[],
-            over_centralized=False,
-        )
         assert metrics.clustering_coefficient == 0.3
-
-    def test_graph_metrics_has_connected_components(self):
-        """GraphMetrics includes connected_components field."""
-        metrics = GraphMetrics(
-            degree_centrality={},
-            betweenness_centrality={},
-            closeness_centrality={},
-            eigenvector_centrality={},
-            pagerank={},
-            graph_density=0.0,
-            clustering_coefficient=0.0,
-            connected_components=2,
-            average_path_length=0.0,
-            diameter=0,
-            bottlenecks=[],
-            isolated_agents=[],
-            over_centralized=False,
-        )
         assert metrics.connected_components == 2
-
-    def test_graph_metrics_has_average_path_length(self):
-        """GraphMetrics includes average_path_length field."""
-        metrics = GraphMetrics(
-            degree_centrality={},
-            betweenness_centrality={},
-            closeness_centrality={},
-            eigenvector_centrality={},
-            pagerank={},
-            graph_density=0.0,
-            clustering_coefficient=0.0,
-            connected_components=1,
-            average_path_length=2.5,
-            diameter=0,
-            bottlenecks=[],
-            isolated_agents=[],
-            over_centralized=False,
-        )
         assert metrics.average_path_length == 2.5
-
-    def test_graph_metrics_has_diameter(self):
-        """GraphMetrics includes diameter field."""
-        metrics = GraphMetrics(
-            degree_centrality={},
-            betweenness_centrality={},
-            closeness_centrality={},
-            eigenvector_centrality={},
-            pagerank={},
-            graph_density=0.0,
-            clustering_coefficient=0.0,
-            connected_components=1,
-            average_path_length=0.0,
-            diameter=5,
-            bottlenecks=[],
-            isolated_agents=[],
-            over_centralized=False,
-        )
         assert metrics.diameter == 5
+        assert metrics.bottlenecks == ["agent-1"]
+        assert metrics.has_bottleneck is True
+        assert metrics.coordination_quality == "high"
+
+    def test_graph_metrics_default_values(self):
+        """GraphMetrics with default values via model_validate."""
+        metrics = GraphMetrics.model_validate({})
+        assert metrics.degree_centrality == {}
+        assert metrics.graph_density == 0.0
+        assert metrics.has_bottleneck is False
+        assert metrics.coordination_quality == "low"
 
 
 class TestGraphEvaluatorCentralityMetrics:

@@ -31,6 +31,7 @@ class GreenSettings(BaseSettings):
     Environment variables:
         GREEN_HOST: Server host (default: 0.0.0.0)
         GREEN_PORT: Server port (default: 9009)
+        GREEN_CARD_URL: AgentCard URL (default: http://{host}:{port})
         AGENT_UUID: Agent identifier (default: green-agent)
         PURPLE_AGENT_URL: URL for Purple Agent (default: http://localhost:8002)
     """
@@ -46,6 +47,17 @@ class GreenSettings(BaseSettings):
     purple_agent_url: str = Field(
         default="http://localhost:8002", validation_alias="PURPLE_AGENT_URL"
     )
+    card_url: str | None = Field(
+        default=None,
+        validation_alias="GREEN_CARD_URL",
+        description="AgentCard URL (defaults to http://{host}:{port})",
+    )
 
     # Nested LLM settings
     llm: LLMSettings = Field(default_factory=LLMSettings)
+
+    def get_card_url(self) -> str:
+        """Get AgentCard URL, constructing from host/port if not explicitly set."""
+        if self.card_url:
+            return self.card_url
+        return f"http://{self.host}:{self.port}"

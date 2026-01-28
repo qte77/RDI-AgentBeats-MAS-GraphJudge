@@ -213,7 +213,7 @@ def create_app(settings: GreenSettings | None = None) -> FastAPI:
                 "LLM assessment, and latency metrics"
             ),
             "version": "1.0.0",
-            "url": "http://localhost:9009",  # TODO: Make configurable
+            "url": settings.get_card_url(),
             "defaultInputModes": ["text"],
             "defaultOutputModes": ["text"],
             "skills": [
@@ -311,8 +311,8 @@ def parse_args(
     parser.add_argument(
         "--card-url",
         type=str,
-        default=f"http://localhost:{settings.port}",
-        help=f"AgentCard URL (default: http://localhost:{settings.port})",
+        default=settings.get_card_url(),
+        help=f"AgentCard URL (default: {settings.get_card_url()}, override via GREEN_CARD_URL)",
     )
 
     return parser.parse_args(args)

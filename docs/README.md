@@ -76,6 +76,37 @@ Read: AgentBeats/AGENTBEATS_REGISTRATION.md
 
 ---
 
+## TODO: Implementation Roadmap
+
+### Testing & Quality
+
+- [ ] **Refactor testing strategy** - See `docs/best-practices/testing-strategy.md`
+  - [ ] pytest for deterministic tests, Hypothesis for edge cases
+  - [ ] Remove low-ROI tests (library behavior, trivial assertions)
+
+- [ ] **E2E testing with full evaluation pipeline**
+  - [ ] Tracing integration tests
+  - [ ] LLM-as-judge evaluation
+  - [ ] Text metrics validation
+
+- [ ] **LLM endpoint testing**
+  - [ ] Mock vs live API testing strategy
+  - [ ] Fallback behavior verification
+
+### Platform Integration
+
+- [ ] **Agent registration flow**
+  - [ ] AgentBeats platform registration
+  - [ ] Agent UUID assignment
+  - [ ] Capability declaration
+
+- [ ] **Milestone: AgentBeats submission**
+  - [ ] Successful result submission to agentbeats.dev
+  - [ ] JSON output schema compliance
+  - [ ] SQL integration for leaderboard
+
+---
+
 ## TODO: Open Design Decisions
 
 ### Trace Collection Strategy

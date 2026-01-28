@@ -1,7 +1,7 @@
 """Graph-based coordination analysis with pluggable metric system.
 
 Builds directed graphs from interaction traces and computes coordination quality
-metrics using graph theory.
+metrics using graph theory. GraphMetrics model consolidated in green.models.
 """
 
 from __future__ import annotations
@@ -10,68 +10,17 @@ from abc import ABC, abstractmethod
 from typing import Any
 
 import networkx as nx
-from pydantic import BaseModel
 
-from green.models import InteractionStep
+from green.models import GraphMetrics, InteractionStep
 
 
 class GraphMetricPlugin(ABC):
-    """Base interface for graph metric plugins.
-
-    Enables adding custom metrics without modifying core GraphEvaluator code.
-    Each metric plugin computes a single metric from the graph.
-    """
+    """Base interface for graph metric plugins."""
 
     @abstractmethod
     def compute(self, graph: nx.DiGraph[str]) -> Any:
-        """Compute metric from graph.
-
-        Args:
-            graph: Directed graph representing agent interactions
-
-        Returns:
-            Computed metric value (type depends on specific metric)
-        """
+        """Compute metric from graph."""
         pass
-
-
-class GraphMetrics(BaseModel):
-    """Graph metrics for coordination quality assessment.
-
-    All centrality metrics are pluggable - each is computed independently
-    and can be extended without modifying core code.
-
-    Attributes:
-        degree_centrality: Degree centrality for each agent
-        betweenness_centrality: Betweenness centrality for each agent
-        closeness_centrality: Closeness centrality for each agent
-        eigenvector_centrality: Eigenvector centrality for each agent
-        pagerank: PageRank scores for each agent
-        graph_density: Graph density (0-1, >0.3 indicates healthy collaboration)
-        clustering_coefficient: Average clustering coefficient
-        connected_components: Number of connected components
-        average_path_length: Average path length between agents
-        diameter: Graph diameter (longest shortest path)
-        bottlenecks: List of agents with betweenness > 0.5
-        isolated_agents: List of agents with degree = 0
-        over_centralized: True if single agent handles > 70% interactions
-    """
-
-    model_config = {"extra": "allow"}
-
-    degree_centrality: dict[str, float]
-    betweenness_centrality: dict[str, float]
-    closeness_centrality: dict[str, float]
-    eigenvector_centrality: dict[str, float]
-    pagerank: dict[str, float]
-    graph_density: float
-    clustering_coefficient: float
-    connected_components: int
-    average_path_length: float
-    diameter: int
-    bottlenecks: list[str]
-    isolated_agents: list[str]
-    over_centralized: bool
 
 
 class DegreeCentralityPlugin(GraphMetricPlugin):
@@ -217,6 +166,7 @@ class GraphEvaluator:
         bottlenecks: list[str] = [
             agent for agent, centrality in betweenness_centrality.items() if centrality > 0.5
         ]
+        has_bottleneck = len(bottlenecks) > 0
 
         # Detect isolated agents (degree = 0)
         isolated_agents: list[str] = [
@@ -225,6 +175,11 @@ class GraphEvaluator:
 
         # Detect over-centralization (single agent > 70% interactions)
         over_centralized = self._detect_over_centralization(graph)
+
+        # Classify coordination quality based on density and bottlenecks
+        coordination_quality = self._classify_coordination_quality(
+            graph_density, has_bottleneck, over_centralized
+        )
 
         # Build metrics dict with required fields
         metrics_dict: dict[str, Any] = {
@@ -239,8 +194,10 @@ class GraphEvaluator:
             "average_path_length": average_path_length,
             "diameter": diameter,
             "bottlenecks": bottlenecks,
+            "has_bottleneck": has_bottleneck,
             "isolated_agents": isolated_agents,
             "over_centralized": over_centralized,
+            "coordination_quality": coordination_quality,
         }
 
         # Add custom plugin results (those not in built-in metrics)
@@ -258,7 +215,7 @@ class GraphEvaluator:
             if key not in builtin_keys:
                 metrics_dict[key] = value
 
-        return GraphMetrics(**metrics_dict)
+        return GraphMetrics.model_validate(metrics_dict)
 
     def _build_graph(self, traces: list[InteractionStep]) -> nx.DiGraph[str]:
         """Build directed graph from interaction traces.
@@ -350,6 +307,34 @@ class GraphEvaluator:
 
         return False
 
+    def _classify_coordination_quality(
+        self, density: float, has_bottleneck: bool, over_centralized: bool
+    ) -> str:
+        """Classify coordination quality based on graph metrics.
+
+        Classification rules:
+        - "bottleneck": Has bottleneck agents or over-centralized with low density
+        - "high": Density >= 0.4 without bottlenecks
+        - "medium": Density >= 0.2 without bottlenecks
+        - "low": Density < 0.2 or has structural issues
+
+        Args:
+            density: Graph density (0-1)
+            has_bottleneck: Whether bottleneck agents detected
+            over_centralized: Whether single agent dominates
+
+        Returns:
+            Coordination quality classification string
+        """
+        if has_bottleneck or (over_centralized and density < 0.3):
+            return "bottleneck"
+        elif density >= 0.4:
+            return "high"
+        elif density >= 0.2:
+            return "medium"
+        else:
+            return "low"
+
     def _empty_metrics(self) -> GraphMetrics:
         """Return empty metrics for empty traces."""
         return GraphMetrics(
@@ -364,6 +349,8 @@ class GraphEvaluator:
             average_path_length=0.0,
             diameter=0,
             bottlenecks=[],
+            has_bottleneck=False,
             isolated_agents=[],
             over_centralized=False,
+            coordination_quality="low",
         )

@@ -1,4 +1,7 @@
-"""LLM-based evaluation configuration and implementation."""
+"""LLM-based evaluation configuration and implementation.
+
+LLMJudgment model consolidated in green.models for single source of truth.
+"""
 
 from __future__ import annotations
 
@@ -8,72 +11,19 @@ import os
 from typing import Any
 
 from openai import AsyncOpenAI
-from pydantic import BaseModel, Field, ValidationError
+from pydantic import BaseModel, ValidationError
 
-from green.models import InteractionStep
+from green.models import InteractionStep, LLMJudgment
 
 logger = logging.getLogger(__name__)
 
 
 class LLMConfig(BaseModel):
-    """Configuration for LLM client.
-
-    Reads environment variables:
-    - AGENTBEATS_LLM_API_KEY: API key for authentication
-    - AGENTBEATS_LLM_BASE_URL: Base URL for LLM endpoint (default: https://api.openai.com/v1)
-    - AGENTBEATS_LLM_MODEL: Model name (default: gpt-4o-mini)
-
-    Supports any OpenAI-compatible endpoint.
-    """
+    """Configuration for LLM client."""
 
     api_key: str | None = None
     base_url: str = "https://api.openai.com/v1"
     model: str = "gpt-4o-mini"
-
-
-class LLMJudgment(BaseModel):
-    """Structured output from LLM-based coordination assessment.
-
-    Fields requested in prompt:
-    - overall_score: Numeric score between 0 and 1
-    - reasoning: Explanation of the assessment
-    - coordination_quality: Qualitative assessment (low/medium/high)
-    - strengths: List of observed coordination strengths
-    - weaknesses: List of observed coordination weaknesses
-
-    Example output (high coordination):
-    {
-        "overall_score": 0.85,
-        "reasoning": "Agents demonstrated efficient task delegation with clear communication...",
-        "coordination_quality": "high",
-        "strengths": ["Fast response times", "Clear delegation", "No errors"],
-        "weaknesses": ["Could optimize parallel execution"]
-    }
-
-    Example output (moderate coordination):
-    {
-        "overall_score": 0.55,
-        "reasoning": "Coordination was adequate but showed some inefficiencies...",
-        "coordination_quality": "medium",
-        "strengths": ["Task completion achieved", "Basic communication established"],
-        "weaknesses": ["High latency", "Sequential execution", "Bottleneck at coordinator"]
-    }
-
-    Example output (poor coordination):
-    {
-        "overall_score": 0.20,
-        "reasoning": "Significant coordination issues with multiple failures...",
-        "coordination_quality": "low",
-        "strengths": ["Agents attempted communication"],
-        "weaknesses": ["Multiple errors", "Very high latency", "Poor task distribution", "Failed to complete"]
-    }
-    """
-
-    overall_score: float = Field(ge=0.0, le=1.0)
-    reasoning: str
-    coordination_quality: str
-    strengths: list[str]
-    weaknesses: list[str]
 
 
 def get_llm_config() -> LLMConfig:
@@ -123,7 +73,8 @@ def build_prompt(steps: list[InteractionStep]) -> str:
     )
 
     # Build prompt with evaluation criteria and JSON schema
-    prompt = f"""You are evaluating the coordination quality of multi-agent interactions based on trace data.
+    prompt = f"""You are evaluating the coordination quality of multi-agent interactions.
+Based on the trace data below, assess how well the agents coordinated.
 
 # Trace Data
 {trace_data}
@@ -311,7 +262,7 @@ async def llm_evaluate(
         # Parse JSON response
         if content:
             result_data = json.loads(content)
-            return LLMJudgment(**result_data)
+            return LLMJudgment.model_validate(result_data)
 
         # Fallback if no content
         logger.warning("LLM returned empty response, falling back to rule-based evaluation")

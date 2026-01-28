@@ -67,7 +67,7 @@ class TestGreenPurpleIntegration:
             assert "result" in result
 
     async def test_results_written_to_output_directory(self):
-        """Verify evaluation results are written to results/results.json."""
+        """Verify evaluation results are written to output/results.json."""
         from pathlib import Path
 
         from green.executor import Executor
@@ -91,7 +91,7 @@ class TestGreenPurpleIntegration:
             results_file = settings.output_file
 
             # This test validates the expected output path
-            assert results_file.parent.name == "results"
+            assert results_file.parent.name == "output"
             assert results_file.name == "results.json"
 
 

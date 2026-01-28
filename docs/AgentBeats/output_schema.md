@@ -45,10 +45,10 @@ Per PRD STORY-008, STORY-014:
 | `coordination_quality` | "low" \| "medium" \| "high" | Yes | Qualitative assessment |
 | `strengths` | string[] | No | Observed coordination strengths |
 | `weaknesses` | string[] | No | Observed coordination weaknesses |
-| `graph_metrics` | GraphMetricsOutput | No | Tier 1 graph structural analysis |
+| `graph_metrics` | GraphMetrics | No | Tier 1 graph structural analysis |
 | `latency_metrics` | LatencyMetricsOutput | No | Tier 2 performance metrics |
 
-## GraphMetricsOutput Schema
+## GraphMetrics Schema
 
 Per PRD STORY-014:
 
@@ -169,10 +169,10 @@ ORDER BY "Pass Rate" DESC;
 ## Usage
 
 ```python
-from green.agentbeats_schema import (
+from green.models import (
     AgentBeatsOutputModel,
     GreenAgentOutput,
-    GraphMetricsOutput,
+    GraphMetrics,
     LatencyMetricsOutput,
 )
 
@@ -183,8 +183,8 @@ green_output = GreenAgentOutput(
     coordination_quality="high",
     strengths=["Fast response times", "Clear delegation"],
     weaknesses=["Could optimize parallel execution"],
-    graph_metrics=GraphMetricsOutput(graph_density=0.45),
-    latency_metrics=LatencyMetricsOutput(avg_latency=150.0, p99_latency=350.0),
+    graph_metrics=GraphMetrics(graph_density=0.45).model_dump(),
+    latency_metrics=LatencyMetricsOutput(avg_latency=150.0, p99_latency=350.0).model_dump(),
 )
 
 # Create from GreenAgentOutput
@@ -215,12 +215,17 @@ json_str = output.to_json(indent=2)
 
 ## Validation
 
-```bash
-python src/green/validate_output.py output/results.json
+All models use Pydantic's `model_validate()` for automatic validation:
+
+```python
+# Validate from dict
+output = AgentBeatsOutputModel.model_validate(data)
 ```
+
+See tests in `tests/test_green_models.py` for validation examples.
 
 ## References
 
 - [AgentBeats Debate Leaderboard](https://github.com/RDI-Foundation/agentbeats-debate-leaderboard)
-- [Pydantic Models](../../src/green/agentbeats_schema.py)
-- [Sample Output](./agentbeats_sample_output.json)
+- [Pydantic Models](../../src/green/models.py)
+- [Sample Output](./sample_output.json)

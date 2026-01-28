@@ -10,28 +10,10 @@ import argparse
 from typing import Any
 
 from fastapi import FastAPI
-from pydantic import BaseModel
 
 from purple.executor import Executor
 from purple.messenger import Messenger
-
-
-class JSONRPCRequest(BaseModel):
-    """JSON-RPC 2.0 request model."""
-
-    jsonrpc: str = "2.0"
-    method: str
-    params: dict[str, Any]
-    id: str | int
-
-
-class JSONRPCResponse(BaseModel):
-    """JSON-RPC 2.0 response model."""
-
-    jsonrpc: str = "2.0"
-    result: dict[str, Any] | None = None
-    error: dict[str, Any] | None = None
-    id: str | int
+from purple.models import JSONRPCRequest, JSONRPCResponse
 
 
 def create_app() -> FastAPI:

@@ -99,23 +99,25 @@ class TestGraphMetricsModel:
 
     def test_graph_metrics_from_dict(self):
         """GraphMetrics created via model_validate from dict."""
-        metrics = GraphMetrics.model_validate({
-            "degree_centrality": {},
-            "betweenness_centrality": {},
-            "closeness_centrality": {},
-            "eigenvector_centrality": {},
-            "pagerank": {},
-            "graph_density": 0.0,
-            "clustering_coefficient": 0.0,
-            "connected_components": 1,
-            "average_path_length": 0.0,
-            "diameter": 0,
-            "bottlenecks": [],
-            "has_bottleneck": False,
-            "isolated_agents": [],
-            "over_centralized": False,
-            "coordination_quality": "low",
-        })
+        metrics = GraphMetrics.model_validate(
+            {
+                "degree_centrality": {},
+                "betweenness_centrality": {},
+                "closeness_centrality": {},
+                "eigenvector_centrality": {},
+                "pagerank": {},
+                "graph_density": 0.0,
+                "clustering_coefficient": 0.0,
+                "connected_components": 1,
+                "average_path_length": 0.0,
+                "diameter": 0,
+                "bottlenecks": [],
+                "has_bottleneck": False,
+                "isolated_agents": [],
+                "over_centralized": False,
+                "coordination_quality": "low",
+            }
+        )
         assert hasattr(metrics, "degree_centrality")
         assert hasattr(metrics, "betweenness_centrality")
         assert hasattr(metrics, "closeness_centrality")
@@ -124,23 +126,25 @@ class TestGraphMetricsModel:
 
     def test_graph_metrics_with_values(self):
         """GraphMetrics with actual values via model_validate."""
-        metrics = GraphMetrics.model_validate({
-            "degree_centrality": {"agent-1": 0.6},
-            "betweenness_centrality": {"agent-1": 0.3},
-            "closeness_centrality": {"agent-1": 1.0},
-            "eigenvector_centrality": {"agent-1": 0.7},
-            "pagerank": {"agent-1": 0.5},
-            "graph_density": 0.5,
-            "clustering_coefficient": 0.3,
-            "connected_components": 2,
-            "average_path_length": 2.5,
-            "diameter": 5,
-            "bottlenecks": ["agent-1"],
-            "has_bottleneck": True,
-            "isolated_agents": [],
-            "over_centralized": False,
-            "coordination_quality": "high",
-        })
+        metrics = GraphMetrics.model_validate(
+            {
+                "degree_centrality": {"agent-1": 0.6},
+                "betweenness_centrality": {"agent-1": 0.3},
+                "closeness_centrality": {"agent-1": 1.0},
+                "eigenvector_centrality": {"agent-1": 0.7},
+                "pagerank": {"agent-1": 0.5},
+                "graph_density": 0.5,
+                "clustering_coefficient": 0.3,
+                "connected_components": 2,
+                "average_path_length": 2.5,
+                "diameter": 5,
+                "bottlenecks": ["agent-1"],
+                "has_bottleneck": True,
+                "isolated_agents": [],
+                "over_centralized": False,
+                "coordination_quality": "high",
+            }
+        )
         assert metrics.graph_density == 0.5
         assert metrics.clustering_coefficient == 0.3
         assert metrics.connected_components == 2

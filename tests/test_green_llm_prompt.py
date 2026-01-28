@@ -14,13 +14,15 @@ from green.models import CallType, InteractionStep, LLMJudgment
 
 def test_llm_judgment_model_has_required_fields() -> None:
     """Test that LLMJudgment model includes all required fields via model_validate."""
-    judgment = LLMJudgment.model_validate({
-        "overall_score": 0.85,
-        "reasoning": "Good coordination observed with efficient task delegation.",
-        "coordination_quality": "high",
-        "strengths": ["Efficient task delegation", "Clear communication"],
-        "weaknesses": ["Minor delay in one agent response"],
-    })
+    judgment = LLMJudgment.model_validate(
+        {
+            "overall_score": 0.85,
+            "reasoning": "Good coordination observed with efficient task delegation.",
+            "coordination_quality": "high",
+            "strengths": ["Efficient task delegation", "Clear communication"],
+            "weaknesses": ["Minor delay in one agent response"],
+        }
+    )
 
     assert judgment.overall_score == 0.85
     assert judgment.reasoning == "Good coordination observed with efficient task delegation."
@@ -31,22 +33,26 @@ def test_llm_judgment_model_has_required_fields() -> None:
 
 def test_llm_judgment_overall_score_range() -> None:
     """Test that overall_score is between 0 and 1 via model_validate."""
-    judgment = LLMJudgment.model_validate({
-        "overall_score": 0.0,
-        "reasoning": "Test",
-        "coordination_quality": "low",
-        "strengths": [],
-        "weaknesses": ["Test"],
-    })
+    judgment = LLMJudgment.model_validate(
+        {
+            "overall_score": 0.0,
+            "reasoning": "Test",
+            "coordination_quality": "low",
+            "strengths": [],
+            "weaknesses": ["Test"],
+        }
+    )
     assert 0.0 <= judgment.overall_score <= 1.0
 
-    judgment = LLMJudgment.model_validate({
-        "overall_score": 1.0,
-        "reasoning": "Test",
-        "coordination_quality": "high",
-        "strengths": ["Test"],
-        "weaknesses": [],
-    })
+    judgment = LLMJudgment.model_validate(
+        {
+            "overall_score": 1.0,
+            "reasoning": "Test",
+            "coordination_quality": "high",
+            "strengths": ["Test"],
+            "weaknesses": [],
+        }
+    )
     assert 0.0 <= judgment.overall_score <= 1.0
 
 

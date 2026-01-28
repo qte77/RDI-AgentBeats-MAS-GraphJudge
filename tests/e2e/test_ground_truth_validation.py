@@ -64,7 +64,9 @@ class TestGreenAgentGroundTruthClassification:
         from green.evals.graph import GraphEvaluator
 
         # Get high coordination scenario
-        high_coord_scenarios = [s for s in ground_truth_data["scenarios"] if s["type"] == "high_coordination"]
+        high_coord_scenarios = [
+            s for s in ground_truth_data["scenarios"] if s["type"] == "high_coordination"
+        ]
         assert len(high_coord_scenarios) > 0
 
         scenario = high_coord_scenarios[0]
@@ -75,7 +77,7 @@ class TestGreenAgentGroundTruthClassification:
         metrics = await evaluator.evaluate(steps)
 
         # Verify high coordination is detected
-        expected = scenario["expected_metrics"]
+        scenario["expected_metrics"]
         assert metrics.graph_density >= 0.3  # High coordination should have good density
 
     async def test_green_agent_classifies_low_coordination(self, ground_truth_data):
@@ -83,7 +85,9 @@ class TestGreenAgentGroundTruthClassification:
         from green.evals.graph import GraphEvaluator
 
         # Get low coordination scenario
-        low_coord_scenarios = [s for s in ground_truth_data["scenarios"] if s["type"] == "low_coordination"]
+        low_coord_scenarios = [
+            s for s in ground_truth_data["scenarios"] if s["type"] == "low_coordination"
+        ]
         assert len(low_coord_scenarios) > 0
 
         scenario = low_coord_scenarios[0]
@@ -94,7 +98,7 @@ class TestGreenAgentGroundTruthClassification:
         metrics = await evaluator.evaluate(steps)
 
         # Verify low coordination is detected
-        expected = scenario["expected_metrics"]
+        scenario["expected_metrics"]
         assert metrics.graph_density <= 0.2  # Low coordination should have poor density
 
     async def test_green_agent_detects_bottlenecks(self, ground_truth_data):
@@ -102,7 +106,9 @@ class TestGreenAgentGroundTruthClassification:
         from green.evals.graph import GraphEvaluator
 
         # Get bottleneck scenario
-        bottleneck_scenarios = [s for s in ground_truth_data["scenarios"] if s["type"] == "bottleneck"]
+        bottleneck_scenarios = [
+            s for s in ground_truth_data["scenarios"] if s["type"] == "bottleneck"
+        ]
         assert len(bottleneck_scenarios) > 0
 
         scenario = bottleneck_scenarios[0]
@@ -124,7 +130,9 @@ class TestGreenAgentGroundTruthClassification:
 
         # Get scenarios with isolated agents
         scenarios_with_isolation = [
-            s for s in ground_truth_data["scenarios"] if len(s["expected_metrics"]["isolated_agents"]) > 0
+            s
+            for s in ground_truth_data["scenarios"]
+            if len(s["expected_metrics"]["isolated_agents"]) > 0
         ]
         assert len(scenarios_with_isolation) > 0
 
@@ -169,7 +177,8 @@ class TestGreenAgentAccuracyMetrics:
 
         # Calculate accuracy
         accuracy = correct_classifications / total_scenarios
-        print(f"\nGreen Agent Classification Accuracy: {accuracy:.2%} ({correct_classifications}/{total_scenarios})")
+        n, t = correct_classifications, total_scenarios
+        print(f"\nGreen Agent Classification Accuracy: {accuracy:.2%} ({n}/{t})")
 
         # Should achieve reasonable accuracy (>= 70%)
         assert accuracy >= 0.65
@@ -198,7 +207,8 @@ class TestGreenAgentAccuracyMetrics:
 
         # Calculate accuracy
         accuracy = correct_detections / total_scenarios
-        print(f"\nBottleneck Detection Accuracy: {accuracy:.2%} ({correct_detections}/{total_scenarios})")
+        n, t = correct_detections, total_scenarios
+        print(f"\nBottleneck Detection Accuracy: {accuracy:.2%} ({n}/{t})")
 
         # Should achieve good accuracy (>= 80%)
         assert accuracy >= 0.8
@@ -230,7 +240,8 @@ class TestGreenAgentAccuracyMetrics:
 
         # Calculate accuracy
         accuracy = correct_detections / total_scenarios
-        print(f"\nIsolated Agent Detection Accuracy: {accuracy:.2%} ({correct_detections}/{total_scenarios})")
+        n, t = correct_detections, total_scenarios
+        print(f"\nIsolated Agent Detection Accuracy: {accuracy:.2%} ({n}/{t})")
 
         # Should achieve good accuracy (>= 75%)
         assert accuracy >= 0.655
@@ -267,7 +278,7 @@ def _create_interaction_steps_from_scenario(scenario: dict) -> list:
 
     # Create root steps for agents that are sources (have outgoing edges but no incoming)
     # or isolated agents
-    root_agents = agents - agents_with_edges | {edge["from"] for edge in edges}
+    agents - agents_with_edges | {edge["from"] for edge in edges}
 
     # Create steps for edges only
     # Each edge A->B is represented by step B with parent A
@@ -314,7 +325,9 @@ def _classify_coordination_quality(metrics: dict) -> str:
         Coordination quality: "high", "medium", "low", or "bottleneck"
     """
     density = getattr(metrics, "graph_density", 0)
-    has_bottleneck = hasattr(metrics, "bottlenecks") and len(getattr(metrics, "bottlenecks", [])) > 0
+    has_bottleneck = (
+        hasattr(metrics, "bottlenecks") and len(getattr(metrics, "bottlenecks", [])) > 0
+    )
 
     if has_bottleneck and density < 0.3:
         return "bottleneck"

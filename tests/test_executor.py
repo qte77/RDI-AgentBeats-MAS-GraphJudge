@@ -41,7 +41,9 @@ class TestExecutorTraceCollection:
 
         # Execute a simple task that involves sending messages
         traces = await executor.execute_task(
-            task_description="Test task", messenger=mock_messenger, agent_url="http://agent.example.com:9009"
+            task_description="Test task",
+            messenger=mock_messenger,
+            agent_url="http://agent.example.com:9009",
         )
 
         # Should return traces
@@ -53,7 +55,9 @@ class TestExecutorTraceCollection:
         executor = Executor()
 
         traces = await executor.execute_task(
-            task_description="Test task", messenger=mock_messenger, agent_url="http://agent.example.com:9009"
+            task_description="Test task",
+            messenger=mock_messenger,
+            agent_url="http://agent.example.com:9009",
         )
 
         # Should have at least one trace
@@ -74,7 +78,9 @@ class TestExecutorTraceCollection:
         executor = Executor()
 
         traces = await executor.execute_task(
-            task_description="Test task", messenger=mock_messenger, agent_url="http://agent.example.com:9009"
+            task_description="Test task",
+            messenger=mock_messenger,
+            agent_url="http://agent.example.com:9009",
         )
 
         # Agent-to-agent communication should be classified as AGENT
@@ -86,7 +92,9 @@ class TestExecutorTraceCollection:
         executor = Executor()
 
         traces = await executor.execute_task(
-            task_description="Test task", messenger=mock_messenger, agent_url="http://agent.example.com:9009"
+            task_description="Test task",
+            messenger=mock_messenger,
+            agent_url="http://agent.example.com:9009",
         )
 
         assert len(traces) > 0
@@ -110,7 +118,9 @@ class TestExecutorCleanup:
         executor = Executor()
 
         await executor.execute_task(
-            task_description="Test task", messenger=mock_messenger, agent_url="http://agent.example.com:9009"
+            task_description="Test task",
+            messenger=mock_messenger,
+            agent_url="http://agent.example.com:9009",
         )
 
         # Messenger.close() should have been called
@@ -141,7 +151,9 @@ class TestExecutorTaskExecution:
         executor = Executor()
 
         await executor.execute_task(
-            task_description="Test task", messenger=mock_messenger, agent_url="http://agent.example.com:9009"
+            task_description="Test task",
+            messenger=mock_messenger,
+            agent_url="http://agent.example.com:9009",
         )
 
         # Should have sent message via messenger (may be multiple rounds)
@@ -155,11 +167,15 @@ class TestExecutorTaskExecution:
         executor = Executor()
 
         traces1 = await executor.execute_task(
-            task_description="Task 1", messenger=mock_messenger, agent_url="http://agent.example.com:9009"
+            task_description="Task 1",
+            messenger=mock_messenger,
+            agent_url="http://agent.example.com:9009",
         )
 
         traces2 = await executor.execute_task(
-            task_description="Task 2", messenger=mock_messenger, agent_url="http://agent.example.com:9009"
+            task_description="Task 2",
+            messenger=mock_messenger,
+            agent_url="http://agent.example.com:9009",
         )
 
         # Different executions should have different trace IDs
@@ -170,7 +186,9 @@ class TestExecutorTaskExecution:
         executor = Executor()
 
         traces = await executor.execute_task(
-            task_description="Test task", messenger=mock_messenger, agent_url="http://agent.example.com:9009"
+            task_description="Test task",
+            messenger=mock_messenger,
+            agent_url="http://agent.example.com:9009",
         )
 
         # Each step should have unique step_id
@@ -195,7 +213,9 @@ class TestExecutorLatencyEvaluation:
 
         # Collect traces
         traces = await executor.execute_task(
-            task_description="Test task", messenger=mock_messenger, agent_url="http://agent.example.com:9009"
+            task_description="Test task",
+            messenger=mock_messenger,
+            agent_url="http://agent.example.com:9009",
         )
 
         # Evaluate latency

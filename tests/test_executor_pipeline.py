@@ -104,7 +104,9 @@ class TestExecutorGraphEvaluatorIntegration:
         assert hasattr(executor, "_evaluate_graph")
         assert callable(executor._evaluate_graph)
 
-    async def test_executor_evaluate_graph_calls_evaluator(self, sample_traces, mock_graph_evaluator):
+    async def test_executor_evaluate_graph_calls_evaluator(
+        self, sample_traces, mock_graph_evaluator
+    ):
         """Executor._evaluate_graph() calls graph evaluator with traces."""
         executor = Executor()
 

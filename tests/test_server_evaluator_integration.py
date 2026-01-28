@@ -86,7 +86,9 @@ class TestServerEvaluatorPipelineIntegration:
         with patch("green.server.Executor", return_value=mock_executor_with_evaluate_all):
             app = create_app()
 
-            async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            async with AsyncClient(
+                transport=ASGITransport(app=app), base_url="http://test"
+            ) as client:
                 request_data = {
                     "jsonrpc": "2.0",
                     "method": "tasks.send",
@@ -113,7 +115,9 @@ class TestServerEvaluatorPipelineIntegration:
         with patch("green.server.Executor", return_value=mock_executor_with_evaluate_all):
             app = create_app()
 
-            async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            async with AsyncClient(
+                transport=ASGITransport(app=app), base_url="http://test"
+            ) as client:
                 request_data = {
                     "jsonrpc": "2.0",
                     "method": "tasks.send",
@@ -149,7 +153,9 @@ class TestServerEvaluatorPipelineIntegration:
         with patch("green.server.Executor", return_value=mock_executor_with_evaluate_all):
             app = create_app()
 
-            async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            async with AsyncClient(
+                transport=ASGITransport(app=app), base_url="http://test"
+            ) as client:
                 request_data = {
                     "jsonrpc": "2.0",
                     "method": "tasks.send",

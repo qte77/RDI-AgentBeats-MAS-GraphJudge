@@ -69,7 +69,9 @@ async def test_llm_evaluate_uses_temperature_zero(sample_steps: list[Interaction
 
 
 @pytest.mark.asyncio
-async def test_llm_evaluate_fallback_when_api_unavailable(sample_steps: list[InteractionStep]) -> None:
+async def test_llm_evaluate_fallback_when_api_unavailable(
+    sample_steps: list[InteractionStep],
+) -> None:
     """Test that evaluation falls back to rule-based when API is unavailable."""
     from green.evals.llm_judge import llm_evaluate
 
@@ -86,7 +88,9 @@ async def test_llm_evaluate_fallback_when_api_unavailable(sample_steps: list[Int
 
 
 @pytest.mark.asyncio
-async def test_llm_evaluate_logs_warning_on_fallback(sample_steps: list[InteractionStep], caplog: pytest.LogCaptureFixture) -> None:
+async def test_llm_evaluate_logs_warning_on_fallback(
+    sample_steps: list[InteractionStep], caplog: pytest.LogCaptureFixture
+) -> None:
     """Test that fallback logs warning, not error."""
     from green.evals.llm_judge import llm_evaluate
 
@@ -166,7 +170,10 @@ async def test_llm_evaluate_with_additional_context(sample_steps: list[Interacti
 
     with patch("green.evals.llm_judge.get_llm_client", return_value=mock_client):
         result = await llm_evaluate(
-            sample_steps, graph_metrics=graph_output, latency_metrics=latency_output, text_metrics=text_output
+            sample_steps,
+            graph_metrics=graph_output,
+            latency_metrics=latency_output,
+            text_metrics=text_output,
         )
 
     # Should successfully incorporate multi-plugin data

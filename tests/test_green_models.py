@@ -22,9 +22,7 @@ class TestParticipantsModel:
 
     def test_valid_agent_uuid(self):
         """Test creating participant with valid agent UUID."""
-        p = ParticipantsModel.model_validate(
-            {"agent": "019b4d08-d84c-7a00-b2ec-4905ef7afc96"}
-        )
+        p = ParticipantsModel.model_validate({"agent": "019b4d08-d84c-7a00-b2ec-4905ef7afc96"})
         assert p.agent == "019b4d08-d84c-7a00-b2ec-4905ef7afc96"
 
     def test_valid_agent_non_uuid(self):
@@ -51,12 +49,14 @@ class TestGraphMetrics:
 
     def test_with_values(self):
         """Test creating graph metrics with values via model_validate."""
-        metrics = GraphMetrics.model_validate({
-            "graph_density": 0.45,
-            "has_bottleneck": True,
-            "bottlenecks": ["agent-1"],
-            "coordination_quality": "high",
-        })
+        metrics = GraphMetrics.model_validate(
+            {
+                "graph_density": 0.45,
+                "has_bottleneck": True,
+                "bottlenecks": ["agent-1"],
+                "coordination_quality": "high",
+            }
+        )
         assert metrics.graph_density == 0.45
         assert metrics.has_bottleneck is True
         assert metrics.bottlenecks == ["agent-1"]
@@ -98,16 +98,18 @@ class TestLatencyMetricsOutput:
 
     def test_with_values(self):
         """Test creating latency metrics with values via model_validate."""
-        metrics = LatencyMetricsOutput.model_validate({
-            "avg_latency": 150.5,
-            "p50_latency": 120.0,
-            "p95_latency": 280.0,
-            "p99_latency": 350.0,
-            "min_latency": 45.0,
-            "max_latency": 420.0,
-            "total_steps": 10,
-            "slowest_step_id": "step-007",
-        })
+        metrics = LatencyMetricsOutput.model_validate(
+            {
+                "avg_latency": 150.5,
+                "p50_latency": 120.0,
+                "p95_latency": 280.0,
+                "p99_latency": 350.0,
+                "min_latency": 45.0,
+                "max_latency": 420.0,
+                "total_steps": 10,
+                "slowest_step_id": "step-007",
+            }
+        )
         assert metrics.avg_latency == 150.5
         assert metrics.p99_latency == 350.0
         assert metrics.total_steps == 10
@@ -119,25 +121,29 @@ class TestResultModel:
 
     def test_valid_minimal(self):
         """Test creating minimal valid result via model_validate."""
-        r = ResultModel.model_validate({
-            "pass_rate": 66.67,
-            "time_used": 55.67,
-            "max_score": 3,
-        })
+        r = ResultModel.model_validate(
+            {
+                "pass_rate": 66.67,
+                "time_used": 55.67,
+                "max_score": 3,
+            }
+        )
         assert r.pass_rate == 66.67
         assert r.time_used == 55.67
         assert r.max_score == 3
 
     def test_valid_complete(self):
         """Test creating complete result with all fields via model_validate."""
-        r = ResultModel.model_validate({
-            "pass_rate": 85.0,
-            "time_used": 350.0,
-            "max_score": 100,
-            "score": 85.0,
-            "domain": "coordination",
-            "task_rewards": {"overall_score": 0.85, "graph_density": 0.45},
-        })
+        r = ResultModel.model_validate(
+            {
+                "pass_rate": 85.0,
+                "time_used": 350.0,
+                "max_score": 100,
+                "score": 85.0,
+                "domain": "coordination",
+                "task_rewards": {"overall_score": 0.85, "graph_density": 0.45},
+            }
+        )
         assert r.domain == "coordination"
         assert r.score == 85.0
         assert r.task_rewards["overall_score"] == 0.85
@@ -153,13 +159,15 @@ class TestGreenAgentOutput:
 
     def test_valid_output(self):
         """Test creating valid Green Agent coordination output via model_validate."""
-        output = GreenAgentOutput.model_validate({
-            "overall_score": 0.85,
-            "reasoning": "Agents demonstrated efficient task delegation.",
-            "coordination_quality": "high",
-            "strengths": ["Fast response times", "Clear delegation"],
-            "weaknesses": ["Could optimize parallel execution"],
-        })
+        output = GreenAgentOutput.model_validate(
+            {
+                "overall_score": 0.85,
+                "reasoning": "Agents demonstrated efficient task delegation.",
+                "coordination_quality": "high",
+                "strengths": ["Fast response times", "Clear delegation"],
+                "weaknesses": ["Could optimize parallel execution"],
+            }
+        )
         assert output.overall_score == 0.85
         assert output.coordination_quality == "high"
         assert len(output.strengths) == 2
@@ -167,41 +175,49 @@ class TestGreenAgentOutput:
 
     def test_with_nested_graph_metrics(self):
         """Test output with embedded graph metrics via model_validate."""
-        output = GreenAgentOutput.model_validate({
-            "overall_score": 0.85,
-            "reasoning": "Good coordination observed.",
-            "coordination_quality": "high",
-            "graph_metrics": {"graph_density": 0.45, "has_bottleneck": False},
-        })
+        output = GreenAgentOutput.model_validate(
+            {
+                "overall_score": 0.85,
+                "reasoning": "Good coordination observed.",
+                "coordination_quality": "high",
+                "graph_metrics": {"graph_density": 0.45, "has_bottleneck": False},
+            }
+        )
         assert output.graph_metrics["graph_density"] == 0.45
 
     def test_with_nested_latency_metrics(self):
         """Test output with embedded latency metrics via model_validate."""
-        output = GreenAgentOutput.model_validate({
-            "overall_score": 0.85,
-            "reasoning": "Good coordination observed.",
-            "coordination_quality": "high",
-            "latency_metrics": {"avg_latency": 150.0, "p99_latency": 350.0},
-        })
+        output = GreenAgentOutput.model_validate(
+            {
+                "overall_score": 0.85,
+                "reasoning": "Good coordination observed.",
+                "coordination_quality": "high",
+                "latency_metrics": {"avg_latency": 150.0, "p99_latency": 350.0},
+            }
+        )
         assert output.latency_metrics["avg_latency"] == 150.0
 
     def test_invalid_coordination_quality(self):
         """Test validation fails for invalid coordination_quality."""
         with pytest.raises(ValidationError):
-            GreenAgentOutput.model_validate({
-                "overall_score": 0.85,
-                "reasoning": "Test",
-                "coordination_quality": "invalid",
-            })
+            GreenAgentOutput.model_validate(
+                {
+                    "overall_score": 0.85,
+                    "reasoning": "Test",
+                    "coordination_quality": "invalid",
+                }
+            )
 
     def test_invalid_score_range(self):
         """Test validation fails for score outside 0-1 range."""
         with pytest.raises(ValidationError):
-            GreenAgentOutput.model_validate({
-                "overall_score": 1.5,
-                "reasoning": "Test",
-                "coordination_quality": "high",
-            })
+            GreenAgentOutput.model_validate(
+                {
+                    "overall_score": 1.5,
+                    "reasoning": "Test",
+                    "coordination_quality": "high",
+                }
+            )
 
     def test_model_validate_from_dict(self):
         """Test creating GreenAgentOutput via model_validate() from dict."""
@@ -254,10 +270,12 @@ class TestAgentBeatsOutputModel:
 
     def test_valid_minimal(self):
         """Test creating minimal valid output via model_validate."""
-        output = AgentBeatsOutputModel.model_validate({
-            "participants": {"agent": "019b4d08-d84c-7a00-b2ec-4905ef7afc96"},
-            "results": [{"pass_rate": 66.67, "time_used": 55.67, "max_score": 3}],
-        })
+        output = AgentBeatsOutputModel.model_validate(
+            {
+                "participants": {"agent": "019b4d08-d84c-7a00-b2ec-4905ef7afc96"},
+                "results": [{"pass_rate": 66.67, "time_used": 55.67, "max_score": 3}],
+            }
+        )
         assert output.participants.agent == "019b4d08-d84c-7a00-b2ec-4905ef7afc96"
         assert output.results[0].pass_rate == 66.67
 
@@ -283,27 +301,33 @@ class TestAgentBeatsOutputModel:
     def test_empty_results_array_rejected(self):
         """Test validation fails for empty results array (min_length=1)."""
         with pytest.raises(ValidationError):
-            AgentBeatsOutputModel.model_validate({
-                "participants": {"agent": "019b4d08-d84c-7a00-b2ec-4905ef7afc96"},
-                "results": [],
-            })
+            AgentBeatsOutputModel.model_validate(
+                {
+                    "participants": {"agent": "019b4d08-d84c-7a00-b2ec-4905ef7afc96"},
+                    "results": [],
+                }
+            )
 
     def test_to_json(self):
         """Test JSON serialization."""
-        output = AgentBeatsOutputModel.model_validate({
-            "participants": {"agent": "019b4d08-d84c-7a00-b2ec-4905ef7afc96"},
-            "results": [{"pass_rate": 66.67, "time_used": 55.67, "max_score": 3}],
-        })
+        output = AgentBeatsOutputModel.model_validate(
+            {
+                "participants": {"agent": "019b4d08-d84c-7a00-b2ec-4905ef7afc96"},
+                "results": [{"pass_rate": 66.67, "time_used": 55.67, "max_score": 3}],
+            }
+        )
         json_str = output.to_json()
         assert "participants" in json_str
         assert "019b4d08-d84c-7a00-b2ec-4905ef7afc96" in json_str
 
     def test_to_dict(self):
         """Test dictionary export."""
-        output = AgentBeatsOutputModel.model_validate({
-            "participants": {"agent": "019b4d08-d84c-7a00-b2ec-4905ef7afc96"},
-            "results": [{"pass_rate": 66.67, "time_used": 55.67, "max_score": 3}],
-        })
+        output = AgentBeatsOutputModel.model_validate(
+            {
+                "participants": {"agent": "019b4d08-d84c-7a00-b2ec-4905ef7afc96"},
+                "results": [{"pass_rate": 66.67, "time_used": 55.67, "max_score": 3}],
+            }
+        )
         data = output.to_dict()
         assert isinstance(data, dict)
         assert data["participants"]["agent"] == "019b4d08-d84c-7a00-b2ec-4905ef7afc96"
@@ -314,14 +338,16 @@ class TestFromGreenOutput:
 
     def test_high_coordination(self):
         """Test creating output from high coordination Green output."""
-        green_output = GreenAgentOutput.model_validate({
-            "overall_score": 0.85,
-            "reasoning": "Agents demonstrated efficient task delegation.",
-            "coordination_quality": "high",
-            "strengths": ["Fast response times", "Clear delegation"],
-            "weaknesses": ["Could optimize parallel execution"],
-            "graph_metrics": {"graph_density": 0.45},
-        })
+        green_output = GreenAgentOutput.model_validate(
+            {
+                "overall_score": 0.85,
+                "reasoning": "Agents demonstrated efficient task delegation.",
+                "coordination_quality": "high",
+                "strengths": ["Fast response times", "Clear delegation"],
+                "weaknesses": ["Could optimize parallel execution"],
+                "graph_metrics": {"graph_density": 0.45},
+            }
+        )
 
         output = AgentBeatsOutputModel.from_green_output(
             green_output=green_output,
@@ -353,13 +379,15 @@ class TestFromGreenOutput:
 
     def test_low_coordination(self):
         """Test creating output from low coordination Green output."""
-        green_output = GreenAgentOutput.model_validate({
-            "overall_score": 0.25,
-            "reasoning": "Significant coordination issues observed.",
-            "coordination_quality": "low",
-            "strengths": ["Agents attempted communication"],
-            "weaknesses": ["Multiple errors", "High latency"],
-        })
+        green_output = GreenAgentOutput.model_validate(
+            {
+                "overall_score": 0.25,
+                "reasoning": "Significant coordination issues observed.",
+                "coordination_quality": "low",
+                "strengths": ["Agents attempted communication"],
+                "weaknesses": ["Multiple errors", "High latency"],
+            }
+        )
 
         output = AgentBeatsOutputModel.from_green_output(
             green_output=green_output,

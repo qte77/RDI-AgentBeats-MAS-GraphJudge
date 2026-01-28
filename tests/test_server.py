@@ -76,7 +76,9 @@ async def test_server_handles_health_check() -> None:
         assert data["status"] == "healthy"
 
 
-async def test_server_handles_a2a_jsonrpc_request(mock_agent: MagicMock, mock_executor: MagicMock) -> None:
+async def test_server_handles_a2a_jsonrpc_request(
+    mock_agent: MagicMock, mock_executor: MagicMock
+) -> None:
     """Test that server handles A2A JSON-RPC protocol requests."""
     from green.server import create_app
 
@@ -109,7 +111,9 @@ async def test_server_handles_a2a_jsonrpc_request(mock_agent: MagicMock, mock_ex
             assert data["id"] == "test-request-1"
 
 
-async def test_server_delegates_to_executor_and_agent(mock_agent: MagicMock, mock_executor: MagicMock) -> None:
+async def test_server_delegates_to_executor_and_agent(
+    mock_agent: MagicMock, mock_executor: MagicMock
+) -> None:
     """Test that server delegates task execution to Executor."""
     from green.server import create_app
 
@@ -185,7 +189,9 @@ def test_cli_accepts_host_port_card_url_args() -> None:
     """Test that CLI accepts --host, --port, --card-url arguments."""
     from green.server import parse_args
 
-    args = parse_args(["--host", "0.0.0.0", "--port", "9009", "--card-url", "http://localhost:9009"])
+    args = parse_args(
+        ["--host", "0.0.0.0", "--port", "9009", "--card-url", "http://localhost:9009"]
+    )
 
     assert args.host == "0.0.0.0"
     assert args.port == 9009
@@ -203,7 +209,9 @@ def test_cli_has_default_values() -> None:
     assert args.card_url is not None
 
 
-async def test_server_handles_multiple_concurrent_requests(mock_agent: MagicMock, mock_executor: MagicMock) -> None:
+async def test_server_handles_multiple_concurrent_requests(
+    mock_agent: MagicMock, mock_executor: MagicMock
+) -> None:
     """Test that server can handle multiple concurrent requests."""
     from green.server import create_app
 
@@ -254,7 +262,11 @@ async def test_server_returns_error_for_invalid_jsonrpc() -> None:
         response = await client.post("/", json=invalid_request)
 
         # Should return JSON-RPC error response
-        assert response.status_code in (200, 400, 422)  # Can be 200 with error in body, 400, or 422 for validation
+        assert response.status_code in (
+            200,
+            400,
+            422,
+        )  # Can be 200 with error in body, 400, or 422 for validation
         data = response.json()
 
         # Check for error indication

@@ -44,7 +44,9 @@ class TestGreenPurpleIntegration:
 
         green_app = create_green_app()
 
-        async with AsyncClient(transport=ASGITransport(app=green_app), base_url="http://test") as green_client:
+        async with AsyncClient(
+            transport=ASGITransport(app=green_app), base_url="http://test"
+        ) as green_client:
             # Send evaluation request to Green Agent
             request = {
                 "jsonrpc": "2.0",

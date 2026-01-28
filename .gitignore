@@ -47,6 +47,10 @@ site/
 # Misc
 ralph/
 
+# Platform runtime output (keep directory via .gitkeep)
+output/*.json
+output/*.log
+
 
 # configs (created by Claude Code sandbox)
 .bash_profile

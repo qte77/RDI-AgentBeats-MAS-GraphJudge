@@ -1,5 +1,8 @@
 """Purple Agent configuration using pydantic-settings.
 
+Purple Agent is a minimal A2A-compliant test fixture used for end-to-end testing
+of Green Agent's evaluation pipeline. It is NOT a production agent.
+
 Centralizes configuration for Purple Agent with environment variable support.
 """
 

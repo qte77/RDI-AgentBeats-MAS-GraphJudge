@@ -7,6 +7,8 @@
 #   docker-compose up -d          # Start both agents
 #   docker-compose ps             # Check status
 #   docker-compose logs -f        # View logs
+#   docker-compose -f docker-compose-local.yaml \
+#     logs green 2>&1 | tail -100
 #   docker-compose down           # Stop and remove containers
 
 services:
@@ -21,6 +23,8 @@ services:
       - agentbeats
     container_name: green
     restart: unless-stopped
+    environment:
+      - PURPLE_AGENT_URL=http://purple:9010
 
   purple:
     build:

@@ -10,7 +10,57 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from httpx import ASGITransport, AsyncClient
 
+from purple.models import JSONRPCRequest, JSONRPCResponse
 from purple.server import create_app
+
+
+class TestPurpleAgentModels:
+    """Test Purple Agent Pydantic models."""
+
+    def test_jsonrpc_request_model_validate(self):
+        """JSONRPCRequest validates from dict using model_validate()."""
+        data = {
+            "jsonrpc": "2.0",
+            "method": "tasks.send",
+            "params": {"task": {"description": "Test"}},
+            "id": 1,
+        }
+        request = JSONRPCRequest.model_validate(data)
+        assert request.jsonrpc == "2.0"
+        assert request.method == "tasks.send"
+        assert request.id == 1
+
+    def test_jsonrpc_response_model_validate(self):
+        """JSONRPCResponse validates from dict using model_validate()."""
+        data = {
+            "jsonrpc": "2.0",
+            "result": {"status": "completed"},
+            "id": 1,
+        }
+        response = JSONRPCResponse.model_validate(data)
+        assert response.jsonrpc == "2.0"
+        assert response.result == {"status": "completed"}
+        assert response.error is None
+        assert response.id == 1
+
+    def test_jsonrpc_response_with_error(self):
+        """JSONRPCResponse validates error responses."""
+        data = {
+            "jsonrpc": "2.0",
+            "error": {"code": -32601, "message": "Method not found"},
+            "id": 2,
+        }
+        response = JSONRPCResponse.model_validate(data)
+        assert response.error is not None
+        assert response.error["code"] == -32601
+        assert response.result is None
+
+    def test_models_located_in_purple_models(self):
+        """Pydantic models are centralized in purple.models module."""
+        from purple import models
+
+        assert hasattr(models, "JSONRPCRequest")
+        assert hasattr(models, "JSONRPCResponse")
 
 
 class TestPurpleAgentCard:

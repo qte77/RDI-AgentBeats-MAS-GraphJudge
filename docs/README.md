@@ -80,18 +80,46 @@ Read: AgentBeats/AGENTBEATS_REGISTRATION.md
 
 ### Testing & Quality
 
-- [ ] **Refactor testing strategy** - See `docs/best-practices/testing-strategy.md`
-  - [ ] pytest for deterministic tests, Hypothesis for edge cases
-  - [ ] Remove low-ROI tests (library behavior, trivial assertions)
+**Current Implementation**: Tests use HTTPX's `ASGITransport` for fast, isolated FastAPI testing.
 
-- [ ] **E2E testing with full evaluation pipeline**
-  - [ ] Tracing integration tests
-  - [ ] LLM-as-judge evaluation
-  - [ ] Text metrics validation
+- **ASGITransport**: Calls ASGI app handlers directly without HTTP server
+  - **Speed**: ~0.7s test runs vs ~5s+ with real servers
+  - **Reliability**: No port conflicts, no network dependencies
+  - **Usage**: `AsyncClient(transport=ASGITransport(app=app), base_url="http://test")`
+  - See `tests/test_server.py` and `tests/test_purple_agent.py` for examples
 
-- [ ] **LLM endpoint testing**
+**TODO**:
+
+- [ ] **Test actual LLM connection (OpenAI standard)**
+  - [ ] Green agent LLM judge connectivity tests
+  - [ ] Purple agent LLM connectivity tests (if applicable)
   - [ ] Mock vs live API testing strategy
   - [ ] Fallback behavior verification
+
+- [ ] **E2E testing with full evaluation pipeline**
+  - [ ] Full Green-Purple integration flow
+  - [ ] Tracing collection and graph construction
+  - [ ] LLM-as-judge evaluation
+  - [ ] AgentBeats output format validation
+  - [ ] Latency metrics validation
+
+- [ ] **Settings consolidation**
+  - [ ] Audit codebase for hardcoded values that should be in settings.py
+  - [ ] Move configuration to GreenSettings/PurpleSettings
+  - [ ] Document all environment variables
+
+- [ ] **Test organization and clarity**
+  - [ ] Clean and clarify `docs/best-practices/testing-strategy.md`
+  - [ ] Implement naming convention: `test_{green|purple}_<component>_<behavior>`
+  - [ ] Separate core functionality tests (pytest) from edge case tests (hypothesis)
+  - [ ] Organize tests: Core business logic, API contracts, integration points
+  - [ ] Add property-based tests with Hypothesis for edge cases
+
+- [ ] **Test coverage improvements**
+  - [ ] Core functionality: Graph metrics, coordination scoring, evaluator pipelines
+  - [ ] API contracts: A2A protocol, AgentCard endpoints, JSON-RPC handling
+  - [ ] Edge cases: Empty traces, invalid inputs, numeric bounds (use Hypothesis)
+  - [ ] Remove low-ROI tests (library behavior, trivial assertions)
 
 ### Platform Integration
 
@@ -105,34 +133,144 @@ Read: AgentBeats/AGENTBEATS_REGISTRATION.md
   - [ ] JSON output schema compliance
   - [ ] SQL integration for leaderboard
 
+### Documentation
+
+- [ ] **Consolidate docs/ directory**
+  - [ ] Audit and organize documentation files
+  - [ ] Remove redundant or outdated documents
+  - [ ] Standardize naming conventions
+  - [ ] Create clear documentation hierarchy
+  - [ ] Update cross-references between docs
+
+- [ ] **Update architecture visualizations**
+  - [ ] Refresh PlantUML diagrams in `arch_vis/`
+  - [ ] Add sequence diagrams for evaluation pipeline
+  - [ ] Document component interactions
+  - [ ] Add data flow diagrams
+  - [ ] Ensure diagrams match current implementation
+
+- [ ] **Local development workflow documentation**
+  - [ ] Document how to trigger evaluation locally (not just server startup)
+  - [ ] Add complete JSON-RPC request examples
+  - [ ] Show expected response formats
+  - [ ] Document Purple agent interaction for testing
+  - [ ] Add troubleshooting guide
+
+- [ ] **Clarify A2A contribution and agentification**
+  - [ ] Document why/how this benchmark is agentified (per A2A philosophy)
+  - [ ] Explain agent-to-agent coordination vs traditional evaluation
+  - [ ] Reference: https://docs.agentbeats.org/ and https://docs.agentbeats.org/Blogs/blog-2/
+  - [ ] Articulate unique value proposition for A2A ecosystem
+
+- [ ] **Document trace-based evaluation approach**
+  - [ ] Explain why traces are used (observability, graph construction)
+  - [ ] Document InteractionStep schema and parent-child relationships
+  - [ ] Show how traces map to coordination graphs
+  - [ ] Contrast with traditional metrics-only evaluation
+
 ---
 
 ## TODO: Open Design Decisions
 
 ### Trace Collection Strategy
 
-The trace collection termination criteria is not yet defined. Options under consideration:
+**Current Status**: The executor uses a fixed-rounds placeholder approach (`DEFAULT_COORDINATION_ROUNDS = 3`) with a 0.1s delay between rounds. This is marked with FIXME at `src/green/executor.py:25` as it's insufficient for real multi-agent coordination scenarios.
 
-- **Task completion signal** - Purple agent sends explicit "done" indicator
-- **Timeout-based** - Collect for N seconds maximum
-- **Idle detection** - Stop after N seconds of no new messages
-- **Fixed rounds** - Current placeholder (3 rounds)
+**The Problem**:
+- Fixed rounds don't adapt to task complexity (simple tasks waste cycles, complex tasks get cut off)
+- No detection of actual task completion or coordination convergence
+- Arbitrary delays between rounds may not match real coordination timing
 
-See `src/green/executor.py` for current implementation with FIXME marker.
+**Options Under Consideration**:
+
+1. **Task completion signal** (Preferred for production)
+   - Purple agent sends explicit "done" indicator when coordination complete
+   - Requires extending A2A protocol or using status field in responses
+   - Most accurate, no wasted collection cycles
+
+2. **Timeout-based** (Simple fallback)
+   - Collect for N seconds maximum (e.g., 30s)
+   - Prevents infinite collection but may miss late interactions
+   - Good safety mechanism to combine with other strategies
+
+3. **Idle detection** (Adaptive)
+   - Stop after N seconds of no new messages (e.g., 5s idle threshold)
+   - Adapts to task complexity naturally
+   - Risk: May terminate during legitimate coordination pauses
+
+4. **Message count threshold**
+   - Stop after N total interactions observed
+   - Simple but arbitrary like fixed rounds
+
+**Recommended Approach**: Hybrid strategy combining task completion signals (primary) with timeout (safety limit) and idle detection (adaptive fallback). Implement as:
+```python
+# Pseudocode
+while not (task_complete or timeout_exceeded or idle_too_long):
+    collect_traces()
+```
+
+**Impact on Evaluation**: Current fixed-rounds approach is adequate for testing graph construction and evaluation logic, but production deployment requires a more sophisticated strategy to handle diverse multi-agent coordination patterns.
+
+See implementation at `src/green/executor.py:20-28` (TODO and FIXME markers).
 
 ### AgentCard URL Configuration
 
-Both agents have hardcoded `localhost` URLs in their AgentCard responses. Should be configurable via environment variables for deployment flexibility.
+**Status**: ✓ **RESOLVED** - Both agents now support configurable URLs
 
-- `src/green/server.py:132` - Green agent URL
-- `src/purple/server.py:57` - Purple agent URL
+Both agents now support URL configuration via environment variables or auto-construction from host/port settings.
 
-### Output Path (Compliant)
+**Implementation**:
+- **Green agent**: `src/green/settings.py` with `get_card_url()` method
+- **Purple agent**: `src/purple/settings.py` with `get_card_url()` method
 
-Current implementation correctly uses `output/results.json` per AgentBeats standard.
-Workflow copies to `results/` and `submissions/` directories.
+**Usage**:
+```bash
+# Green agent - configurable via env var or auto-constructed
+export GREEN_CARD_URL=https://green.example.com:9009
+# or auto-construct: http://{GREEN_HOST}:{GREEN_PORT}
 
-See `src/green/server.py:88`.
+# Purple agent - configurable via env var or auto-constructed
+export PURPLE_CARD_URL=https://purple.example.com:9010
+# or auto-construct: http://{PURPLE_HOST}:{PURPLE_PORT}
+```
+
+### Output Path
+
+**Status**: ✓ **RESOLVED** - Configurable with unified default behavior
+
+**Unified behavior**: Agent writes to `output/results.json` in **both local and platform contexts** (no environment variable overrides needed).
+
+**Implementation**: `src/green/settings.py` - `output_file` field with `GREEN_OUTPUT_FILE` env var support
+
+**Default behavior (local & workflow)**:
+```bash
+# Always writes to output/results.json
+python -m green.server
+```
+
+**Custom paths** (if needed):
+```bash
+export GREEN_OUTPUT_FILE=custom/path/results.json
+python -m green.server
+```
+
+**Directory structure**:
+- `output/` - Runtime evaluation outputs (gitignored, Docker volume mount)
+  - Agent writes here in all contexts
+  - Platform agentbeats-client reads from here
+- `results/` - Leaderboard submissions (git-tracked)
+  - Workflow copies `output/results.json` → `results/{timestamp}.json`
+- `submissions/` - Full submission packages with provenance (git-tracked)
+  - Workflow copies `output/provenance.json` → `submissions/{timestamp}.provenance.json`
+
+**Platform workflow**:
+1. Agent writes → `output/results.json` (runtime)
+2. Workflow writes → `output/provenance.json` (metadata)
+3. Workflow copies → `results/{name}.json` (leaderboard)
+4. Workflow copies → `submissions/{name}.provenance.json` (full package)
+5. Workflow creates PR with results/ and submissions/ files
+
+**Previous**: Used hardcoded path, now fully configurable
 
 ### UUID Validation
 
@@ -168,8 +306,11 @@ See `src/green/messenger.py` for A2A SDK client usage pattern.
 
 ### Provenance Generation
 
-`output/provenance.json` is auto-generated by workflow via `scripts/leaderboard/record_provenance.py`.
-Review implementation for build metadata requirements.
+**Note**: Provenance is **workflow-generated**, not agent-generated.
+
+`output/provenance.json` is auto-generated by the AgentBeats workflow (`.github/workflows/agentbeats-run-scenario.yml`) via `scripts/leaderboard/record_provenance.py`. This file contains build metadata (Docker image hashes, timestamps, etc.) for submission tracking.
+
+**Local development**: Provenance file is not generated during local runs. It's only created during platform workflow execution.
 
 ### Scenario Configuration
 

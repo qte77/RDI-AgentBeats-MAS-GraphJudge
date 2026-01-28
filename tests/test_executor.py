@@ -144,11 +144,11 @@ class TestExecutorTaskExecution:
             task_description="Test task", messenger=mock_messenger, agent_url="http://agent.example.com:9009"
         )
 
-        # Should have sent message via messenger
-        mock_messenger.send_message.assert_called_once()
-        call_args = mock_messenger.send_message.call_args
-        assert call_args[1]["url"] == "http://agent.example.com:9009"
-        assert "Test task" in call_args[1]["message"]
+        # Should have sent message via messenger (may be multiple rounds)
+        mock_messenger.send_message.assert_called()
+        first_call = mock_messenger.send_message.call_args_list[0]
+        assert first_call[1]["url"] == "http://agent.example.com:9009"
+        assert "Test task" in first_call[1]["message"]
 
     async def test_executor_generates_unique_trace_ids(self, mock_messenger):
         """Executor generates unique trace IDs for different executions."""

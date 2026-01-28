@@ -1,0 +1,24 @@
+"""Purple Agent configuration using pydantic-settings.
+
+Centralizes configuration for Purple Agent with environment variable support.
+"""
+
+from __future__ import annotations
+
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class PurpleSettings(BaseSettings):
+    """Purple Agent configuration.
+
+    Environment variables:
+        PURPLE_HOST: Server host (default: 0.0.0.0)
+        PURPLE_PORT: Server port (default: 9010)
+        PURPLE_CARD_URL: AgentCard URL (default: http://localhost:9010)
+    """
+
+    model_config = SettingsConfigDict(env_prefix="PURPLE_")
+
+    host: str = "0.0.0.0"
+    port: int = 9010
+    card_url: str = "http://localhost:9010"

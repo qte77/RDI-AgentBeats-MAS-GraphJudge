@@ -9,12 +9,14 @@ Consolidates all Green Agent models for single source of truth:
 
 from __future__ import annotations
 
-import os
 from datetime import datetime
 from enum import Enum
-from typing import Any, Literal
+from typing import TYPE_CHECKING, Any, Literal
 
 from pydantic import BaseModel, Field
+
+if TYPE_CHECKING:
+    from green.settings import GreenSettings
 
 
 # =============================================================================
@@ -139,12 +141,6 @@ class LatencyMetricsOutput(BaseModel):
 # =============================================================================
 
 
-class GraphMetricsOutput(GraphMetrics):
-    """Alias for GraphMetrics for AgentBeats output compatibility."""
-
-    pass
-
-
 class GreenAgentOutput(BaseModel):
     """Green Agent coordination evaluation output.
 
@@ -249,30 +245,35 @@ class AgentBeatsOutputModel(BaseModel):
         agent_id: str | None = None,
         domain: str = "coordination",
         max_score: float = 100.0,
+        settings: GreenSettings | None = None,
     ) -> AgentBeatsOutputModel:
         """Create AgentBeats output from executor evaluation results."""
         if agent_id is None:
-            agent_id = os.getenv("AGENT_UUID", "green-agent")
+            if settings is None:
+                from green.settings import GreenSettings
 
-        graph_results = evaluation_results.get("tier1_graph") or {}
-        llm_results = evaluation_results.get("tier2_llm") or {}
-        latency_results = evaluation_results.get("tier2_latency") or {}
+                settings = GreenSettings()
+            agent_id = settings.agent_uuid
 
-        overall_score = llm_results.get("overall_score", 0.0)
-        reasoning = llm_results.get("reasoning", "No evaluation performed")
-        coordination_quality = llm_results.get("coordination_quality", "low")
-        strengths = llm_results.get("strengths", [])
-        weaknesses = llm_results.get("weaknesses", [])
+        graph_results: dict[str, Any] = evaluation_results.get("tier1_graph") or {}
+        llm_results: dict[str, Any] = evaluation_results.get("tier2_llm") or {}
+        latency_results: dict[str, Any] = evaluation_results.get("tier2_latency") or {}
 
-        pass_rate = overall_score * 100.0
-        score = overall_score * max_score
-        time_used = latency_results.get("p99_latency", 0.0)
+        overall_score: float = llm_results.get("overall_score", 0.0)
+        reasoning: str = llm_results.get("reasoning", "No evaluation performed")
+        coordination_quality: str = llm_results.get("coordination_quality", "low")
+        strengths: list[str] = llm_results.get("strengths", [])
+        weaknesses: list[str] = llm_results.get("weaknesses", [])
 
-        graph_density = graph_results.get("graph_density", 0.0)
-        quality_map = {"low": 0.33, "medium": 0.66, "high": 1.0}
-        quality_score = quality_map.get(coordination_quality, 0.0)
+        pass_rate: float = overall_score * 100.0
+        score: float = overall_score * max_score
+        time_used: float = latency_results.get("p99_latency", 0.0)
 
-        task_rewards = {
+        graph_density: float = graph_results.get("graph_density", 0.0)
+        quality_map: dict[str, float] = {"low": 0.33, "medium": 0.66, "high": 1.0}
+        quality_score: float = quality_map.get(coordination_quality, 0.0)
+
+        task_rewards: dict[str, float] = {
             "overall_score": overall_score,
             "graph_density": graph_density,
             "coordination_quality": quality_score,

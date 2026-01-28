@@ -14,14 +14,21 @@ from fastapi import FastAPI
 from purple.executor import Executor
 from purple.messenger import Messenger
 from purple.models import JSONRPCRequest, JSONRPCResponse
+from purple.settings import PurpleSettings
 
 
-def create_app() -> FastAPI:
+def create_app(settings: PurpleSettings | None = None) -> FastAPI:
     """Create and configure FastAPI application.
+
+    Args:
+        settings: Optional PurpleSettings instance (defaults to new instance)
 
     Returns:
         Configured FastAPI application instance
     """
+    if settings is None:
+        settings = PurpleSettings()
+
     app = FastAPI(title="Purple Agent A2A Server")
 
     @app.get("/.well-known/agent-card.json")
@@ -91,7 +98,7 @@ def create_app() -> FastAPI:
             result = await executor.execute_task(
                 task_description=task_description,
                 messenger=messenger,
-                agent_url="http://localhost:9010",  # Purple agent URL
+                agent_url=settings.card_url,
             )
 
             # Return JSON-RPC success response
@@ -112,36 +119,42 @@ def create_app() -> FastAPI:
     return app
 
 
-def parse_args(args: list[str] | None = None) -> argparse.Namespace:
+def parse_args(
+    args: list[str] | None = None, settings: PurpleSettings | None = None
+) -> argparse.Namespace:
     """Parse command-line arguments.
 
     Args:
         args: Optional list of arguments (for testing)
+        settings: Optional PurpleSettings for defaults (defaults to new instance)
 
     Returns:
         Parsed arguments namespace
     """
+    if settings is None:
+        settings = PurpleSettings()
+
     parser = argparse.ArgumentParser(description="Purple Agent A2A HTTP Server")
 
     parser.add_argument(
         "--host",
         type=str,
-        default="0.0.0.0",
-        help="Host to bind to (default: 0.0.0.0)",
+        default=settings.host,
+        help=f"Host to bind to (default: {settings.host})",
     )
 
     parser.add_argument(
         "--port",
         type=int,
-        default=9010,
-        help="Port to bind to (default: 9010)",
+        default=settings.port,
+        help=f"Port to bind to (default: {settings.port})",
     )
 
     parser.add_argument(
         "--card-url",
         type=str,
-        default="http://localhost:9010",
-        help="AgentCard URL (default: http://localhost:9010)",
+        default=settings.card_url,
+        help=f"AgentCard URL (default: {settings.card_url})",
     )
 
     return parser.parse_args(args)
@@ -151,9 +164,10 @@ def main() -> None:
     """Main entry point for server."""
     import uvicorn
 
-    args = parse_args()
+    settings = PurpleSettings()
+    args = parse_args(settings=settings)
 
-    app = create_app()
+    app = create_app(settings=settings)
 
     uvicorn.run(
         app,

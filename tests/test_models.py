@@ -244,7 +244,7 @@ class TestAgentCardExtensions:
 
         extensions = get_agent_extensions()
         # Check for traceability extension (URI may vary based on spec version)
-        traceability_extensions = [ext for ext in extensions if "traceability" in ext.lower()]
+        traceability_extensions = [ext for ext in extensions if "traceability" in ext["uri"].lower()]
         assert len(traceability_extensions) > 0, "Traceability extension not declared"
 
     def test_agent_extensions_include_timestamp(self):
@@ -253,5 +253,5 @@ class TestAgentCardExtensions:
 
         extensions = get_agent_extensions()
         # Check for timestamp extension
-        timestamp_extensions = [ext for ext in extensions if "timestamp" in ext.lower()]
+        timestamp_extensions = [ext for ext in extensions if "timestamp" in ext["uri"].lower()]
         assert len(timestamp_extensions) > 0, "Timestamp extension not declared"

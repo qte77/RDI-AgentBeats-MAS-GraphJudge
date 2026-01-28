@@ -63,7 +63,7 @@ class TestGreenAgentCard:
             assert "capabilities" in card
             assert "extensions" in card["capabilities"]
             extensions = card["capabilities"]["extensions"]
-            assert any("traceability" in ext for ext in extensions)
+            assert any("traceability" in ext["uri"] for ext in extensions)
 
 
 class TestPurpleAgentCard:

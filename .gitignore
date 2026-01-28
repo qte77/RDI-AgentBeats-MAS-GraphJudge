@@ -41,9 +41,8 @@ site/
 
 # linting
 .ruff_cache/
-
-# type checking
 .mypy_cache/
+.complexipy_cache/
 
 # Misc
 ralph/

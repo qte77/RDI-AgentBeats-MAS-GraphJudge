@@ -7,7 +7,6 @@ and task delegation to Executor -> Agent pipeline.
 from __future__ import annotations
 
 import argparse
-import os
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
@@ -15,13 +14,10 @@ from typing import Any
 from fastapi import FastAPI
 from pydantic import BaseModel
 
-from green.models import AgentBeatsOutputModel
 from green.executor import Executor
 from green.messenger import Messenger
-from green.models import CallType, InteractionStep, get_agent_extensions
-
-# Purple agent URL - configurable via environment
-PURPLE_AGENT_URL = os.getenv("PURPLE_AGENT_URL", "http://localhost:8002")
+from green.models import AgentBeatsOutputModel, CallType, InteractionStep, get_agent_extensions
+from green.settings import GreenSettings
 
 
 def _build_traces_from_pattern(pattern: dict[str, Any]) -> list[InteractionStep]:
@@ -105,12 +101,101 @@ class JSONRPCResponse(BaseModel):
     id: str | int
 
 
-def create_app() -> FastAPI:
+class _LLMJudgeEvaluator:
+    """Wrapper for LLM judge evaluation."""
+
+    async def evaluate(
+        self, traces: list[InteractionStep], graph_results: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
+        from green.evals.llm_judge import llm_evaluate
+
+        result = await llm_evaluate(traces, graph_metrics=graph_results)
+        return result.model_dump()
+
+
+class _LatencyEvaluator:
+    """Wrapper for latency evaluation."""
+
+    async def evaluate(self, traces: list[InteractionStep]) -> dict[str, Any]:
+        from green.evals.system import evaluate_latency
+
+        metrics = evaluate_latency(traces)
+        return metrics.model_dump()
+
+
+async def _process_evaluation_request(
+    task_description: str,
+    interaction_pattern: dict[str, Any] | None,
+    settings: GreenSettings,
+) -> dict[str, Any]:
+    """Process evaluation request and return results."""
+    from green.evals.graph import GraphEvaluator
+
+    executor = Executor()
+
+    if interaction_pattern:
+        traces = _build_traces_from_pattern(interaction_pattern)
+    else:
+        messenger = Messenger()
+        traces = await executor.execute_task(
+            task_description=task_description,
+            messenger=messenger,
+            agent_url=settings.purple_agent_url,
+        )
+
+    evaluation_results = await executor.evaluate_all(
+        traces=traces,
+        graph_evaluator=GraphEvaluator(),
+        llm_judge=_LLMJudgeEvaluator(),
+        latency_evaluator=_LatencyEvaluator(),
+    )
+
+    agentbeats_output = AgentBeatsOutputModel.from_evaluation_results(
+        evaluation_results=evaluation_results,
+        domain="r&d-assessment",
+        max_score=100.0,
+    )
+
+    OUTPUT_FILE.parent.mkdir(parents=True, exist_ok=True)
+    with OUTPUT_FILE.open("w") as f:
+        f.write(agentbeats_output.to_json(indent=2))
+
+    tier1_graph: Any = evaluation_results.get("tier1_graph") or {}
+    graph_metrics: dict[str, Any] = (
+        tier1_graph.model_dump() if hasattr(tier1_graph, "model_dump") else {}
+    )
+
+    return {
+        "status": "completed",
+        "parts": [
+            {
+                "type": "data",
+                "data": {
+                    "classification": graph_metrics.get("coordination_quality", "low"),
+                    "overall_score": graph_metrics.get("graph_density", 0.0),
+                    "graph_density": graph_metrics.get("graph_density", 0.0),
+                    "has_bottleneck": graph_metrics.get("has_bottleneck", False),
+                    "isolated_agents": graph_metrics.get("isolated_agents", []),
+                    "bottlenecks": graph_metrics.get("bottlenecks", []),
+                },
+            }
+        ],
+        "evaluation": agentbeats_output.to_dict(),
+    }
+
+
+def create_app(settings: GreenSettings | None = None) -> FastAPI:
     """Create and configure FastAPI application.
+
+    Args:
+        settings: Optional GreenSettings instance (defaults to new instance)
 
     Returns:
         Configured FastAPI application instance
     """
+    if settings is None:
+        settings = GreenSettings()
+
     app = FastAPI(title="Green Agent A2A Server")
 
     @app.get("/.well-known/agent-card.json")
@@ -160,17 +245,7 @@ def create_app() -> FastAPI:
 
     @app.post("/")
     async def handle_jsonrpc(request: JSONRPCRequest) -> JSONRPCResponse:  # pyright: ignore[reportUnusedFunction]
-        """Handle A2A JSON-RPC 2.0 protocol requests.
-
-        Args:
-            request: JSON-RPC request
-
-        Returns:
-            JSON-RPC response with evaluation results
-
-        Raises:
-            HTTPException: If request processing fails
-        """
+        """Handle A2A JSON-RPC 2.0 protocol requests."""
         try:
             if request.method != "tasks.send":
                 return JSONRPCResponse(
@@ -178,7 +253,6 @@ def create_app() -> FastAPI:
                     error={"code": -32601, "message": f"Method not found: {request.method}"},
                 )
 
-            # Extract task description and optional interaction pattern
             task_params = request.params.get("task", {})
             task_description = task_params.get("description", "")
             interaction_pattern = task_params.get("interaction_pattern")
@@ -189,95 +263,10 @@ def create_app() -> FastAPI:
                     error={"code": -32602, "message": "Invalid params: task.description required"},
                 )
 
-            executor = Executor()
-
-            # If interaction_pattern provided, build traces from it (for testing/evaluation)
-            # Otherwise, execute real task via Purple agent
-            if interaction_pattern:
-                traces = _build_traces_from_pattern(interaction_pattern)
-            else:
-                messenger = Messenger()
-                traces = await executor.execute_task(
-                    task_description=task_description,
-                    messenger=messenger,
-                    agent_url=PURPLE_AGENT_URL,
-                )
-
-            # Create evaluator instances
-            # Graph evaluator (Tier 1) - computes coordination quality metrics
-            from green.evals.graph import GraphEvaluator
-
-            graph_evaluator = GraphEvaluator()
-
-            # LLM Judge (Tier 2) - use evaluator wrapper
-            from green.evals.llm_judge import llm_evaluate
-
-            class LLMJudgeEvaluator:
-                async def evaluate(
-                    self, traces: list[InteractionStep], graph_results: dict[str, Any] | None = None
-                ) -> dict[str, Any]:
-                    result = await llm_evaluate(traces, graph_metrics=graph_results)
-                    return result.model_dump()
-
-            llm_judge = LLMJudgeEvaluator()
-
-            # Latency evaluator (Tier 2) - use evaluator wrapper
-            from green.evals.system import evaluate_latency
-
-            class LatencyEvaluator:
-                async def evaluate(self, traces: list[InteractionStep]) -> dict[str, Any]:
-                    metrics = evaluate_latency(traces)
-                    return metrics.model_dump()
-
-            latency_evaluator = LatencyEvaluator()
-
-            # Evaluate all traces using executor pipeline
-            evaluation_results = await executor.evaluate_all(
-                traces=traces,
-                graph_evaluator=graph_evaluator,
-                llm_judge=llm_judge,
-                latency_evaluator=latency_evaluator,
+            result = await _process_evaluation_request(
+                task_description, interaction_pattern, settings
             )
-
-            # Transform to AgentBeats leaderboard format using Pydantic model
-            # agent_id defaults to AGENT_UUID env var or "green-agent"
-            agentbeats_output = AgentBeatsOutputModel.from_evaluation_results(
-                evaluation_results=evaluation_results,
-                domain="r&d-assessment",
-                max_score=100.0,
-            )
-
-            # Write results to output file in AgentBeats format
-            # Using Pydantic ensures schema validation
-            OUTPUT_FILE.parent.mkdir(parents=True, exist_ok=True)
-            with OUTPUT_FILE.open("w") as f:
-                f.write(agentbeats_output.to_json(indent=2))
-
-            # Extract graph metrics for response (Tier 1 results)
-            tier1_graph = evaluation_results.get("tier1_graph") or {}
-            graph_metrics = tier1_graph.model_dump() if hasattr(tier1_graph, "model_dump") else {}
-
-            # Return JSON-RPC success response with graph metrics in expected format
-            return JSONRPCResponse(
-                id=request.id,
-                result={
-                    "status": "completed",
-                    "parts": [
-                        {
-                            "type": "data",
-                            "data": {
-                                "classification": graph_metrics.get("coordination_quality", "low"),
-                                "overall_score": graph_metrics.get("graph_density", 0.0),
-                                "graph_density": graph_metrics.get("graph_density", 0.0),
-                                "has_bottleneck": graph_metrics.get("has_bottleneck", False),
-                                "isolated_agents": graph_metrics.get("isolated_agents", []),
-                                "bottlenecks": graph_metrics.get("bottlenecks", []),
-                            },
-                        }
-                    ],
-                    "evaluation": agentbeats_output.to_dict(),
-                },
-            )
+            return JSONRPCResponse(id=request.id, result=result)
 
         except Exception as e:
             return JSONRPCResponse(
@@ -288,36 +277,42 @@ def create_app() -> FastAPI:
     return app
 
 
-def parse_args(args: list[str] | None = None) -> argparse.Namespace:
+def parse_args(
+    args: list[str] | None = None, settings: GreenSettings | None = None
+) -> argparse.Namespace:
     """Parse command-line arguments.
 
     Args:
         args: Optional list of arguments (for testing)
+        settings: Optional GreenSettings for defaults (defaults to new instance)
 
     Returns:
         Parsed arguments namespace
     """
+    if settings is None:
+        settings = GreenSettings()
+
     parser = argparse.ArgumentParser(description="Green Agent A2A HTTP Server")
 
     parser.add_argument(
         "--host",
         type=str,
-        default="0.0.0.0",
-        help="Host to bind to (default: 0.0.0.0)",
+        default=settings.host,
+        help=f"Host to bind to (default: {settings.host})",
     )
 
     parser.add_argument(
         "--port",
         type=int,
-        default=9009,
-        help="Port to bind to (default: 9009)",
+        default=settings.port,
+        help=f"Port to bind to (default: {settings.port})",
     )
 
     parser.add_argument(
         "--card-url",
         type=str,
-        default="http://localhost:9009",  # TODO: Make configurable via env var
-        help="AgentCard URL (default: http://localhost:9009)",
+        default=f"http://localhost:{settings.port}",
+        help=f"AgentCard URL (default: http://localhost:{settings.port})",
     )
 
     return parser.parse_args(args)
@@ -327,9 +322,10 @@ def main() -> None:
     """Main entry point for server."""
     import uvicorn
 
-    args = parse_args()
+    settings = GreenSettings()
+    args = parse_args(settings=settings)
 
-    app = create_app()
+    app = create_app(settings=settings)
 
     uvicorn.run(
         app,

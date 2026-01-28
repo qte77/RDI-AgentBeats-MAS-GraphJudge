@@ -175,9 +175,10 @@ async def test_server_writes_results_to_output_file(
             with output_file.open() as f:
                 results = json.load(f)
 
-            # Verify results structure
+            # Verify AgentBeats output structure
             assert isinstance(results, dict)
-            assert "tier1_graph" in results or "evaluation" in results
+            assert "participants" in results
+            assert "results" in results
 
 
 def test_cli_accepts_host_port_card_url_args() -> None:

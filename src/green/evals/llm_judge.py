@@ -7,36 +7,23 @@ from __future__ import annotations
 
 import json
 import logging
-import os
 from typing import Any
 
 from openai import AsyncOpenAI
-from pydantic import BaseModel, ValidationError
 
 from green.models import InteractionStep, LLMJudgment
+from green.settings import LLMSettings
 
 logger = logging.getLogger(__name__)
 
 
-class LLMConfig(BaseModel):
-    """Configuration for LLM client."""
-
-    api_key: str | None = None
-    base_url: str = "https://api.openai.com/v1"
-    model: str = "gpt-4o-mini"
-
-
-def get_llm_config() -> LLMConfig:
+def get_llm_config() -> LLMSettings:
     """Get LLM configuration from environment variables.
 
     Returns:
-        LLMConfig with values from environment or defaults
+        LLMSettings with values from environment or defaults
     """
-    return LLMConfig(
-        api_key=os.environ.get("AGENTBEATS_LLM_API_KEY"),
-        base_url=os.environ.get("AGENTBEATS_LLM_BASE_URL", "https://api.openai.com/v1"),
-        model=os.environ.get("AGENTBEATS_LLM_MODEL", "gpt-4o-mini"),
-    )
+    return LLMSettings()
 
 
 def build_prompt(steps: list[InteractionStep]) -> str:
@@ -203,6 +190,47 @@ def rule_based_evaluate(steps: list[InteractionStep]) -> LLMJudgment:
     )
 
 
+def _build_context_section(
+    graph_metrics: dict[str, Any] | None,
+    latency_metrics: dict[str, Any] | None,
+    text_metrics: dict[str, Any] | None,
+    task_outcome: str | None,
+) -> str:
+    """Build additional context section for LLM prompt."""
+    if not any([graph_metrics, latency_metrics, text_metrics, task_outcome]):
+        return ""
+
+    parts = ["\n\n# Additional Context\n"]
+    if graph_metrics:
+        parts.append(f"\nGraph Metrics: {json.dumps(graph_metrics, indent=2)}")
+    if latency_metrics:
+        parts.append(f"\nLatency Metrics: {json.dumps(latency_metrics, indent=2)}")
+    if text_metrics:
+        parts.append(f"\nText Metrics: {json.dumps(text_metrics, indent=2)}")
+    if task_outcome:
+        parts.append(f"\nTask Outcome: {task_outcome}")
+    return "".join(parts)
+
+
+async def _call_llm(prompt: str) -> LLMJudgment | None:
+    """Call LLM API and parse response. Returns None on failure."""
+    client = get_llm_client()
+    config = get_llm_config()
+
+    response = await client.chat.completions.create(
+        model=config.model,
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0,
+    )
+
+    content = response.choices[0].message.content
+    if not content:
+        return None
+
+    result_data = json.loads(content)
+    return LLMJudgment.model_validate(result_data)
+
+
 async def llm_evaluate(
     steps: list[InteractionStep],
     graph_metrics: dict[str, Any] | None = None,
@@ -210,82 +238,20 @@ async def llm_evaluate(
     text_metrics: dict[str, Any] | None = None,
     task_outcome: str | None = None,
 ) -> LLMJudgment:
-    """Evaluate coordination quality using LLM API with fallback to rule-based.
-
-    Integrates LLM API calls with graceful fallback to rule-based evaluation
-    if API is unavailable. Handles API errors and timeouts.
-
-    Args:
-        steps: List of InteractionStep traces to evaluate
-        graph_metrics: Optional graph evaluator output
-        latency_metrics: Optional latency evaluator output
-        text_metrics: Optional text evaluator output
-        task_outcome: Optional task outcome assessment (success/failure)
-
-    Returns:
-        LLMJudgment with coordination assessment
-    """
+    """Evaluate coordination quality using LLM API with fallback to rule-based."""
     try:
-        # Get LLM client
-        client = get_llm_client()
-        config = get_llm_config()
-
-        # Build prompt with trace data
         prompt = build_prompt(steps)
+        prompt += _build_context_section(graph_metrics, latency_metrics, text_metrics, task_outcome)
 
-        # Enhance prompt with additional context if provided
-        if graph_metrics or latency_metrics or text_metrics or task_outcome:
-            prompt += "\n\n# Additional Context\n"
+        result = await _call_llm(prompt)
+        if result:
+            return result
 
-            if graph_metrics:
-                prompt += f"\nGraph Metrics: {json.dumps(graph_metrics, indent=2)}"
-
-            if latency_metrics:
-                prompt += f"\nLatency Metrics: {json.dumps(latency_metrics, indent=2)}"
-
-            if text_metrics:
-                prompt += f"\nText Metrics: {json.dumps(text_metrics, indent=2)}"
-
-            if task_outcome:
-                prompt += f"\nTask Outcome: {task_outcome}"
-
-        # Call LLM API with temperature=0 for consistency
-        response = await client.chat.completions.create(
-            model=config.model,
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0,
-        )
-
-        # Extract response content
-        content = response.choices[0].message.content
-
-        # Parse JSON response
-        if content:
-            result_data = json.loads(content)
-            return LLMJudgment.model_validate(result_data)
-
-        # Fallback if no content
         logger.warning("LLM returned empty response, falling back to rule-based evaluation")
-        return rule_based_evaluate(steps)
-
-    except (ConnectionError, TimeoutError) as e:
-        # Log warning (not error) for API unavailability
-        logger.warning(
-            "LLM API unavailable (%s), falling back to rule-based evaluation", type(e).__name__
-        )
-        return rule_based_evaluate(steps)
-
-    except (json.JSONDecodeError, ValidationError) as e:
-        # Handle invalid JSON or validation errors
-        logger.warning(
-            "LLM response parsing failed (%s), falling back to rule-based evaluation",
-            type(e).__name__,
-        )
-        return rule_based_evaluate(steps)
 
     except Exception as e:
-        # Catch-all for any other errors
         logger.warning(
             "LLM evaluation failed (%s), falling back to rule-based evaluation", type(e).__name__
         )
-        return rule_based_evaluate(steps)
+
+    return rule_based_evaluate(steps)

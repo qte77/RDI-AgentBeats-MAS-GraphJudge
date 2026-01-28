@@ -10,7 +10,7 @@ from pydantic import ValidationError
 from green.models import (
     AgentBeatsOutputModel,
     GreenAgentOutput,
-    GraphMetricsOutput,
+    GraphMetrics,
     LatencyMetricsOutput,
     ParticipantsModel,
     ResultModel,
@@ -38,12 +38,12 @@ class TestParticipantsModel:
             ParticipantsModel.model_validate({})
 
 
-class TestGraphMetricsOutput:
-    """Tests for GraphMetricsOutput."""
+class TestGraphMetrics:
+    """Tests for GraphMetrics."""
 
     def test_default_values(self):
         """Test creating graph metrics with defaults via model_validate."""
-        metrics = GraphMetricsOutput.model_validate({})
+        metrics = GraphMetrics.model_validate({})
         assert metrics.graph_density == 0.0
         assert metrics.has_bottleneck is False
         assert metrics.bottlenecks == []
@@ -51,7 +51,7 @@ class TestGraphMetricsOutput:
 
     def test_with_values(self):
         """Test creating graph metrics with values via model_validate."""
-        metrics = GraphMetricsOutput.model_validate({
+        metrics = GraphMetrics.model_validate({
             "graph_density": 0.45,
             "has_bottleneck": True,
             "bottlenecks": ["agent-1"],
@@ -81,7 +81,7 @@ class TestGraphMetricsOutput:
             "over_centralized": False,
             "coordination_quality": "high",
         }
-        metrics = GraphMetricsOutput.model_validate(data)
+        metrics = GraphMetrics.model_validate(data)
         assert metrics.degree_centrality == {"agent-1": 0.6, "agent-2": 0.4}
         assert metrics.graph_density == 0.45
 

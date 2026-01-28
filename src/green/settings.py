@@ -5,6 +5,8 @@ Centralizes configuration for Green Agent with environment variable support.
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -32,6 +34,7 @@ class GreenSettings(BaseSettings):
         GREEN_HOST: Server host (default: 0.0.0.0)
         GREEN_PORT: Server port (default: 9009)
         GREEN_CARD_URL: AgentCard URL (default: http://{host}:{port})
+        GREEN_OUTPUT_FILE: Output file path (default: results/results.json)
         AGENT_UUID: Agent identifier (default: green-agent)
         PURPLE_AGENT_URL: URL for Purple Agent (default: http://localhost:8002)
     """
@@ -51,6 +54,10 @@ class GreenSettings(BaseSettings):
         default=None,
         validation_alias="GREEN_CARD_URL",
         description="AgentCard URL (defaults to http://{host}:{port})",
+    )
+    output_file: Path = Field(
+        default=Path("results/results.json"),
+        description="Output file path for evaluation results",
     )
 
     # Nested LLM settings

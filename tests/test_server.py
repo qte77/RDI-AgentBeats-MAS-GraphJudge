@@ -145,19 +145,15 @@ async def test_server_delegates_to_executor_and_agent(
 async def test_server_writes_results_to_output_file(
     mock_agent: MagicMock, mock_executor: MagicMock, tmp_path: Path
 ) -> None:
-    """Test that server writes evaluation results to output/results.json.
-
-    TODO: Change to results/results.json (update prd.json STORY-006, STORY-011 first)
-    """
+    """Test that server writes evaluation results to configured output file."""
     from green.server import create_app
+    from green.settings import GreenSettings
 
     output_file = tmp_path / "results.json"
+    settings = GreenSettings(output_file=output_file)
 
-    with (
-        patch("green.server.Executor", return_value=mock_executor),
-        patch("green.server.OUTPUT_FILE", output_file),
-    ):
-        app = create_app()
+    with patch("green.server.Executor", return_value=mock_executor):
+        app = create_app(settings=settings)
 
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             request_data = {

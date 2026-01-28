@@ -79,10 +79,6 @@ def _build_traces_from_pattern(pattern: dict[str, Any]) -> list[InteractionStep]
     return traces
 
 
-# TODO: Change to results/results.json (update prd.json STORY-006, STORY-011 first)
-OUTPUT_FILE = Path("output/results.json")
-
-
 class JSONRPCRequest(BaseModel):
     """JSON-RPC 2.0 request model."""
 
@@ -156,8 +152,8 @@ async def _process_evaluation_request(
         max_score=100.0,
     )
 
-    OUTPUT_FILE.parent.mkdir(parents=True, exist_ok=True)
-    with OUTPUT_FILE.open("w") as f:
+    settings.output_file.parent.mkdir(parents=True, exist_ok=True)
+    with settings.output_file.open("w") as f:
         f.write(agentbeats_output.to_json(indent=2))
 
     tier1_graph: Any = evaluation_results.get("tier1_graph") or {}

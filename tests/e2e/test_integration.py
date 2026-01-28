@@ -67,14 +67,16 @@ class TestGreenPurpleIntegration:
             assert "result" in result
 
     async def test_results_written_to_output_directory(self):
-        """Verify evaluation results are written to output/results.json."""
+        """Verify evaluation results are written to results/results.json."""
         from pathlib import Path
 
         from green.executor import Executor
         from green.messenger import Messenger
+        from green.settings import GreenSettings
 
         executor = Executor()
         messenger = Messenger()
+        settings = GreenSettings()
 
         with patch.object(messenger, "send_message", new_callable=AsyncMock):
             # Execute evaluation
@@ -86,11 +88,10 @@ class TestGreenPurpleIntegration:
 
             # Check if results file would be created
             # (The actual file creation happens in server.py)
-            output_dir = Path("output")
-            results_file = output_dir / "results.json"
+            results_file = settings.output_file
 
             # This test validates the expected output path
-            assert results_file.parent.name == "output"
+            assert results_file.parent.name == "results"
             assert results_file.name == "results.json"
 
 

@@ -6,6 +6,7 @@ Real agent-to-agent communication enables authentic coordination measurement.
 
 from __future__ import annotations
 
+import asyncio
 import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
@@ -16,18 +17,36 @@ from green.models import CallType, InteractionStep
 if TYPE_CHECKING:
     from green.messenger import Messenger
 
+# TODO: Define trace collection strategy - options include:
+#   - Fixed number of coordination rounds (current implementation)
+#   - Time-based collection (collect for N seconds)
+#   - Task completion detection (collect until task signals done)
+#   - Message count threshold
+# FIXME: Current fixed-rounds approach is placeholder for testing
+DEFAULT_COORDINATION_ROUNDS = 3
+# Delay between rounds in seconds
+ROUND_DELAY_SECONDS = 0.1
+
 
 class Executor:
     """Executor that collects interaction traces and manages cleanup."""
 
-    def __init__(self) -> None:
-        """Initialize executor."""
-        pass
+    def __init__(self, coordination_rounds: int = DEFAULT_COORDINATION_ROUNDS) -> None:
+        """Initialize executor.
+
+        Args:
+            coordination_rounds: Number of message rounds to simulate coordination
+        """
+        self._coordination_rounds = coordination_rounds
 
     async def execute_task(
         self, task_description: str, messenger: Messenger, agent_url: str
     ) -> list[InteractionStep]:
         """Execute task and collect interaction traces.
+
+        Sends multiple messages to simulate a coordination pattern:
+        - Round 1: Initial coordinator request
+        - Round 2+: Follow-up coordination messages with parent links
 
         Args:
             task_description: Task description to send to agent
@@ -42,31 +61,45 @@ class Executor:
         """
         traces: list[InteractionStep] = []
         trace_id = str(uuid.uuid4())
+        previous_step_id: str | None = None
 
         try:
-            # Record start time
-            start_time = datetime.now()
+            for round_num in range(self._coordination_rounds):
+                # Record start time
+                start_time = datetime.now()
 
-            # Send message via messenger
-            await messenger.send_message(url=agent_url, message=task_description)
+                # Send message via messenger
+                message = (
+                    task_description
+                    if round_num == 0
+                    else f"Follow-up coordination round {round_num + 1}"
+                )
+                await messenger.send_message(url=agent_url, message=message)
 
-            # Record end time
-            end_time = datetime.now()
+                # Record end time
+                end_time = datetime.now()
 
-            # Calculate latency in milliseconds
-            latency = int((end_time - start_time).total_seconds() * 1000)
+                # Calculate latency in milliseconds
+                latency = int((end_time - start_time).total_seconds() * 1000)
 
-            # Create interaction step
-            step = InteractionStep(
-                step_id=str(uuid.uuid4()),
-                trace_id=trace_id,
-                call_type=CallType.AGENT,
-                start_time=start_time,
-                end_time=end_time,
-                latency=latency,
-            )
+                # Create interaction step with parent link for coordination graph
+                step_id = str(uuid.uuid4())
+                step = InteractionStep(
+                    step_id=step_id,
+                    trace_id=trace_id,
+                    call_type=CallType.AGENT,
+                    start_time=start_time,
+                    end_time=end_time,
+                    latency=latency,
+                    parent_step_id=previous_step_id,  # Link to previous step
+                )
 
-            traces.append(step)
+                traces.append(step)
+                previous_step_id = step_id
+
+                # Small delay between rounds for realistic timing
+                if round_num < self._coordination_rounds - 1:
+                    await asyncio.sleep(ROUND_DELAY_SECONDS)
 
             return traces
 

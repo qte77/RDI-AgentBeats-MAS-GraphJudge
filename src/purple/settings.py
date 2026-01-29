@@ -23,7 +23,7 @@ class PurpleSettings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="PURPLE_")
 
     host: str = "0.0.0.0"
-    port: int = 9010
+    port: int = 9010  # Container port (host: 9010)
     card_url: str | None = None
 
     def get_card_url(self) -> str:

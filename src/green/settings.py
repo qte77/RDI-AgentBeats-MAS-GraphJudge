@@ -36,19 +36,20 @@ class GreenSettings(BaseSettings):
         GREEN_CARD_URL: AgentCard URL (default: http://{host}:{port})
         GREEN_OUTPUT_FILE: Output file path (default: output/results.json)
         AGENT_UUID: Agent identifier (default: green-agent)
-        PURPLE_AGENT_URL: URL for Purple Agent (default: http://localhost:9010)
+        PURPLE_AGENT_URL: URL for Purple Agent (default: http://{host}:{purple_port})
     """
 
     model_config = SettingsConfigDict(env_prefix="GREEN_")
 
     # Server settings
     host: str = "0.0.0.0"
-    port: int = 9009
+    port: int = 9009  # Container port (host: 9009)
+    purple_port: int = 9010
 
     # Agent settings - use validation_alias for non-prefixed env vars
     agent_uuid: str = Field(default="green-agent", validation_alias="AGENT_UUID")
     purple_agent_url: str = Field(
-        default="http://localhost:9010", validation_alias="PURPLE_AGENT_URL"
+        default=f"http://{host}:{purple_port}", validation_alias="PURPLE_AGENT_URL"
     )
     card_url: str | None = Field(
         default=None,

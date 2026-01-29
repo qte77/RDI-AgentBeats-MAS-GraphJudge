@@ -55,6 +55,7 @@ All agents must maintain strict neutrality in technology decisions:
    - Primary: PRD.md user story or task description
    - Context: CLAUDE.md, existing code patterns
    - Standards: Python best practices (`.claude/skills/implementing-python/SKILL.md`)
+   - Testing: Testing best practices (`.claude/skills/testing-python/SKILL.md`)
 
 2. **Validate scope**:
    - Does task match assigned story/issue?

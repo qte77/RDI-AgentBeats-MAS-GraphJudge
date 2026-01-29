@@ -32,24 +32,44 @@ see-also: tdd-best-practices.md, bdd-best-practices.md
 
 ## Testing Approach
 
-### Three-Tier Strategy
+### Current Focus: TDD + Property Testing
+
+**Primary methodology**: Test-Driven Development (TDD)
 
 ```text
-TDD (unit)           BDD (acceptance)      Property (edge cases)
-     │                      │                      │
-     ▼                      ▼                      ▼
-┌──────────────┐    ┌──────────────┐    ┌──────────────────┐
-│ Red-Green    │    │ Given-When   │    │ Hypothesis       │
-│ -Refactor    │    │ -Then        │    │ Invariants       │
-│ Unit tests   │    │ Scenarios    │    │ Generated inputs │
-└──────────────┘    └──────────────┘    └──────────────────┘
+┌─────────────────────────────────────┐
+│  TDD (PRIMARY)                      │
+│  Red-Green-Refactor                 │
+│  Unit tests, fast feedback          │
+└─────────────┬───────────────────────┘
+              │
+              ▼
+┌─────────────────────────────────────┐
+│  Property Testing (COMPLEMENT)      │
+│  Hypothesis for edge cases          │
+│  Numeric bounds, invariants         │
+└─────────────────────────────────────┘
 ```
 
-**TDD** - Unit tests, fast feedback, design driver (see `tdd-best-practices.md`)
+**TDD** (see `tdd-best-practices.md`) - Current project standard:
 
-**BDD** - Acceptance criteria, stakeholder communication, living docs (see `bdd-best-practices.md`)
+- Red-Green-Refactor cycle for all business logic
+- Arrange-Act-Assert structure
+- Fast feedback, design driver
+- 204 passing tests using this approach
 
-**Property Testing** - Hypothesis for numeric bounds, invariants, edge cases
+**Property Testing** (Hypothesis) - Complements TDD:
+
+- Edge cases and boundary conditions
+- Numeric invariants (graph density, latency percentiles)
+- Automated input generation
+
+**BDD** (see `bdd-best-practices.md`) - Optional for future use:
+
+- Given-When-Then scenarios for acceptance criteria
+- Stakeholder communication and living docs
+- Consider for multi-agent integration scenarios
+- Not currently used in this project
 
 ### Priority Test Areas
 
@@ -60,17 +80,27 @@ TDD (unit)           BDD (acceptance)      Property (edge cases)
 
 ## Test Organization
 
+**Current structure**:
+
 ```text
 tests/
-├── unit/                  # TDD unit tests (pytest)
+├── test_*.py             # TDD unit tests (current: 204 tests)
+└── conftest.py           # Shared fixtures
+```
+
+**Future expansion** (when needed):
+
+```text
+tests/
+├── unit/                  # TDD unit tests (pytest) - CURRENT
 │   ├── test_green_*.py
 │   └── test_purple_*.py
-├── acceptance/            # BDD scenarios (pytest-bdd or behave)
-│   ├── features/*.feature
-│   └── step_defs/
-├── properties/            # Property tests (hypothesis)
+├── properties/            # Property tests (hypothesis) - FUTURE
 │   ├── test_graph_props.py
 │   └── test_score_props.py
+├── acceptance/            # BDD scenarios (optional) - FUTURE
+│   ├── features/*.feature
+│   └── step_defs/
 └── conftest.py           # Shared fixtures
 ```
 
@@ -97,7 +127,10 @@ Before writing a test, ask:
 1. Does this test **behavior** (keep) or **implementation** (skip)?
 2. Would this catch a **real bug** (keep) or is it **trivial** (skip)?
 3. Is this testing **our code** (keep) or **a library** (skip)?
-4. Which approach: **TDD** (unit), **BDD** (acceptance), or **Property** (edge cases)?
+4. Which approach:
+   - **TDD** (default) - For all unit tests and business logic
+   - **Property** (edge cases) - For numeric bounds and invariants
+   - **BDD** (optional) - Only if acceptance criteria needed
 
 ## References
 

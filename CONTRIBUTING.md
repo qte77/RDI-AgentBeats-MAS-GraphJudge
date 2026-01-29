@@ -157,9 +157,9 @@ All code must follow `.claude/rules/core-principles.md`:
 
 See `AGENTS.md` for agent behavioral requirements and task execution protocols.
 
-### Python Best Practices
+### Best Practices
 
-See `docs/best-practices/python-best-practices.md` for comprehensive Python standards.
+- `docs/best-practices/python-best-practices.md` for comprehensive Python standards.
 
 ---
 

@@ -105,6 +105,7 @@ quick_validate:  ## Fast development cycle validation
 
 markdownlint:  ## Fix markdown files. Usage: make run_markdownlint [INPUT_FILES="docs/**/*.md"] (default: docs/)
 	INPUT=$${INPUT_FILES:-docs/}
+	echo "Running markdownlint on $$INPUT ..."
 	uv run pymarkdown fix --recurse $$INPUT
 	uv run pymarkdown scan --recurse $$INPUT
 

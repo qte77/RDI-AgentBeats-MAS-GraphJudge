@@ -33,7 +33,6 @@ def build_prompt(steps: list[InteractionStep]) -> str:
     - Serialized TraceData from InteractionSteps
     - Evaluation criteria for coordination quality
     - JSON schema for structured LLMJudgment output
-    - Request for temperature=0 for consistency
 
     Args:
         steps: List of InteractionStep traces to evaluate
@@ -220,7 +219,7 @@ async def _call_llm(prompt: str) -> LLMJudgment | None:
     response = await client.chat.completions.create(
         model=config.model,
         messages=[{"role": "user", "content": prompt}],
-        temperature=0,
+        temperature=config.temperature,
     )
 
     content = response.choices[0].message.content

@@ -20,21 +20,20 @@ if TYPE_CHECKING:
 # TODO: Implement trace collection strategy from docs/trace-collection-strategy.md
 #   Recommended: Hybrid approach (task completion + timeout + idle detection)
 # FIXME: Current fixed-rounds approach is placeholder for testing
-DEFAULT_COORDINATION_ROUNDS = 3
-# Delay between rounds in seconds
-ROUND_DELAY_SECONDS = 0.1
 
 
 class Executor:
     """Executor that collects interaction traces and manages cleanup."""
 
-    def __init__(self, coordination_rounds: int = DEFAULT_COORDINATION_ROUNDS) -> None:
+    def __init__(self, coordination_rounds: int, round_delay_seconds: float = 0.1) -> None:
         """Initialize executor.
 
         Args:
             coordination_rounds: Number of message rounds to simulate coordination
+            round_delay_seconds: Delay between coordination rounds in seconds
         """
         self._coordination_rounds = coordination_rounds
+        self._round_delay_seconds = round_delay_seconds
 
     async def execute_task(
         self, task_description: str, messenger: Messenger, agent_url: str
@@ -96,7 +95,7 @@ class Executor:
 
                 # Small delay between rounds for realistic timing
                 if round_num < self._coordination_rounds - 1:
-                    await asyncio.sleep(ROUND_DELAY_SECONDS)
+                    await asyncio.sleep(self._round_delay_seconds)
 
             return traces
 

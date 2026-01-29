@@ -100,7 +100,7 @@ class TestExecutorGraphEvaluatorIntegration:
 
     def test_executor_has_evaluate_graph_method(self):
         """Executor includes _evaluate_graph() method for Tier 1 assessment."""
-        executor = Executor()
+        executor = Executor(coordination_rounds=3)
         assert hasattr(executor, "_evaluate_graph")
         assert callable(executor._evaluate_graph)
 
@@ -108,7 +108,7 @@ class TestExecutorGraphEvaluatorIntegration:
         self, sample_traces, mock_graph_evaluator
     ):
         """Executor._evaluate_graph() calls graph evaluator with traces."""
-        executor = Executor()
+        executor = Executor(coordination_rounds=3)
 
         result = await executor._evaluate_graph(sample_traces, mock_graph_evaluator)
 
@@ -121,7 +121,7 @@ class TestExecutorGraphEvaluatorIntegration:
 
     async def test_executor_evaluate_graph_handles_none_evaluator(self, sample_traces):
         """Executor._evaluate_graph() handles None evaluator gracefully."""
-        executor = Executor()
+        executor = Executor(coordination_rounds=3)
 
         result = await executor._evaluate_graph(sample_traces, None)
 
@@ -134,13 +134,13 @@ class TestExecutorLLMJudgeIntegration:
 
     def test_executor_has_evaluate_llm_method(self):
         """Executor includes _evaluate_llm() method for Tier 2 assessment."""
-        executor = Executor()
+        executor = Executor(coordination_rounds=3)
         assert hasattr(executor, "_evaluate_llm")
         assert callable(executor._evaluate_llm)
 
     async def test_executor_evaluate_llm_calls_evaluator(self, sample_traces, mock_llm_judge):
         """Executor._evaluate_llm() calls LLM judge with traces."""
-        executor = Executor()
+        executor = Executor(coordination_rounds=3)
 
         graph_results = {"graph_density": 0.5}
         result = await executor._evaluate_llm(sample_traces, mock_llm_judge, graph_results)
@@ -154,7 +154,7 @@ class TestExecutorLLMJudgeIntegration:
 
     async def test_executor_evaluate_llm_passes_graph_context(self, sample_traces, mock_llm_judge):
         """Executor._evaluate_llm() passes graph results as context to LLM."""
-        executor = Executor()
+        executor = Executor(coordination_rounds=3)
 
         graph_results = {"graph_density": 0.5, "bottlenecks": []}
         await executor._evaluate_llm(sample_traces, mock_llm_judge, graph_results)
@@ -168,7 +168,7 @@ class TestExecutorLLMJudgeIntegration:
 
     async def test_executor_evaluate_llm_handles_none_evaluator(self, sample_traces):
         """Executor._evaluate_llm() handles None evaluator gracefully."""
-        executor = Executor()
+        executor = Executor(coordination_rounds=3)
 
         result = await executor._evaluate_llm(sample_traces, None, {})
 
@@ -183,7 +183,7 @@ class TestExecutorPipelineOrchestration:
         self, sample_traces, mock_graph_evaluator, mock_llm_judge, mock_latency_evaluator
     ):
         """Executor.evaluate_all() calls graph evaluator first (Tier 1)."""
-        executor = Executor()
+        executor = Executor(coordination_rounds=3)
 
         await executor.evaluate_all(
             traces=sample_traces,
@@ -199,7 +199,7 @@ class TestExecutorPipelineOrchestration:
         self, sample_traces, mock_graph_evaluator, mock_llm_judge, mock_latency_evaluator
     ):
         """Executor.evaluate_all() calls LLM judge and latency evaluators (Tier 2)."""
-        executor = Executor()
+        executor = Executor(coordination_rounds=3)
 
         await executor.evaluate_all(
             traces=sample_traces,
@@ -216,7 +216,7 @@ class TestExecutorPipelineOrchestration:
         self, sample_traces, mock_graph_evaluator, mock_llm_judge, mock_latency_evaluator
     ):
         """Executor.evaluate_all() returns aggregated results from all evaluators."""
-        executor = Executor()
+        executor = Executor(coordination_rounds=3)
 
         results = await executor.evaluate_all(
             traces=sample_traces,
@@ -238,7 +238,7 @@ class TestExecutorPipelineOrchestration:
         self, sample_traces, mock_graph_evaluator, mock_llm_judge, mock_latency_evaluator
     ):
         """Executor.evaluate_all() passes graph results to LLM judge for context."""
-        executor = Executor()
+        executor = Executor(coordination_rounds=3)
 
         await executor.evaluate_all(
             traces=sample_traces,
@@ -266,7 +266,7 @@ class TestExecutorPipelineErrorHandling:
         failing_graph = MagicMock()
         failing_graph.evaluate = AsyncMock(side_effect=Exception("Graph evaluation failed"))
 
-        executor = Executor()
+        executor = Executor(coordination_rounds=3)
 
         results = await executor.evaluate_all(
             traces=sample_traces,
@@ -290,7 +290,7 @@ class TestExecutorPipelineErrorHandling:
         failing_llm = MagicMock()
         failing_llm.evaluate = AsyncMock(side_effect=Exception("LLM evaluation failed"))
 
-        executor = Executor()
+        executor = Executor(coordination_rounds=3)
 
         results = await executor.evaluate_all(
             traces=sample_traces,
@@ -314,7 +314,7 @@ class TestExecutorPipelineErrorHandling:
         failing_latency = MagicMock()
         failing_latency.evaluate = AsyncMock(side_effect=Exception("Latency evaluation failed"))
 
-        executor = Executor()
+        executor = Executor(coordination_rounds=3)
 
         results = await executor.evaluate_all(
             traces=sample_traces,

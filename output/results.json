@@ -7,7 +7,7 @@
       "pass_rate": 80.0,
       "time_used": 0.0,
       "max_score": 100.0,
-      "domain": "r&d-assessment",
+      "domain": "graph-assessment",
       "score": 80.0,
       "task_rewards": {
         "overall_score": 0.8,

@@ -13,6 +13,7 @@ dist/
 
 # Testing
 .pytest_cache/
+pytest-of-vscode/
 .coverage/
 .coverage
 

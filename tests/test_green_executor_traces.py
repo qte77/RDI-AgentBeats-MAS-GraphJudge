@@ -28,7 +28,7 @@ class TestExecutorInitialization:
 
     def test_executor_can_be_instantiated(self):
         """Executor can be instantiated."""
-        executor = Executor()
+        executor = Executor(coordination_rounds=3)
         assert executor is not None
 
 
@@ -37,7 +37,7 @@ class TestExecutorTraceCollection:
 
     async def test_executor_collects_interaction_traces_during_execution(self, mock_messenger):
         """Executor collects interaction traces during task execution."""
-        executor = Executor()
+        executor = Executor(coordination_rounds=3)
 
         # Execute a simple task that involves sending messages
         traces = await executor.execute_task(
@@ -52,7 +52,7 @@ class TestExecutorTraceCollection:
 
     async def test_traces_include_all_interaction_step_fields(self, mock_messenger):
         """Traces include all InteractionStep fields (step_id, trace_id, latency, etc)."""
-        executor = Executor()
+        executor = Executor(coordination_rounds=3)
 
         traces = await executor.execute_task(
             task_description="Test task",
@@ -75,7 +75,7 @@ class TestExecutorTraceCollection:
 
     async def test_traces_have_correct_call_type(self, mock_messenger):
         """Traces have correct CallType classification."""
-        executor = Executor()
+        executor = Executor(coordination_rounds=3)
 
         traces = await executor.execute_task(
             task_description="Test task",
@@ -89,7 +89,7 @@ class TestExecutorTraceCollection:
 
     async def test_traces_have_valid_timing_data(self, mock_messenger):
         """Traces have valid timing data (start_time, end_time, latency)."""
-        executor = Executor()
+        executor = Executor(coordination_rounds=3)
 
         traces = await executor.execute_task(
             task_description="Test task",
@@ -115,7 +115,7 @@ class TestExecutorCleanup:
 
     async def test_executor_calls_messenger_close_after_trace_collection(self, mock_messenger):
         """Executor calls await messenger.close() after trace collection."""
-        executor = Executor()
+        executor = Executor(coordination_rounds=3)
 
         await executor.execute_task(
             task_description="Test task",
@@ -130,7 +130,7 @@ class TestExecutorCleanup:
         """Executor closes messenger even if task execution fails."""
         mock_messenger.send_message.side_effect = Exception("Task execution failed")
 
-        executor = Executor()
+        executor = Executor(coordination_rounds=3)
 
         with pytest.raises(Exception):
             await executor.execute_task(
@@ -148,7 +148,7 @@ class TestExecutorTaskExecution:
 
     async def test_executor_sends_message_via_messenger(self, mock_messenger):
         """Executor uses messenger to send task to agent."""
-        executor = Executor()
+        executor = Executor(coordination_rounds=3)
 
         await executor.execute_task(
             task_description="Test task",
@@ -164,7 +164,7 @@ class TestExecutorTaskExecution:
 
     async def test_executor_generates_unique_trace_ids(self, mock_messenger):
         """Executor generates unique trace IDs for different executions."""
-        executor = Executor()
+        executor = Executor(coordination_rounds=3)
 
         traces1 = await executor.execute_task(
             task_description="Task 1",
@@ -183,7 +183,7 @@ class TestExecutorTaskExecution:
 
     async def test_executor_generates_unique_step_ids(self, mock_messenger):
         """Executor generates unique step IDs for each interaction."""
-        executor = Executor()
+        executor = Executor(coordination_rounds=3)
 
         traces = await executor.execute_task(
             task_description="Test task",
@@ -201,7 +201,7 @@ class TestExecutorLatencyEvaluation:
 
     def test_executor_has_evaluate_latency_method(self):
         """Executor includes _evaluate_latency() method for Tier 2 assessment."""
-        executor = Executor()
+        executor = Executor(coordination_rounds=3)
         assert hasattr(executor, "_evaluate_latency")
         assert callable(executor._evaluate_latency)
 
@@ -209,7 +209,7 @@ class TestExecutorLatencyEvaluation:
         """Executor._evaluate_latency() returns LatencyMetrics."""
         from green.evals.system import LatencyMetrics
 
-        executor = Executor()
+        executor = Executor(coordination_rounds=3)
 
         # Collect traces
         traces = await executor.execute_task(

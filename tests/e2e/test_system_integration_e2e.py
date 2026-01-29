@@ -21,7 +21,7 @@ class TestGreenPurpleIntegration:
         from green.executor import Executor
         from green.messenger import Messenger
 
-        executor = Executor()
+        executor = Executor(coordination_rounds=3)
         messenger = Messenger()
 
         # Mock Purple Agent responses
@@ -73,7 +73,7 @@ class TestGreenPurpleIntegration:
         from green.messenger import Messenger
         from green.settings import GreenSettings
 
-        executor = Executor()
+        executor = Executor(coordination_rounds=3)
         messenger = Messenger()
         settings = GreenSettings()
 

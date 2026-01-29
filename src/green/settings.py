@@ -18,6 +18,7 @@ class LLMSettings(BaseSettings):
         AGENTBEATS_LLM_API_KEY: API key for LLM service
         AGENTBEATS_LLM_BASE_URL: Base URL for LLM API
         AGENTBEATS_LLM_MODEL: Model identifier
+        AGENTBEATS_LLM_TEMPERATURE: Sampling temperature for LLM calls
     """
 
     model_config = SettingsConfigDict(env_prefix="AGENTBEATS_LLM_")
@@ -25,6 +26,7 @@ class LLMSettings(BaseSettings):
     api_key: str | None = None
     base_url: str = "https://api.openai.com/v1"
     model: str = "gpt-4o-mini"
+    temperature: float = 0.0
 
 
 class GreenSettings(BaseSettings):
@@ -35,6 +37,11 @@ class GreenSettings(BaseSettings):
         GREEN_PORT: Server port (default: 9009)
         GREEN_CARD_URL: AgentCard URL (default: http://{host}:{port})
         GREEN_OUTPUT_FILE: Output file path (default: output/results.json)
+        GREEN_COORDINATION_ROUNDS: Number of coordination rounds (default: 3)
+        GREEN_ROUND_DELAY_SECONDS: Delay between rounds in seconds (default: 0.1)
+        GREEN_AGENT_VERSION: Agent version string (default: 1.0.0)
+        GREEN_DOMAIN: Evaluation domain (default: graph-assessment)
+        GREEN_MAX_SCORE: Maximum score for evaluation (default: 100.0)
         AGENT_UUID: Agent identifier (default: green-agent)
         PURPLE_AGENT_URL: URL for Purple Agent (default: http://{host}:{purple_port})
     """
@@ -45,6 +52,15 @@ class GreenSettings(BaseSettings):
     host: str = "0.0.0.0"
     port: int = 9009  # Container port (host: 9009)
     purple_port: int = 9010
+
+    # Execution settings
+    coordination_rounds: int = 3
+    round_delay_seconds: float = 0.1
+
+    # Agent metadata
+    agent_version: str = "1.0.0"
+    domain: str = "graph-assessment"
+    max_score: float = 100.0
 
     # Agent settings - use validation_alias for non-prefixed env vars
     agent_uuid: str = Field(default="green-agent", validation_alias="AGENT_UUID")

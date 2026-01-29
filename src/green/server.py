@@ -114,7 +114,10 @@ async def _process_evaluation_request(
     """Process evaluation request and return results."""
     from green.evals.graph import GraphEvaluator
 
-    executor = Executor()
+    executor = Executor(
+        coordination_rounds=settings.coordination_rounds,
+        round_delay_seconds=settings.round_delay_seconds,
+    )
 
     if interaction_pattern:
         traces = _build_traces_from_pattern(interaction_pattern)
@@ -135,8 +138,8 @@ async def _process_evaluation_request(
 
     agentbeats_output = AgentBeatsOutputModel.from_evaluation_results(
         evaluation_results=evaluation_results,
-        domain="r&d-assessment",
-        max_score=100.0,
+        domain=settings.domain,
+        max_score=settings.max_score,
     )
 
     settings.output_file.parent.mkdir(parents=True, exist_ok=True)
@@ -189,13 +192,13 @@ def create_app(settings: GreenSettings | None = None) -> FastAPI:
             AgentCard with agent metadata and capabilities
         """
         return {
-            "agentId": "green-agent",
+            "agentId": settings.agent_uuid,
             "name": "Green Agent (Assessor)",
             "description": (
                 "Multi-agent coordination quality evaluator using graph analysis, "
                 "LLM assessment, and latency metrics"
             ),
-            "version": "1.0.0",
+            "version": settings.agent_version,
             "url": settings.get_card_url(),
             "defaultInputModes": ["text"],
             "defaultOutputModes": ["text"],

@@ -30,13 +30,14 @@ dev = [
     "ruff>=0.14.11",
 ]
 test = [
+    "hypothesis>=6.151.0",
     "pytest>=8.3.0",
     "pytest-cov>=7.0.0",
     "pytest-asyncio>=1.3.0",
 ]
 
 [tool.uv]
-exclude-newer = "2026-01-26T00:00:00Z"
+exclude-newer = "2026-01-28T00:00:00Z"
 
 [tool.pyright]
 pythonVersion = "3.13"

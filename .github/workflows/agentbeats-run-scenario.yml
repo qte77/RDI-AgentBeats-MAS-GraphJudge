@@ -4,7 +4,7 @@ on:
   # push:
   #  paths:
   #    - 'scenario.toml'
-  workflow-dispatch:
+  workflow_dispatch:
 
 env:
   SCRIPTS_PATH: scripts/leaderboard

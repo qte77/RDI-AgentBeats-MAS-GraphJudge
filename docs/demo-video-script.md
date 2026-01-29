@@ -8,8 +8,6 @@ created: 2026-01-27
 updtaed: 2026-01-29
 ---
 
----
-
 ## Introduction (0:00 - 0:30)
 
 ### Narration

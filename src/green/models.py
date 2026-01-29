@@ -65,6 +65,29 @@ def get_agent_extensions() -> list[dict[str, str]]:
 
 
 # =============================================================================
+# JSON-RPC 2.0 Protocol Models
+# =============================================================================
+
+
+class JSONRPCRequest(BaseModel):
+    """JSON-RPC 2.0 request model for A2A protocol."""
+
+    jsonrpc: str = "2.0"
+    method: str
+    params: dict[str, Any]
+    id: str | int
+
+
+class JSONRPCResponse(BaseModel):
+    """JSON-RPC 2.0 response model for A2A protocol."""
+
+    jsonrpc: str = "2.0"
+    result: dict[str, Any] | None = None
+    error: dict[str, Any] | None = None
+    id: str | int
+
+
+# =============================================================================
 # Graph Evaluation Models
 # =============================================================================
 
@@ -118,22 +141,22 @@ class LLMJudgment(BaseModel):
 # =============================================================================
 
 
-class LatencyMetricsOutput(BaseModel):
-    """Latency metrics from Tier 2 evaluation.
+class LatencyMetrics(BaseModel):
+    """Latency metrics for performance analysis.
+
+    WARNING: Latency values are only comparable within the same system/run.
+    Do not compare latency metrics across different environments, systems,
+    or time periods.
 
     Per PRD STORY-010: Percentiles and performance bottleneck identification.
     """
 
-    model_config = {"extra": "allow"}
-
-    avg_latency: float = Field(0.0, ge=0.0)
-    p50_latency: float = Field(0.0, ge=0.0)
-    p95_latency: float = Field(0.0, ge=0.0)
-    p99_latency: float = Field(0.0, ge=0.0)
-    min_latency: float = Field(0.0, ge=0.0)
-    max_latency: float = Field(0.0, ge=0.0)
-    total_steps: int = Field(0, ge=0)
-    slowest_step_id: str | None = Field(None)
+    avg: float
+    p50: float
+    p95: float
+    p99: float
+    slowest_agent: str | None
+    warning: str = "Latency values only comparable within same system/run"
 
 
 # =============================================================================

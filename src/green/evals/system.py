@@ -8,33 +8,7 @@ from __future__ import annotations
 
 import statistics
 
-from pydantic import BaseModel
-
-from green.models import InteractionStep
-
-
-class LatencyMetrics(BaseModel):
-    """Latency metrics for performance analysis.
-
-    WARNING: Latency values are only comparable within the same system/run.
-    Do not compare latency metrics across different environments, systems,
-    or time periods.
-
-    Attributes:
-        avg: Average latency in milliseconds
-        p50: 50th percentile (median) latency in milliseconds
-        p95: 95th percentile latency in milliseconds
-        p99: 99th percentile latency in milliseconds
-        slowest_agent: URL of slowest agent (if identifiable)
-        warning: Comparability warning message
-    """
-
-    avg: float
-    p50: float
-    p95: float
-    p99: float
-    slowest_agent: str | None
-    warning: str = "Latency values only comparable within same system/run"
+from green.models import InteractionStep, LatencyMetrics
 
 
 def _empty_metrics() -> LatencyMetrics:

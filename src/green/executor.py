@@ -11,8 +11,8 @@ import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
-from green.evals.system import LatencyMetrics, evaluate_latency
-from green.models import CallType, InteractionStep
+from green.evals.system import evaluate_latency
+from green.models import CallType, InteractionStep, LatencyMetrics
 
 if TYPE_CHECKING:
     from green.messenger import Messenger

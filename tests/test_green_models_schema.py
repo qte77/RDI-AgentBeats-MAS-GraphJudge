@@ -11,7 +11,6 @@ from green.models import (
     AgentBeatsOutputModel,
     GraphMetrics,
     GreenAgentOutput,
-    LatencyMetricsOutput,
     ParticipantsModel,
     ResultModel,
 )
@@ -84,36 +83,6 @@ class TestGraphMetrics:
         metrics = GraphMetrics.model_validate(data)
         assert metrics.degree_centrality == {"agent-1": 0.6, "agent-2": 0.4}
         assert metrics.graph_density == 0.45
-
-
-class TestLatencyMetricsOutput:
-    """Tests for LatencyMetricsOutput."""
-
-    def test_default_values(self):
-        """Test creating latency metrics with defaults via model_validate."""
-        metrics = LatencyMetricsOutput.model_validate({})
-        assert metrics.avg_latency == 0.0
-        assert metrics.p99_latency == 0.0
-        assert metrics.total_steps == 0
-
-    def test_with_values(self):
-        """Test creating latency metrics with values via model_validate."""
-        metrics = LatencyMetricsOutput.model_validate(
-            {
-                "avg_latency": 150.5,
-                "p50_latency": 120.0,
-                "p95_latency": 280.0,
-                "p99_latency": 350.0,
-                "min_latency": 45.0,
-                "max_latency": 420.0,
-                "total_steps": 10,
-                "slowest_step_id": "step-007",
-            }
-        )
-        assert metrics.avg_latency == 150.5
-        assert metrics.p99_latency == 350.0
-        assert metrics.total_steps == 10
-        assert metrics.slowest_step_id == "step-007"
 
 
 class TestResultModel:

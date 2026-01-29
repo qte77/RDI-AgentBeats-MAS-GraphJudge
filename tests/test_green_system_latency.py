@@ -9,8 +9,8 @@ from datetime import datetime
 
 import pytest
 
-from green.evals.system import LatencyMetrics, evaluate_latency
-from green.models import CallType, InteractionStep
+from green.evals.system import evaluate_latency
+from green.models import CallType, InteractionStep, LatencyMetrics
 
 
 @pytest.fixture

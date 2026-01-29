@@ -8,15 +8,20 @@ from __future__ import annotations
 
 import argparse
 from datetime import datetime, timedelta
-from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI
-from pydantic import BaseModel
 
 from green.executor import Executor
 from green.messenger import Messenger
-from green.models import AgentBeatsOutputModel, CallType, InteractionStep, get_agent_extensions
+from green.models import (
+    AgentBeatsOutputModel,
+    CallType,
+    InteractionStep,
+    JSONRPCRequest,
+    JSONRPCResponse,
+    get_agent_extensions,
+)
 from green.settings import GreenSettings
 
 
@@ -77,24 +82,6 @@ def _build_traces_from_pattern(pattern: dict[str, Any]) -> list[InteractionStep]
         traces.append(step)
 
     return traces
-
-
-class JSONRPCRequest(BaseModel):
-    """JSON-RPC 2.0 request model."""
-
-    jsonrpc: str = "2.0"
-    method: str
-    params: dict[str, Any]
-    id: str | int
-
-
-class JSONRPCResponse(BaseModel):
-    """JSON-RPC 2.0 response model."""
-
-    jsonrpc: str = "2.0"
-    result: dict[str, Any] | None = None
-    error: dict[str, Any] | None = None
-    id: str | int
 
 
 class _LLMJudgeEvaluator:

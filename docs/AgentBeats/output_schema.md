@@ -46,7 +46,7 @@ Per PRD STORY-008, STORY-014:
 | `strengths` | string[] | No | Observed coordination strengths |
 | `weaknesses` | string[] | No | Observed coordination weaknesses |
 | `graph_metrics` | GraphMetrics | No | Tier 1 graph structural analysis |
-| `latency_metrics` | LatencyMetricsOutput | No | Tier 2 performance metrics |
+| `latency_metrics` | LatencyMetrics | No | Tier 2 performance metrics |
 
 ## GraphMetrics Schema
 
@@ -70,22 +70,20 @@ Per PRD STORY-014:
 | `over_centralized` | bool | Single agent handles > 70% interactions |
 | `coordination_quality` | string | Classification: high/medium/low/bottleneck |
 
-## LatencyMetricsOutput Schema
+## LatencyMetrics Schema
 
 Per PRD STORY-010:
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `avg_latency` | float | Average latency in milliseconds |
-| `p50_latency` | float | 50th percentile latency (median) |
-| `p95_latency` | float | 95th percentile latency |
-| `p99_latency` | float | 99th percentile latency |
-| `min_latency` | float | Minimum latency |
-| `max_latency` | float | Maximum latency |
-| `total_steps` | int | Total number of interaction steps |
-| `slowest_step_id` | string | Step ID with highest latency |
+| `avg` | float | Average latency in milliseconds |
+| `p50` | float | 50th percentile latency (median) |
+| `p95` | float | 95th percentile latency |
+| `p99` | float | 99th percentile latency |
+| `slowest_agent` | string \| null | URL of slowest agent |
+| `warning` | string | Comparability warning message |
 
-> **Note**: Latency values are only comparable within the same system/run.
+> **Warning**: Latency values are only comparable within the same system/run.
 
 ## Complete Example
 
@@ -129,13 +127,12 @@ Per PRD STORY-010:
           "coordination_quality": "high"
         },
         "latency_metrics": {
-          "avg_latency": 150.5,
-          "p50_latency": 120.0,
-          "p95_latency": 280.0,
-          "p99_latency": 350.0,
-          "min_latency": 45.0,
-          "max_latency": 420.0,
-          "total_steps": 10
+          "avg": 150.5,
+          "p50": 120.0,
+          "p95": 280.0,
+          "p99": 350.0,
+          "slowest_agent": "http://agent-2:9009",
+          "warning": "Latency values only comparable within same system/run"
         }
       }
     }
@@ -173,7 +170,7 @@ from green.models import (
     AgentBeatsOutputModel,
     GreenAgentOutput,
     GraphMetrics,
-    LatencyMetricsOutput,
+    LatencyMetrics,
 )
 
 # Create GreenAgentOutput directly
@@ -184,7 +181,7 @@ green_output = GreenAgentOutput(
     strengths=["Fast response times", "Clear delegation"],
     weaknesses=["Could optimize parallel execution"],
     graph_metrics=GraphMetrics(graph_density=0.45).model_dump(),
-    latency_metrics=LatencyMetricsOutput(avg_latency=150.0, p99_latency=350.0).model_dump(),
+    latency_metrics=LatencyMetrics(avg=150.0, p50=120.0, p95=280.0, p99=350.0, slowest_agent=None).model_dump(),
 )
 
 # Create from GreenAgentOutput

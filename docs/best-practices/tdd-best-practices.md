@@ -1,9 +1,11 @@
 ---
 title: TDD Best Practices
-version: 1.0
+version: 2.0
 based-on: Industry research 2025-2026
 see-also: testing-strategy.md
 ---
+
+**Purpose**: How to do TDD - Red-Green-Refactor cycle, AAA structure, best practices, anti-patterns.
 
 ## Test-Driven Development (TDD)
 
@@ -11,7 +13,7 @@ TDD is a development methodology where tests are written before implementation c
 
 ## The Red-Green-Refactor Cycle
 
-```
+```text
 ┌─────────────┐
 │  1. RED     │  Write a failing test
 │             │  (test what should happen)
@@ -40,10 +42,11 @@ TDD is a development methodology where tests are written before implementation c
 
 ```python
 # RED: Write failing test first
-def test_green_executor_collects_trace_id():
-    executor = Executor()
-    traces = await executor.execute_task("task", messenger, url)
-    assert all(trace.trace_id for trace in traces)
+def test_user_service_creates_new_user():
+    service = UserService()
+    user = service.create(name="Alice", email="alice@example.com")
+    assert user.id is not None
+    assert user.name == "Alice"
 ```
 
 **Then** implement minimal code to pass.
@@ -53,68 +56,29 @@ def test_green_executor_collects_trace_id():
 Structure every test in three phases:
 
 ```python
-def test_graph_evaluator_detects_bottleneck():
+def test_order_processor_calculates_total():
     # ARRANGE - Set up test data
-    traces = build_hub_spoke_traces(hub="coordinator", spokes=["a", "b", "c"])
-    evaluator = GraphEvaluator()
+    items = [Item(price=10.00, qty=2), Item(price=5.00, qty=1)]
+    processor = OrderProcessor()
 
     # ACT - Execute the behavior
-    metrics = evaluator.evaluate(traces)
+    total = processor.calculate_total(items)
 
     # ASSERT - Verify the outcome
-    assert metrics.has_bottleneck
-    assert "coordinator" in metrics.bottlenecks
+    assert total == 25.00
 ```
 
 ### 3. Keep Tests Atomic and Isolated
 
-**One behavior per test**:
-```python
-# GOOD - Tests one thing
-def test_executor_generates_unique_trace_ids():
-    # Test only trace ID uniqueness
-
-def test_executor_records_latency():
-    # Test only latency recording
-```
-
-**Not this**:
-```python
-# BAD - Tests multiple things
-def test_executor_everything():
-    # Tests trace IDs, latency, parent links, etc.
-```
+**One behavior per test**: `test_calculator_adds_numbers()` tests addition only, not subtraction, multiplication, etc.
 
 ### 4. Test Edge Cases Before Happy Paths
 
-Cover failure modes first, then success:
-
-```python
-# 1. Edge cases first
-def test_evaluator_handles_empty_traces():
-    assert evaluator.evaluate([]) == default_metrics
-
-def test_evaluator_handles_single_trace():
-    assert evaluator.evaluate([trace]) == expected
-
-# 2. Then happy path
-def test_evaluator_computes_metrics():
-    assert evaluator.evaluate(traces) == full_metrics
-```
+Cover failure modes first (empty input, malformed data), then success cases.
 
 ### 5. Descriptive Test Names
 
-Name should describe the behavior being tested:
-
-```python
-# GOOD - Clear behavior
-test_green_server_returns_404_for_unknown_endpoint()
-test_purple_messenger_retries_on_connection_failure()
-
-# BAD - Vague or implementation-focused
-test_server_response()
-test_messenger_method()
-```
+Name describes behavior: `test_user_service_returns_404_for_unknown_user()` not `test_service_response()`.
 
 ## Benefits of TDD
 
@@ -131,75 +95,35 @@ test_messenger_method()
 ## TDD Anti-Patterns to Avoid
 
 **Testing implementation details**:
+
 ```python
 # BAD - Tests internal structure
-def test_evaluator_uses_networkx():
-    assert isinstance(evaluator._graph, nx.DiGraph)
+def test_service_uses_specific_library():
+    assert isinstance(service._internal_client, SomeLibrary)
 
 # GOOD - Tests behavior
-def test_evaluator_detects_bottlenecks():
-    assert evaluator.evaluate(traces).has_bottleneck
+def test_service_fetches_data():
+    assert service.fetch("key") == expected_value
 ```
 
-**Overly complex tests**:
-```python
-# BAD - Test is harder to understand than code
-def test_with_mocks_everywhere():
-    with mock.patch(...) as m1:
-        with mock.patch(...) as m2:
-            # 50 lines of setup
+**Overly complex tests**: If test setup is harder to understand than the code, simplify. Avoid excessive mocking.
 
-# GOOD - Simple, clear test
-def test_behavior_directly():
-    result = function(input)
-    assert result == expected
-```
+**Chasing 100% coverage**: Aim for meaningful behavior coverage, not line coverage percentage.
 
-**Chasing 100% coverage**: Aim for meaningful coverage of behaviors, not line coverage percentage
-
-## AI-Assisted TDD (2025-2026)
-
-Modern TDD integrates AI for efficiency:
-
-**AI drafts tests** (~70% of happy-path tests):
-```python
-# AI generates starter test
-def test_new_feature():
-    # AI-generated arrange/act/assert structure
-```
-
-**Human focuses on**:
-- Edge cases AI might miss
-- Business logic intent
-- Complex scenarios
-- Test quality and clarity
-
-**Not AI replacement**: AI accelerates TDD but doesn't replace the Red-Green-Refactor discipline
+**Low-value patterns**: See `testing-strategy.md` → "Patterns to Remove" for full list.
 
 ## When to Use TDD
 
 **Use TDD for**:
-- Business logic (coordination scoring, graph metrics)
-- Algorithms (latency calculations, percentiles)
-- Data transformations (model conversions)
-- Edge case handling (empty inputs, nulls)
+
+- Business logic (calculations, algorithms, rules)
+- Data transformations (model conversions, parsing)
+- Edge case handling (empty inputs, nulls, boundaries)
+- API endpoints (request/response validation)
 
 **Consider alternatives for**:
+
 - Simple CRUD operations
 - UI layouts (use visual testing)
 - Exploratory prototypes (add tests after)
 
-## Integration with This Project
-
-Current project uses TDD for:
-- Green/Purple agent unit tests
-- Evaluator pipeline tests
-- Model transformation tests
-
-See `tests/` directory for examples.
-
-## References
-
-- [Test-Driven Development Guide 2026](https://monday.com/blog/rnd/test-driven-development-tdd/)
-- [AI-Powered TDD 2025](https://www.nopaccelerate.com/test-driven-development-guide-2025/)
-- [TDD Practical Guide](https://brainhub.eu/library/test-driven-development-tdd)

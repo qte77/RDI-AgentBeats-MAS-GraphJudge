@@ -1,6 +1,6 @@
 ---
 name: testing-python
-description: Writes tests following TDD/BDD/Property testing best practices. Use when writing unit tests, integration tests, or BDD scenarios.
+description: Writes tests following TDD (using pytest and Hypothesis) and BDD best practices. Use when writing unit tests, integration tests, or BDD scenarios.
 argument-hint: [test-scope or component-name]
 allowed-tools: Read, Grep, Glob, Edit, Write, Bash
 ---
@@ -11,162 +11,83 @@ allowed-tools: Read, Grep, Glob, Edit, Write, Bash
 
 Writes **focused, behavior-driven tests** following project testing strategy.
 
-## Testing Strategy
+## Quick Reference
 
-See `docs/best-practices/`:
-- **testing-strategy.md** - Overall strategy, what to test, decision checklist
-- **tdd-best-practices.md** - TDD methodology (Red-Green-Refactor)
-- **bdd-best-practices.md** - BDD methodology (Given-When-Then)
+**Full documentation**: `docs/best-practices/`
 
-## Quick Decision Tree
+- `testing-strategy.md` - Strategy, what to test, patterns to remove
+- `tdd-best-practices.md` - TDD methodology
+- `bdd-best-practices.md` - BDD methodology
 
-**Default: Use TDD for all tests**
+## Quick Decision
 
-```
-Writing a test?
-├─ Unit test / Business logic → TDD (Red-Green-Refactor) ← DEFAULT
-├─ Edge cases / Numeric bounds → Property Testing (Hypothesis)
-└─ Acceptance criteria / Stakeholder docs → BDD (optional, future)
-```
+**TDD (default)**: Use pytest for known cases, Hypothesis for edge cases. Works at unit/integration/acceptance levels.
 
-**Current project uses TDD** for 204 passing tests.
+**BDD (optional)**: Use Given-When-Then for stakeholder collaboration on acceptance criteria.
 
-## TDD Workflow (Unit Tests)
+See `testing-strategy.md` for full methodology comparison.
 
-**Red-Green-Refactor cycle**:
+## TDD Essentials (Quick Reference)
 
-1. **RED** - Write failing test first
-   ```python
-   def test_green_executor_generates_unique_trace_ids():
-       executor = Executor()
-       traces = await executor.execute_task(...)
-       trace_ids = [t.trace_id for t in traces]
-       assert len(trace_ids) == len(set(trace_ids))  # All unique
-   ```
-
-2. **GREEN** - Write minimal code to pass
-
-3. **REFACTOR** - Improve while keeping tests green
+**Cycle**: RED (failing test) → GREEN (minimal pass) → REFACTOR (clean up)
 
 **Structure**: Arrange-Act-Assert (AAA)
+
 ```python
-def test_graph_evaluator_detects_bottleneck():
+def test_order_processor_calculates_total():
     # ARRANGE
-    traces = build_hub_spoke_traces(hub="coordinator", spokes=["a", "b", "c"])
-    evaluator = GraphEvaluator()
+    items = [Item(price=10.00, qty=2), Item(price=5.00, qty=1)]
+    processor = OrderProcessor()
 
     # ACT
-    metrics = evaluator.evaluate(traces)
+    total = processor.calculate_total(items)
 
     # ASSERT
-    assert metrics.has_bottleneck
-    assert "coordinator" in metrics.bottlenecks
+    assert total == 25.00
 ```
 
-## BDD Workflow (Optional - Future Use)
+## Hypothesis Priorities (Edge Cases within TDD)
 
-**Note**: BDD not currently used in this project. Consider for acceptance testing if needed.
+| Priority | Area | Example |
+| ---------- | ------ | --------- |
+| CRITICAL | Math formulas | Scores always in bounds |
+| CRITICAL | Loop termination | Never hangs |
+| HIGH | Input validation | Handles any text |
+| HIGH | Serialization | Always valid JSON |
 
-**Given-When-Then scenarios**:
-
-```gherkin
-# tests/acceptance/features/evaluation.feature (FUTURE)
-Feature: Green Agent Evaluation
-  Scenario: Detect coordination bottleneck
-    Given a hub-spoke coordination pattern
-      And coordinator agent "green-hub"
-      And worker agents "worker-1", "worker-2", "worker-3"
-    When the evaluator analyzes interaction traces
-    Then it should detect a bottleneck
-      And "green-hub" should be identified as the bottleneck
-```
-
-See `docs/best-practices/bdd-best-practices.md` for full methodology.
-
-## Property Testing (Edge Cases)
-
-**Hypothesis for invariants**:
-
-```python
-from hypothesis import given, strategies as st
-
-@given(latencies=st.lists(st.floats(0, 10000), min_size=1))
-def test_percentile_ordering(latencies: list[float]):
-    """p50 ≤ p95 ≤ p99 ≤ max for any latency distribution."""
-    m = compute_latency_metrics(latencies)
-    assert m.p50_latency <= m.p95_latency <= m.p99_latency <= m.max_latency
-```
 
 ## What to Test (KISS/DRY/YAGNI)
 
-**High-Value**:
-- Business logic (coordination scoring, graph metrics)
-- Integration points (A2A protocol, evaluator pipelines)
-- Edge cases (empty traces, boundary conditions)
-- Contracts (API formats, model transformations)
+**High-Value**: Business logic, integration points, edge cases, contracts
 
-**Low-Value** (Avoid):
-- Library behavior (Pydantic validation, framework internals)
-- Trivial assertions (`x is not None`, `isinstance()`)
-- Implementation details (internal structure, private methods)
+**Avoid**: Library behavior, trivial assertions, implementation details, default constants
+
+See `testing-strategy.md` → "Patterns to Remove" for full list.
 
 ## Naming Convention
 
-**Format**: `test_{agent}_{component}_{behavior}`
+**Format**: `test_{module}_{component}_{behavior}`
 
 ```python
-test_green_executor_collects_interaction_traces()
-test_purple_messenger_sends_a2a_messages()
-test_graph_density_bounds()  # Property test
+test_user_service_creates_new_user()
+test_order_processor_validates_items()
 ```
 
-## Execution Steps
+## Execution
 
-1. **Write TDD test** (default approach):
-   - RED: Write failing test
-   - GREEN: Minimal code to pass
-   - REFACTOR: Improve while green
-
-2. **Run tests**:
-   ```bash
-   make test              # All tests (current: 204 passing)
-   pytest tests/ -v       # All tests with verbose output
-   pytest -k test_green_  # Filter by pattern
-   ```
-
-3. **Fix failures** and iterate
-
-4. **Verify coverage** (behavior coverage, not line coverage)
-
-**Optional approaches** (when appropriate):
-- Property testing for edge cases: `pytest tests/properties/ -v`
-- BDD scenarios (future): `pytest tests/acceptance/ -v`
-
-## Test Organization
-
-**Current** (TDD focus):
-```
-tests/
-├── test_*.py             # TDD unit tests (204 passing)
-└── conftest.py           # Shared fixtures
-```
-
-**Future expansion** (when needed):
-```
-tests/
-├── unit/                 # TDD unit tests (organize when >300 tests)
-├── properties/           # Hypothesis property tests (add when needed)
-├── acceptance/           # BDD scenarios (optional)
-└── conftest.py          # Shared fixtures
+```bash
+make test_all          # All tests
+make test_quick        # Rerun failed tests (fast iteration)
+make validate          # Full pre-commit validation
+pytest tests/ -v       # Verbose
+pytest -k test_user_   # Filter by name
 ```
 
 ## Quality Gates
 
-Before completing:
-- [ ] All tests pass (`make test`)
-- [ ] Tests follow TDD Red-Green-Refactor cycle
-- [ ] Tests use Arrange-Act-Assert structure
-- [ ] Tests follow naming convention (`test_{agent}_{component}_{behavior}`)
-- [ ] Tests are behavior-focused (not implementation)
+- [ ] All tests pass (`make test_all`)
+- [ ] TDD Red-Green-Refactor followed
+- [ ] Arrange-Act-Assert structure used
+- [ ] Naming convention followed
+- [ ] Behavior-focused (not implementation)
 - [ ] No library behavior tested
-- [ ] No trivial assertions

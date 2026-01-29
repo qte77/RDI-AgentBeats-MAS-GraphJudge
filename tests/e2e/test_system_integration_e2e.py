@@ -68,7 +68,6 @@ class TestGreenPurpleIntegration:
 
     async def test_results_written_to_output_directory(self):
         """Verify evaluation results are written to output/results.json."""
-        from pathlib import Path
 
         from green.executor import Executor
         from green.messenger import Messenger

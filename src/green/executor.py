@@ -17,11 +17,8 @@ from green.models import CallType, InteractionStep
 if TYPE_CHECKING:
     from green.messenger import Messenger
 
-# TODO: Define trace collection strategy - options include:
-#   - Fixed number of coordination rounds (current implementation)
-#   - Time-based collection (collect for N seconds)
-#   - Task completion detection (collect until task signals done)
-#   - Message count threshold
+# TODO: Implement trace collection strategy from docs/trace-collection-strategy.md
+#   Recommended: Hybrid approach (task completion + timeout + idle detection)
 # FIXME: Current fixed-rounds approach is placeholder for testing
 DEFAULT_COORDINATION_ROUNDS = 3
 # Delay between rounds in seconds

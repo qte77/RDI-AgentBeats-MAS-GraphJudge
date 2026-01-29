@@ -29,14 +29,18 @@
 ### Screen Actions
 1. Open terminal window
 2. Execute command:
-   ```bash
+   
+```bash
    uv run python -m green.server --host 0.0.0.0 --port 9009
    ```
+   
 3. Show server startup logs with INFO messages
 4. Open browser or use curl to access AgentCard endpoint:
+
    ```bash
    curl http://localhost:9009/.well-known/agent-card.json | jq
-   ```
+```
+
 5. Display formatted AgentCard JSON showing:
    - Agent ID: "green-agent"
    - Name: "Green Agent (Assessor)"
@@ -57,6 +61,7 @@
 
 ### Screen Actions
 1. Show terminal with JSON-RPC request payload:
+
    ```json
    {
      "jsonrpc": "2.0",
@@ -69,12 +74,15 @@
      "id": "eval-001"
    }
    ```
+
 2. Execute request using curl or Python script:
-   ```bash
+   
+```bash
    curl -X POST http://localhost:9009/ \
      -H "Content-Type: application/json" \
      -d @evaluation_request.json
    ```
+
 3. Split screen showing:
    - Left: Green Agent logs showing trace collection
    - Right: Purple Agent network responding to messages
@@ -99,13 +107,16 @@
 
 ### Screen Actions
 1. Show results file being written:
+
    ```bash
    cat output/results.json | jq
    ```
+
 2. Display structured results with three sections highlighted:
 
    **Tier 1 - Graph Metrics:**
-   ```json
+   
+```json
    {
      "tier1_graph": {
        "degree_centrality": {"agent-1": 0.75, "agent-2": 0.50},
@@ -119,7 +130,8 @@
    ```
 
    **Tier 2 - LLM Judge:**
-   ```json
+   
+```json
    {
      "tier2_llm": {
        "overall_score": 0.75,
@@ -132,7 +144,8 @@
    ```
 
    **Tier 2 - Latency Metrics:**
-   ```json
+   
+```json
    {
      "tier2_latency": {
        "avg_latency_ms": 145.3,

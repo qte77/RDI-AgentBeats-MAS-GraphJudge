@@ -45,6 +45,7 @@ purpose: How, Enhance evaluation system with real LLM integration, plugin archit
 **Description:** Real agent-to-agent communication via A2A SDK for authentic coordination measurement. Replaces mock REST protocol with production-grade A2A JSON-RPC communication.
 
 **Acceptance Criteria:**
+
 - [ ] Messenger uses `ClientFactory.connect()` from a2a-sdk (not custom REST)
 - [ ] Messages created via `create_text_message_object()`
 - [ ] Response extracted from `TaskState.completed` events
@@ -59,11 +60,13 @@ purpose: How, Enhance evaluation system with real LLM integration, plugin archit
 - [ ] All tests pass: `uv run pytest tests/test_messenger.py tests/test_executor.py`
 
 **Technical Requirements:**
+
 - a2a-sdk[http-server]>=0.3.20
 - Async iteration over `send_message()` events
 - Proper error handling for A2A protocol errors
 
 **Files:**
+
 - `src/green/messenger.py`
 - `src/green/executor.py`
 - `tests/test_messenger.py`
@@ -76,6 +79,7 @@ purpose: How, Enhance evaluation system with real LLM integration, plugin archit
 **Description:** Build directed graphs from interaction traces and compute coordination quality metrics using graph theory. All metrics implemented as plugins that can be enabled/disabled independently.
 
 **Acceptance Criteria:**
+
 - [ ] Builds directed graph from TraceData (nodes = agents, edges = interactions)
 - [ ] **Pluggable metric system**: Each graph metric is a separate plugin
 - [ ] **Centrality metrics** (all pluggable):
@@ -98,11 +102,13 @@ purpose: How, Enhance evaluation system with real LLM integration, plugin archit
 - [ ] Returns structured GraphMetrics with numerical scores
 
 **Technical Requirements:**
+
 - NetworkX for graph algorithms (see Non-Functional Requirements for alternatives)
 - Deterministic metric computation (same input → same output)
 - Plugin interface allows adding custom metrics without modifying core code
 
 **Files:**
+
 - `src/green/evals/graph.py`
 - `tests/test_graph.py`
 
@@ -113,6 +119,7 @@ purpose: How, Enhance evaluation system with real LLM integration, plugin archit
 **Description:** Replace rule-based LLM Judge with real LLM API calls for semantic assessment of coordination quality.
 
 **Acceptance Criteria:**
+
 - [ ] Reads environment: `AGENTBEATS_LLM_API_KEY`, `AGENTBEATS_LLM_BASE_URL`, `AGENTBEATS_LLM_MODEL`
 - [ ] Default base URL: `https://api.openai.com/v1`
 - [ ] Default model: `gpt-4o-mini`
@@ -126,11 +133,13 @@ purpose: How, Enhance evaluation system with real LLM integration, plugin archit
 - [ ] Task outcome assessment: Evaluates whether coordination led to successful task completion
 
 **Technical Requirements:**
+
 - openai>=1.0
 - Graceful degradation pattern
 - JSON response parsing with validation
 
 **Files:**
+
 - `src/green/evals/llm_judge.py`
 - `tests/test_llm_judge.py`
 
@@ -141,6 +150,7 @@ purpose: How, Enhance evaluation system with real LLM integration, plugin archit
 **Description:** Track agent response time performance for comparative analysis within the same system environment. Latency metrics are **relative** (comparing agents on identical hardware), not absolute performance benchmarks.
 
 **Acceptance Criteria:**
+
 - [ ] Reads latency from InteractionStep.latency field (auto-calculated by A2A)
 - [ ] Computes percentiles: avg, p50, p95, p99
 - [ ] Identifies slowest agent by URL (relative to peers in same run)
@@ -150,12 +160,14 @@ purpose: How, Enhance evaluation system with real LLM integration, plugin archit
 - [ ] Documentation warns: "Latency values only comparable within same system/run"
 
 **Technical Requirements:**
+
 - NumPy for percentile calculations
 - Latency values in milliseconds (from A2A Step.latency field)
 
 **Use Case:** Identify coordination bottlenecks (e.g., Agent A waits 10x longer than Agent B for responses), not absolute performance rating.
 
 **Files:**
+
 - `src/green/evals/system.py`
 - `src/green/executor.py`
 - `tests/test_system.py`
@@ -167,6 +179,7 @@ purpose: How, Enhance evaluation system with real LLM integration, plugin archit
 **Description:** Clear patterns and examples for adding custom evaluators without modifying core code.
 
 **Acceptance Criteria:**
+
 - [ ] Documentation explains evaluator interface pattern
 - [ ] Tier-based structure documented:
   - Tier 1: Graph (structural analysis via NetworkX)
@@ -177,10 +190,12 @@ purpose: How, Enhance evaluation system with real LLM integration, plugin archit
 - [ ] Shows how to add new evaluator to Executor
 
 **Technical Requirements:**
+
 - Markdown documentation
 - Code examples with comments
 
 **Files:**
+
 - `docs/AgentBeats/AGENTBEATS_REGISTRATION.md` *(exists)*
 
 ---
@@ -190,6 +205,7 @@ purpose: How, Enhance evaluation system with real LLM integration, plugin archit
 **Description:** Base Purple Agent (minimal test fixture) and ground truth dataset for validating the Green Agent evaluation pipeline. The Base Purple Agent is a simplified A2A-compliant agent implementation built into the `purple-agent` Docker image.
 
 **Acceptance Criteria:**
+
 - [ ] Base Purple Agent implemented as A2A-compliant test fixture
 - [ ] Ground truth dataset with labeled test scenarios (`data/ground_truth.json`)
   - Source: Small subset of PeerRead dataset from HuggingFace (`allenai/PeerRead`)
@@ -202,6 +218,7 @@ purpose: How, Enhance evaluation system with real LLM integration, plugin archit
 - [x] Container orchestration supports isolated testing *(docker-compose-local.yaml)*
 
 **Technical Requirements:**
+
 - Base Purple Agent follows RDI green-agent-template pattern
 - Ground truth source: PeerRead dataset (HuggingFace `allenai/PeerRead`)
 - Ground truth format: JSON with labeled coordination scenarios derived from peer review interactions
@@ -209,6 +226,7 @@ purpose: How, Enhance evaluation system with real LLM integration, plugin archit
 - Docker image: `ghcr.io/${GH_USERNAME}/purple-agent:latest` (built from `Dockerfile.purple`)
 
 **Files:**
+
 - `src/purple/` (Base Purple Agent implementation)
 - `Dockerfile.purple` *(exists)*
 - `data/ground_truth.json`
@@ -220,28 +238,33 @@ purpose: How, Enhance evaluation system with real LLM integration, plugin archit
 ## Non-Functional Requirements
 
 **Performance:**
+
 - All evaluations (graph + LLM + latency) complete in <30 seconds
 - A2A task timeout: 300 seconds (5 minutes)
 - Latency evaluation: <5 seconds
 - **Note**: Latency metrics are relative (same-system comparisons), not cross-environment benchmarks
 
 **Statistical Validity:**
+
 - Minimum 10 diverse scenarios recommended for statistically meaningful results
 - Multiple evaluation runs supported to handle agent non-determinism
 - Results include confidence indicators when sample size is small
 
 **A2A Protocol:**
+
 - JSON-RPC 2.0 message format
 - AgentCard at `/.well-known/agent-card.json`
 - Standard error codes (-32700 to -32001)
 - Task lifecycle: pending → running → completed/failed
 
 **Platform:**
+
 - Python 3.13 (uv package manager)
 - Docker linux/amd64
 - A2A Protocol v0.3+ (a2a-sdk>=0.3.20)
 
 **Graph Analysis:**
+
 - NetworkX for graph algorithms (industry standard, pure Python)
 - Alternative: igraph for large-scale graphs if performance becomes an issue
 
@@ -266,12 +289,14 @@ data/
 ```
 
 **Containerization:**
+
 - Green Agent: `src/green/` → containerized by `Dockerfile.green` → pushed as `ghcr.io/${GH_USERNAME}/green-agent:latest`
 - Purple Agent: `src/purple/` → containerized by `Dockerfile.purple` → pushed as `ghcr.io/${GH_USERNAME}/purple-agent:latest`
 
 Reference: `github.com/RDI-Foundation/green-agent-template/tree/example/debate_judge/src`
 
 **A2A Protocol Implementation Details:**
+
 - SDK: A2A SDK (a2a-sdk>=0.3.20) for Agent, Task, and Message operations
 - Agent Card: AgentCard at `/.well-known/agent-card.json` declaring AgentSkill and AgentCapabilities
 - Task Operations: `tasks.send`, `tasks.query`, `tasks.update` methods
@@ -283,32 +308,38 @@ Reference: `github.com/RDI-Foundation/green-agent-template/tree/example/debate_j
 - Streaming: Optional push notifications for long-running evaluations
 
 **AgentBeats CLI Interface:**
+
 - CLI args: `--host`, `--port`, `--card-url` (argparse-based)
 - Entry point: argparse-based (not uvicorn factory)
 - Default port: 9009 (AgentBeats default)
 - Task isolation via context_id tracking
 
 **LLM Judge Implementation:**
+
 - Uses temperature=0 for consistent scoring
 - Falls back to rule-based if API unavailable (logs warning)
 
 **Graph Metric Thresholds:**
+
 - Bottleneck detection: Betweenness centrality >0.5 flags coordinator agents
 - Isolation detection: Degree centrality = 0 identifies disconnected agents
 - Distribution quality: Graph density >0.3 indicates healthy collaboration spread
 
 **Testing Scripts:**
+
 - `scripts/docker/e2e_test.sh` (quick): Basic smoke test with 2 test cases
 - `scripts/docker/e2e_test.sh full`: Full ground truth validation with all scenarios
 - Ground truth: `data/ground_truth.json` (PeerRead subset: 10-20 samples from HuggingFace `allenai/PeerRead`)
 
 **Reproducibility:**
+
 - Fresh state for each assessment
 - Task ID namespace isolation
 - No memory/file carryover between runs
 - Same input traces → same graph metrics (deterministic)
 
 **Code Quality:**
+
 - Type checking passes: `make type_check`
 - All tests pass: `make test_all`
 - Formatting passes: `make ruff`
@@ -371,6 +402,7 @@ class BaseEvaluator(ABC):
 <!-- PARSER REQUIREMENT: Use (depends: STORY-XXX, STORY-YYY) for dependencies -->
 
 Story Breakdown (17 stories total):
+
 - **Feature 1 (A2A Protocol Communication)** → STORY-001: Messenger with A2A SDK + extensions, STORY-002: InteractionStep model integration (depends: STORY-001), STORY-003: Executor with trace collection and cleanup (depends: STORY-002), STORY-004: Add OpenAI dependency to pyproject.toml (depends: STORY-003), STORY-005: Green Agent business logic (agent.py) (depends: STORY-004), STORY-006: Green Agent A2A HTTP server (server.py) (depends: STORY-005)
 - **Feature 2 (Graph-Based Coordination Analysis)** → STORY-013: Graph evaluator test suite (depends: STORY-003), STORY-014: Graph-based coordination analysis implementation (depends: STORY-013)
 - **Feature 3 (LLM-Based Qualitative Evaluation)** → STORY-007: LLM client configuration with environment variables (depends: STORY-006), STORY-008: LLM prompt engineering for coordination assessment (depends: STORY-007), STORY-009: LLM API integration with fallback to rule-based evaluation (depends: STORY-008)

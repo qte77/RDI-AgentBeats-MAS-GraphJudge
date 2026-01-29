@@ -5,8 +5,6 @@ applies-to: Agents and humans
 purpose: Why and What, Product vision, value proposition, and success metrics
 ---
 
-# User Story: Graph-Based Coordination Benchmark
-
 > **Scope**: This document covers the **Green Agent (Assessor)** - the benchmark system that evaluates coordination. The **Purple Agent (Assessee)** - the multi-agent system under test - will be documented separately.
 >
 > **Naming Convention**: Some AgentBeats docs use "White Agent" for assessee; this project solely  uses "Purple Agent" (equivalent role).
@@ -50,6 +48,7 @@ This benchmark transforms abstract "collaboration quality" into concrete, measur
 **Outcome Validity**: High coordination scores genuinely reflect successful multi-agent collaboration, not superficial pattern matching. Graph metrics alone are insufficient—they must be validated against task outcomes to ensure coordination quality correlates with actual task success.
 
 **Plugin Architecture**:
+
 - **Primary**: Graph evaluator (coordination structure analysis)
 - **Provided Plugins**: LLM-as-Judge (semantic quality, can ingest other plugin outputs), Latency (system performance, extensible), Text metrics (conventional NLP metrics)
 - **Design Principle**: Graph metrics reveal *how* agents coordinated; LLM-as-Judge can synthesize insights from multiple plugin outputs (Graph, Text, Latency) to verify coordination led to *successful* task completion
@@ -63,6 +62,7 @@ This benchmark transforms abstract "collaboration quality" into concrete, measur
 **So that** I can evaluate how agent systems collaborate on complex problems.
 
 **Acceptance Criteria:**
+
 - [ ] GreenAgent exposes AgentCard at `/.well-known/agent-card.json` declaring evaluation capabilities
 - [ ] Accepts task submissions via A2A JSON-RPC 2.0 protocol (`tasks.send` method)
 - [ ] Supports configurable scenarios (agent URLs, task descriptions, expected interactions)
@@ -77,6 +77,7 @@ This benchmark transforms abstract "collaboration quality" into concrete, measur
 **So that** I can analyze coordination patterns post-execution.
 
 **Acceptance Criteria:**
+
 - [ ] Captures all agent-to-agent communications via A2A Traceability Extension
 - [ ] Trace data captures sufficient information to reconstruct interaction sequence and analyze coordination patterns
 - [ ] Uses production A2A protocol (not mock implementations)
@@ -89,6 +90,7 @@ This benchmark transforms abstract "collaboration quality" into concrete, measur
 **So that** I can objectively measure coordination quality.
 
 **Acceptance Criteria:**
+
 - [ ] Constructs coordination graph representation from captured A2A interaction traces
 - [ ] **Pluggable metric system**: Each graph metric is a separate plugin that can be enabled/disabled
 - [ ] Default metrics (all pluggable):
@@ -105,6 +107,7 @@ This benchmark transforms abstract "collaboration quality" into concrete, measur
 **So that** I understand semantic coordination quality beyond numerical metrics.
 
 **Acceptance Criteria:**
+
 - [ ] LLM Judge analyzes interaction traces for semantic quality assessment
 - [ ] **Multi-plugin data ingestion**: Can optionally receive outputs from other evaluators (Graph metrics, Text metrics, Latency metrics) to inform holistic assessment
 - [ ] Evaluation uses defined rubric: task alignment, communication clarity, workload distribution, bottleneck avoidance
@@ -122,6 +125,7 @@ This benchmark transforms abstract "collaboration quality" into concrete, measur
 **So that** I can evaluate performance alongside coordination quality.
 
 **Acceptance Criteria:**
+
 - [ ] Captures timestamps for all agent interactions
 - [ ] **Primary focus: Latency metrics** for simplicity: avg, p50, p95, p99
 - [ ] Identifies slowest agents by URL
@@ -137,6 +141,7 @@ This benchmark transforms abstract "collaboration quality" into concrete, measur
 **So that** I can extend evaluation criteria without modifying core code.
 
 **Acceptance Criteria:**
+
 - [ ] Evaluators follow consistent interface pattern (BaseEvaluator)
 - [ ] **Two-level plugin architecture**:
   - **Level 1 - Evaluator Plugins**: Graph, LLM-Judge, Latency, Text (each can be enabled/disabled)
@@ -160,6 +165,7 @@ This benchmark transforms abstract "collaboration quality" into concrete, measur
 **So that** I can validate the Green Agent evaluation pipeline works correctly.
 
 **Acceptance Criteria:**
+
 - [ ] Base Purple Agent implemented as A2A-compliant test fixture
 - [ ] Ground truth dataset with labeled test scenarios for validation
 - [ ] E2E tests validate both agents' AgentCards are accessible
@@ -175,6 +181,7 @@ This benchmark transforms abstract "collaboration quality" into concrete, measur
 **So that** I can understand the full evaluation flow and guide video production.
 
 **Acceptance Criteria:**
+
 - [ ] Script output: `docs/demo-video-script.md` (~3 minutes of content)
 - [ ] Scene 1: Server startup and A2A endpoint verification
 - [ ] Scene 2: Evaluation flow with trace capture

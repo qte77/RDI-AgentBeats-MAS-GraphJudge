@@ -55,7 +55,6 @@ def test_order_processor_calculates_total():
 | HIGH | Input validation | Handles any text |
 | HIGH | Serialization | Always valid JSON |
 
-
 ## What to Test (KISS/DRY/YAGNI)
 
 **High-Value**: Business logic, integration points, edge cases, contracts

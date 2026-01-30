@@ -91,7 +91,7 @@ class TestServerEvaluatorPipelineIntegration:
             ) as client:
                 request_data = {
                     "jsonrpc": "2.0",
-                    "method": "tasks.send",
+                    "method": "message/send",
                     "params": {
                         "task": {
                             "description": "Evaluate agent coordination",
@@ -120,7 +120,7 @@ class TestServerEvaluatorPipelineIntegration:
             ) as client:
                 request_data = {
                     "jsonrpc": "2.0",
-                    "method": "tasks.send",
+                    "method": "message/send",
                     "params": {
                         "task": {
                             "description": "Evaluate agent coordination",
@@ -158,7 +158,7 @@ class TestServerEvaluatorPipelineIntegration:
             ) as client:
                 request_data = {
                     "jsonrpc": "2.0",
-                    "method": "tasks.send",
+                    "method": "message/send",
                     "params": {
                         "task": {
                             "description": "Evaluate agent coordination",

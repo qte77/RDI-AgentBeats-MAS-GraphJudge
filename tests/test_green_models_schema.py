@@ -22,12 +22,22 @@ class TestParticipantsModel:
     def test_valid_agent_uuid(self):
         """Test creating participant with valid agent UUID."""
         p = ParticipantsModel.model_validate({"agent": "019b4d08-d84c-7a00-b2ec-4905ef7afc96"})
-        assert p.agent == "019b4d08-d84c-7a00-b2ec-4905ef7afc96"
+        assert str(p.agent) == "019b4d08-d84c-7a00-b2ec-4905ef7afc96"
 
-    def test_valid_agent_non_uuid(self):
-        """Test creating participant with non-UUID identifier (allowed for flexibility)."""
-        p = ParticipantsModel.model_validate({"agent": "green-agent"})
-        assert p.agent == "green-agent"
+    def test_valid_agent_uuid_v4(self):
+        """Test creating participant with valid UUID v4 format."""
+        p = ParticipantsModel.model_validate({"agent": "550e8400-e29b-41d4-a716-446655440000"})
+        assert str(p.agent) == "550e8400-e29b-41d4-a716-446655440000"
+
+    def test_invalid_agent_non_uuid_rejected(self):
+        """Test validation fails for non-UUID identifier (A2A compliance)."""
+        with pytest.raises(ValidationError):
+            ParticipantsModel.model_validate({"agent": "green-agent"})
+
+    def test_invalid_agent_malformed_uuid_rejected(self):
+        """Test validation fails for malformed UUID."""
+        with pytest.raises(ValidationError):
+            ParticipantsModel.model_validate({"agent": "not-a-valid-uuid-format"})
 
     def test_missing_agent(self):
         """Test validation fails when agent is missing."""

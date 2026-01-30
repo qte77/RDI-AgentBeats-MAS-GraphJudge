@@ -42,13 +42,13 @@ class TestPurpleAgentCard:
 class TestPurpleAgentJSONRPC:
     """Test Purple Agent A2A JSON-RPC 2.0 protocol support."""
 
-    async def test_supports_jsonrpc_tasks_send(self):
-        """Supports A2A JSON-RPC 2.0 protocol with tasks.send method."""
+    async def test_supports_jsonrpc_message_send(self):
+        """Supports A2A JSON-RPC 2.0 protocol with message/send method."""
         app = create_app()
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             request = {
                 "jsonrpc": "2.0",
-                "method": "tasks.send",
+                "method": "message/send",
                 "params": {
                     "task": {
                         "description": "Test task",
@@ -63,7 +63,9 @@ class TestPurpleAgentJSONRPC:
             result = response.json()
             assert result["jsonrpc"] == "2.0"
             assert result["id"] == 1
-            assert "result" in result or "error" in result
+            # Must succeed (have result), not return error
+            assert "result" in result, f"Expected success, got error: {result.get('error')}"
+            assert "error" not in result or result["error"] is None
 
     async def test_jsonrpc_method_not_found(self):
         """Returns error for unsupported JSON-RPC methods."""

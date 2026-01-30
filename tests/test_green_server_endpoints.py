@@ -89,7 +89,7 @@ async def test_server_handles_a2a_jsonrpc_request(
             # A2A JSON-RPC 2.0 request format
             request_data = {
                 "jsonrpc": "2.0",
-                "method": "tasks.send",
+                "method": "message/send",
                 "params": {
                     "task": {
                         "description": "Evaluate agent coordination",
@@ -123,7 +123,7 @@ async def test_server_delegates_to_executor_and_agent(
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             request_data = {
                 "jsonrpc": "2.0",
-                "method": "tasks.send",
+                "method": "message/send",
                 "params": {
                     "task": {
                         "description": "Evaluate agent coordination",
@@ -158,7 +158,7 @@ async def test_server_writes_results_to_output_file(
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             request_data = {
                 "jsonrpc": "2.0",
-                "method": "tasks.send",
+                "method": "message/send",
                 "params": {
                     "task": {
                         "description": "Evaluate agent coordination",
@@ -221,7 +221,7 @@ async def test_server_handles_multiple_concurrent_requests(
             requests = [
                 {
                     "jsonrpc": "2.0",
-                    "method": "tasks.send",
+                    "method": "message/send",
                     "params": {
                         "task": {
                             "description": f"Evaluate coordination {i}",

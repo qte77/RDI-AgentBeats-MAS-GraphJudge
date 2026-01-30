@@ -50,7 +50,7 @@ class TestGreenPurpleIntegration:
             # Send evaluation request to Green Agent
             request = {
                 "jsonrpc": "2.0",
-                "method": "tasks.send",
+                "method": "message/send",
                 "params": {
                     "task": {
                         "description": "Evaluate coordination quality",

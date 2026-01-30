@@ -21,7 +21,7 @@ class TestPurpleAgentOutputs:
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             request = {
                 "jsonrpc": "2.0",
-                "method": "tasks.send",
+                "method": "message/send",
                 "params": {
                     "task": {
                         "description": "Test coordination task",
@@ -68,7 +68,7 @@ class TestPurpleAgentOutputs:
             # Simulate coordination request from another agent
             request = {
                 "jsonrpc": "2.0",
-                "method": "tasks.send",
+                "method": "message/send",
                 "params": {
                     "task": {
                         "description": "Multi-agent coordination scenario",

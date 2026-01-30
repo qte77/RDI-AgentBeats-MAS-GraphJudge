@@ -82,6 +82,8 @@ class TestPurpleAgentCard:
 
     async def test_purple_agentcard_has_required_fields(self):
         """Purple Agent AgentCard contains required A2A fields."""
+        from uuid import UUID
+
         from purple.server import create_app
 
         app = create_app()
@@ -91,7 +93,8 @@ class TestPurpleAgentCard:
 
             # Verify required A2A fields
             assert "agentId" in card
-            assert card["agentId"] == "purple-agent"
+            # agentId should be a valid UUID (A2A compliance)
+            UUID(card["agentId"])  # Raises if invalid
             assert "name" in card
             assert "description" in card
             assert "capabilities" in card

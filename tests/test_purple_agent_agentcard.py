@@ -24,6 +24,8 @@ class TestPurpleAgentCard:
 
     async def test_agent_card_has_required_fields(self):
         """AgentCard contains required A2A fields."""
+        from uuid import UUID
+
         app = create_app()
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             response = await client.get("/.well-known/agent-card.json")
@@ -31,7 +33,8 @@ class TestPurpleAgentCard:
 
             # Verify required fields
             assert "agentId" in card
-            assert card["agentId"] == "purple-agent"
+            # agentId should be a valid UUID (A2A compliance)
+            UUID(card["agentId"])  # Raises if invalid
             assert "name" in card
             assert "description" in card
             assert "capabilities" in card

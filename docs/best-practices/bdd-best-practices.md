@@ -119,6 +119,7 @@ Each scenario tests one behavior. Avoid kitchen-sink scenarios testing "all orde
 ### 5. Maintain Scenarios
 
 Revisit when requirements change, remove obsolete scenarios.
+
 - Prevent test suite bloat
 - Keep scenarios aligned with business needs
 

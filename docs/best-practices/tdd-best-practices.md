@@ -126,4 +126,3 @@ def test_service_fetches_data():
 - Simple CRUD operations
 - UI layouts (use visual testing)
 - Exploratory prototypes (add tests after)
-

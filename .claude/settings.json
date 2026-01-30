@@ -12,8 +12,7 @@
   "sandbox": {
     "enabled": true,
     "autoAllowBashIfSandboxed": true,
-    "excludedCommands": ["git", "make", "uv"],
-    "allowUnsandboxedCommands": true,
+    "allowUnsandboxedCommands": false,
     "network": {
       "allowLocalBinding": true,
       "allowedHosts": ["api.github.com"]
@@ -22,20 +21,10 @@
     "filesystem": {
       "write": {
         "allowOnly": [
-          "/dev/stdout",
-          "/dev/stderr",
-          "/dev/null",
-          "/tmp/claude",
-          "/home/vscode/.claude/projects",
-          "/home/vscode/.claude/debug",
-          ".",
-          "docs/",
-          "tests/",
-          "src/",
-          "ralph/"
+          "/tmp/claude-1000"
         ]
       }
-    }
+    }  
   },
   "permissions": {
     "allow": [

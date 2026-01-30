@@ -6,6 +6,7 @@ Centralizes configuration for Green Agent with environment variable support.
 from __future__ import annotations
 
 from pathlib import Path
+from uuid import UUID, uuid4
 
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -63,7 +64,8 @@ class GreenSettings(BaseSettings):
     max_score: float = 100.0
 
     # Agent settings - use validation_alias for non-prefixed env vars
-    agent_uuid: str = Field(default="green-agent", validation_alias="AGENT_UUID")
+    agent_uuid: UUID = Field(default_factory=uuid4, validation_alias="AGENT_UUID")
+    agent_name: str = Field(default="green-agent", validation_alias="AGENT_NAME")
     purple_agent_url: str = Field(
         default=f"http://{host}:{purple_port}", validation_alias="PURPLE_AGENT_URL"
     )

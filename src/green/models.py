@@ -12,6 +12,7 @@ from __future__ import annotations
 from datetime import datetime
 from enum import Enum
 from typing import TYPE_CHECKING, Any, Literal
+from uuid import UUID
 
 from pydantic import BaseModel, Field
 
@@ -184,7 +185,7 @@ class GreenAgentOutput(BaseModel):
 class ParticipantsModel(BaseModel):
     """Agent participant in the assessment."""
 
-    agent: str = Field(..., description="Agent identifier")
+    agent: UUID = Field(..., description="Agent UUID identifier (A2A compliant)")
 
 
 class ResultModel(BaseModel):
@@ -212,14 +213,14 @@ class AgentBeatsOutputModel(BaseModel):
         return self.model_dump_json(**kwargs)
 
     def to_dict(self) -> dict[str, Any]:
-        """Export as dictionary."""
-        return self.model_dump()
+        """Export as dictionary with JSON-compatible types (UUIDs as strings)."""
+        return self.model_dump(mode="json")
 
     @classmethod
     def from_green_output(
         cls,
         green_output: GreenAgentOutput | dict[str, Any],
-        agent_id: str,
+        agent_id: str | UUID,
         time_used: float = 0.0,
         domain: str = "coordination",
         max_score: float = 100.0,
@@ -246,8 +247,11 @@ class AgentBeatsOutputModel(BaseModel):
             "coordination_quality": quality_score,
         }
 
+        # Convert string to UUID if needed (Pydantic handles coercion, this satisfies type checker)
+        agent_uuid = UUID(agent_id) if isinstance(agent_id, str) else agent_id
+
         return cls(
-            participants=ParticipantsModel(agent=agent_id),
+            participants=ParticipantsModel(agent=agent_uuid),
             results=[
                 ResultModel(
                     pass_rate=pass_rate,
@@ -265,18 +269,21 @@ class AgentBeatsOutputModel(BaseModel):
     def from_evaluation_results(
         cls,
         evaluation_results: dict[str, Any],
-        agent_id: str | None = None,
+        agent_id: str | UUID | None = None,
         domain: str = "coordination",
         max_score: float = 100.0,
         settings: GreenSettings | None = None,
     ) -> AgentBeatsOutputModel:
         """Create AgentBeats output from executor evaluation results."""
+        resolved_agent_id: str | UUID
         if agent_id is None:
             if settings is None:
                 from green.settings import GreenSettings
 
                 settings = GreenSettings()
-            agent_id = settings.agent_uuid
+            resolved_agent_id = settings.agent_uuid
+        else:
+            resolved_agent_id = agent_id
 
         graph_results: dict[str, Any] = evaluation_results.get("tier1_graph") or {}
         llm_results: dict[str, Any] = evaluation_results.get("tier2_llm") or {}
@@ -312,8 +319,13 @@ class AgentBeatsOutputModel(BaseModel):
             "latency_metrics": latency_results if latency_results else None,
         }
 
+        # Convert string to UUID if needed (Pydantic handles coercion, this satisfies type checker)
+        agent_uuid = (
+            UUID(resolved_agent_id) if isinstance(resolved_agent_id, str) else resolved_agent_id
+        )
+
         return cls(
-            participants=ParticipantsModel(agent=agent_id),
+            participants=ParticipantsModel(agent=agent_uuid),
             results=[
                 ResultModel(
                     pass_rate=pass_rate,

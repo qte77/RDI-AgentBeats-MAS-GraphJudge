@@ -22,6 +22,8 @@ class TestGreenAgentCard:
 
     async def test_green_agentcard_has_required_fields(self):
         """Green Agent AgentCard contains required A2A fields."""
+        from uuid import UUID
+
         from green.server import create_app
 
         app = create_app()
@@ -31,7 +33,8 @@ class TestGreenAgentCard:
 
             # Verify required A2A fields
             assert "agentId" in card
-            assert card["agentId"] == "green-agent"
+            # agentId should be a valid UUID (A2A compliance)
+            UUID(card["agentId"])  # Raises if invalid
             assert "name" in card
             assert "description" in card
             assert "capabilities" in card

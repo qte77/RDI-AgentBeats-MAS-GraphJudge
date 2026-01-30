@@ -233,7 +233,7 @@ def create_app(settings: GreenSettings | None = None) -> FastAPI:
     async def handle_jsonrpc(request: JSONRPCRequest) -> JSONRPCResponse:  # pyright: ignore[reportUnusedFunction]
         """Handle A2A JSON-RPC 2.0 protocol requests."""
         try:
-            if request.method != "tasks.send":
+            if request.method != "message/send":
                 return JSONRPCResponse(
                     id=request.id,
                     error={"code": -32601, "message": f"Method not found: {request.method}"},

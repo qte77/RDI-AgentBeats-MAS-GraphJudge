@@ -75,7 +75,7 @@ def create_app(settings: PurpleSettings | None = None) -> FastAPI:
             HTTPException: If request processing fails
         """
         try:
-            if request.method != "tasks.send":
+            if request.method != "message/send":
                 return JSONRPCResponse(
                     id=request.id,
                     error={"code": -32601, "message": f"Method not found: {request.method}"},

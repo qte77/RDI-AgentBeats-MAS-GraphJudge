@@ -22,12 +22,13 @@ class TestGreenSettingsUUID:
         # Validate it's a proper UUID format
         UUID(str(settings.agent_uuid))
 
-    def test_custom_uuid_accepted(self):
-        """Test that custom valid UUID is accepted."""
+    def test_custom_uuid_accepted(self, monkeypatch):
+        """Test that custom valid UUID is accepted via env var."""
         from green.settings import GreenSettings
 
         custom_uuid = "550e8400-e29b-41d4-a716-446655440000"
-        settings = GreenSettings(agent_uuid=custom_uuid)
+        monkeypatch.setenv("AGENT_UUID", custom_uuid)
+        settings = GreenSettings()
         assert str(settings.agent_uuid) == custom_uuid
 
     def test_invalid_uuid_rejected(self):
@@ -55,11 +56,12 @@ class TestGreenSettingsAgentName:
         settings = GreenSettings()
         assert settings.agent_name == "green-agent"
 
-    def test_custom_agent_name(self):
-        """Test that custom agent_name is accepted."""
+    def test_custom_agent_name(self, monkeypatch):
+        """Test that custom agent_name is accepted via env var."""
         from green.settings import GreenSettings
 
-        settings = GreenSettings(agent_name="my-custom-agent")
+        monkeypatch.setenv("AGENT_NAME", "my-custom-agent")
+        settings = GreenSettings()
         assert settings.agent_name == "my-custom-agent"
 
 

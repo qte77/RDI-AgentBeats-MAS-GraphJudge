@@ -255,7 +255,7 @@ class TestAgentBeatsOutputModel:
                 "results": [{"pass_rate": 66.67, "time_used": 55.67, "max_score": 3}],
             }
         )
-        assert output.participants.agent == "019b4d08-d84c-7a00-b2ec-4905ef7afc96"
+        assert str(output.participants.agent) == "019b4d08-d84c-7a00-b2ec-4905ef7afc96"
         assert output.results[0].pass_rate == 66.67
 
     def test_model_validate_dict(self):
@@ -309,7 +309,7 @@ class TestAgentBeatsOutputModel:
         )
         data = output.to_dict()
         assert isinstance(data, dict)
-        assert data["participants"]["agent"] == "019b4d08-d84c-7a00-b2ec-4905ef7afc96"
+        assert str(data["participants"]["agent"]) == "019b4d08-d84c-7a00-b2ec-4905ef7afc96"
 
 
 class TestFromGreenOutput:
@@ -334,7 +334,7 @@ class TestFromGreenOutput:
             time_used=350.0,
         )
 
-        assert output.participants.agent == "019b4d08-d84c-7a00-b2ec-4905ef7afc96"
+        assert str(output.participants.agent) == "019b4d08-d84c-7a00-b2ec-4905ef7afc96"
         assert output.results[0].pass_rate == 85.0
         assert output.results[0].score == 85.0
         assert output.results[0].task_rewards["overall_score"] == 0.85
@@ -351,7 +351,7 @@ class TestFromGreenOutput:
 
         output = AgentBeatsOutputModel.from_green_output(
             green_output=green_dict,
-            agent_id="test-agent",
+            agent_id="550e8400-e29b-41d4-a716-446655440000",
         )
 
         assert output.results[0].pass_rate == 85.0
@@ -408,10 +408,10 @@ class TestFromEvaluationResults:
 
         output = AgentBeatsOutputModel.from_evaluation_results(
             evaluation_results=evaluation_results,
-            agent_id="green-agent",
+            agent_id="019b4d08-d84c-7a00-b2ec-4905ef7afc96",
         )
 
-        assert output.participants.agent == "green-agent"
+        assert str(output.participants.agent) == "019b4d08-d84c-7a00-b2ec-4905ef7afc96"
         assert output.results[0].pass_rate == 85.0
         assert output.results[0].time_used == 350.0
         assert output.results[0].task_rewards["overall_score"] == 0.85

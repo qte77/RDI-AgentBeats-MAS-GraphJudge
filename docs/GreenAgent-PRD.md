@@ -511,6 +511,122 @@ agentbeats-client                    Green Agent                     Purple Agen
 - `docker-compose-local.yaml` *(exists)*
 - `tests/e2e/test_live_a2a_evaluation.py` *(new - validates Live A2A mode)*
 
+##### 6.5 Phase 1 E2E Execution Guide
+
+**How to Run Phase 1 E2E Locally:**
+
+```bash
+# Step 1: Build Docker images
+docker build -f Dockerfile.green -t green-agent:local .
+docker build -f Dockerfile.purple -t purple-agent:local .
+
+# Step 2: Create local scenario.toml (use 'image' for local testing)
+cat > scenario-local.toml << 'EOF'
+[green_agent]
+image = "green-agent:local"
+env = { LOG_LEVEL = "INFO" }
+
+[[participants]]
+name = "purple-agent"
+image = "purple-agent:local"
+env = {}
+
+[config]
+EOF
+
+# Step 3: Generate docker-compose.yml from scenario
+python scripts/leaderboard/generate_compose.py --scenario scenario-local.toml
+
+# Step 4: Create output directory
+mkdir -p output && chmod 777 output
+
+# Step 5: Run E2E evaluation
+docker compose up --exit-code-from agentbeats-client --abort-on-container-exit
+
+# Step 6: Verify results
+cat output/results.json | python -m json.tool
+
+# Step 7: Validate with SQL query (requires duckdb)
+duckdb -c "
+SELECT
+    json_extract_string(to_json(participants), '\$.' || list_extract(json_keys(to_json(participants)), 1)) AS participant_id,
+    ROUND(res.score, 1) AS Score,
+    res.detail.coordination_quality AS Quality
+FROM read_json('output/results.json')
+CROSS JOIN UNNEST(results) AS r(res);
+"
+```
+
+**How to Submit to agentbeats.dev:**
+
+```bash
+# PREREQUISITE: Agents must be registered on agentbeats.dev first
+
+# Step 1: Push images to GHCR
+export GH_USERNAME=your-github-username
+docker tag green-agent:local ghcr.io/${GH_USERNAME}/green-agent:latest
+docker tag purple-agent:local ghcr.io/${GH_USERNAME}/purple-agent:latest
+docker push ghcr.io/${GH_USERNAME}/green-agent:latest
+docker push ghcr.io/${GH_USERNAME}/purple-agent:latest
+
+# Step 2: Register agents on agentbeats.dev
+#   - Go to https://agentbeats.dev
+#   - Register Green Agent with image: ghcr.io/${GH_USERNAME}/green-agent:latest
+#   - Register Purple Agent with image: ghcr.io/${GH_USERNAME}/purple-agent:latest
+#   - Copy the assigned agentbeats_id for each agent
+
+# Step 3: Update scenario.toml with registered IDs
+cat > scenario.toml << 'EOF'
+[green_agent]
+agentbeats_id = "agent_YOUR_GREEN_ID"  # ← Replace with actual ID
+env = { LOG_LEVEL = "INFO" }
+
+[[participants]]
+name = "purple-agent"
+agentbeats_id = "agent_YOUR_PURPLE_ID"  # ← Replace with actual ID
+env = {}
+
+[config]
+EOF
+
+# Step 4: Commit and push
+git add scenario.toml
+git commit -m "chore: add agentbeats registration IDs"
+git push
+
+# Step 5: Trigger GitHub Actions workflow
+gh workflow run agentbeats-run-scenario.yml
+
+# Step 6: Check workflow status
+gh run list --workflow=agentbeats-run-scenario.yml
+
+# Step 7: After workflow completes, open PR link from workflow summary
+#   ⚠️ IMPORTANT: Uncheck "Allow edits and access to secrets by maintainers"
+```
+
+**Phase 1 E2E Checklist:**
+
+| Step | Command/Action | Validates |
+|------|----------------|-----------|
+| 1 | `docker build` | Images build successfully |
+| 2 | `docker compose up` | Green → Purple A2A works |
+| 3 | `cat output/results.json` | Results file created |
+| 4 | JSON has `participants` | Agent UUID captured |
+| 5 | JSON has `results[].score` | Evaluation score computed |
+| 6 | JSON has `graph_metrics` | NetworkX analysis ran |
+| 7 | JSON has `latency_metrics` | Latency captured |
+| 8 | DuckDB query succeeds | Schema matches leaderboard |
+
+**Troubleshooting:**
+
+| Issue | Cause | Solution |
+|-------|-------|----------|
+| `agentbeats-client` fails | Agents not healthy | Check `/health` endpoints |
+| Empty `results.json` | Green didn't write output | Check Green logs |
+| `graph_density: 0` | No traces captured | Verify Purple responded |
+| Workflow fails on `pull` | Images not public | Set GHCR package to public |
+| `agentbeats_id` not found | Not registered | Register at agentbeats.dev |
+
 ---
 
 #### Feature 7: Shared Infrastructure and Trace Collection

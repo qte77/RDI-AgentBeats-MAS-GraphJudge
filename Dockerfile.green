@@ -22,8 +22,12 @@ RUN uv venv /app/.venv
 ENV PATH="/app/.venv/bin:$PATH"
 RUN uv sync --frozen --no-dev --no-install-project
 
-# Copy source code
-COPY src/ ./src/
+# Copy only necessary source directories
+# - green: Green agent code
+# - common: Shared infrastructure (add when src/common/ exists)
+COPY src/green/ ./src/green/
+# TODO: Uncomment when src/common/ is created (STORY-018)
+# COPY src/common/ ./src/common/
 
 # Install the project
 RUN uv sync --frozen --no-dev
@@ -43,8 +47,10 @@ RUN groupadd --gid 1000 appgroup && \
 COPY --from=builder /app/.venv /app/.venv
 ENV PATH="/app/.venv/bin:$PATH"
 
-# Copy source code
-COPY --from=builder /app/src /app/src
+# Copy only necessary source directories
+COPY --from=builder /app/src/green /app/src/green
+# TODO: Uncomment when src/common/ is created (STORY-018)
+# COPY --from=builder /app/src/common /app/src/common
 
 # Switch to non-root user
 USER appuser
@@ -58,4 +64,4 @@ ENV PORT="9009"
 
 # ENTRYPOINT runs uvicorn with the green agent server
 # Uses $PORT and $HOST environment variables
-ENTRYPOINT sh -c "python -m uvicorn bulletproof_green.server:create_app --factory --host $HOST --port $PORT"
+ENTRYPOINT sh -c "python -m uvicorn green.server:create_app --factory --host $HOST --port $PORT"

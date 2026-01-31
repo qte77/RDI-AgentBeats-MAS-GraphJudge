@@ -24,6 +24,10 @@
 
 1. **[arch_vis/](arch_vis/)** - Component and sequence diagrams (PlantUML)
 
+### Research & Design
+
+1. **[AgentBeats/MULTI_AGENT_TRACING.md](AgentBeats/MULTI_AGENT_TRACING.md)** - Common module, tracing, plugin architecture (Feature 7)
+
 ### Reference
 
 1. **[RESOURCES.md](RESOURCES.md)** - External links, tool docs
@@ -41,9 +45,13 @@ docs/
 ├── QUICKSTART.md (developer setup)
 ├── RESOURCES.md (external links)
 ├── AgentBeats/
-│   └── AGENTBEATS_REGISTRATION.md
+│   ├── AGENTBEATS_REGISTRATION.md
+│   └── MULTI_AGENT_TRACING.md (Feature 7 design)
 └── arch_vis/
-    └── *.puml (diagrams)
+    ├── AgenticBenchArch.puml (high-level architecture)
+    ├── ComponentDiagram.puml (component relationships)
+    ├── EvaluationFlow.puml (sequence diagram)
+    └── TracingArchitecture.puml (tracing infrastructure)
 ```
 
 ---
@@ -73,6 +81,7 @@ Read: AgentBeats/AGENTBEATS_REGISTRATION.md
 | Get started? | QUICKSTART.md |
 | Architecture? | arch_vis/*.puml |
 | Deploy? | AGENTBEATS_REGISTRATION.md |
+| Tracing/plugins? | MULTI_AGENT_TRACING.md |
 
 ---
 
@@ -142,12 +151,12 @@ Read: AgentBeats/AGENTBEATS_REGISTRATION.md
   - [ ] Create clear documentation hierarchy
   - [ ] Update cross-references between docs
 
-- [ ] **Update architecture visualizations**
-  - [ ] Refresh PlantUML diagrams in `arch_vis/`
-  - [ ] Add sequence diagrams for evaluation pipeline
-  - [ ] Document component interactions
-  - [ ] Add data flow diagrams
-  - [ ] Ensure diagrams match current implementation
+- [x] **Update architecture visualizations**
+  - [x] Refresh PlantUML diagrams in `arch_vis/`
+  - [x] Add sequence diagrams for evaluation pipeline
+  - [x] Document component interactions
+  - [x] Add data flow diagrams (TracingArchitecture.puml)
+  - [x] Ensure diagrams match current implementation
 
 - [ ] **Local development workflow documentation**
   - [ ] Document how to trigger evaluation locally (not just server startup)
@@ -162,11 +171,11 @@ Read: AgentBeats/AGENTBEATS_REGISTRATION.md
   - [ ] Reference: <https://docs.agentbeats.org/> and <https://docs.agentbeats.org/Blogs/blog-2/>
   - [ ] Articulate unique value proposition for A2A ecosystem
 
-- [ ] **Document trace-based evaluation approach**
-  - [ ] Explain why traces are used (observability, graph construction)
-  - [ ] Document InteractionStep schema and parent-child relationships
-  - [ ] Show how traces map to coordination graphs
-  - [ ] Contrast with traditional metrics-only evaluation
+- [x] **Document trace-based evaluation approach**
+  - [x] Explain why traces are used (observability, graph construction) - see A2A_TRACING_RESEARCH.md
+  - [x] Document InteractionStep schema and parent-child relationships - see ARCHITECTURE_RESEARCH.md
+  - [x] Show how traces map to coordination graphs - see PLUGIN_RESEARCH.md
+  - [x] Contrast with traditional metrics-only evaluation - see research docs
 
 ---
 

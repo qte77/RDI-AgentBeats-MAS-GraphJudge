@@ -22,7 +22,13 @@
 
 ### Architecture
 
-1. **[arch_vis/](arch_vis/)** - Component and sequence diagrams (PlantUML)
+| Diagram | Focus |
+|---------|-------|
+| [ComponentDiagram.puml](arch_vis/ComponentDiagram.puml) | How is it composed? |
+| [AgenticBenchArch.puml](arch_vis/AgenticBenchArch.puml) | How does evaluation work? |
+| [TracingArchitecture.puml](arch_vis/TracingArchitecture.puml) | When do API calls happen? |
+
+See [arch_vis/](arch_vis/) for PlantUML source files.
 
 ### Research & Design
 
@@ -48,10 +54,9 @@ docs/
 │   ├── AGENTBEATS_REGISTRATION.md
 │   └── MULTI_AGENT_TRACING.md (Feature 7 design)
 └── arch_vis/
-    ├── AgenticBenchArch.puml (high-level architecture)
-    ├── ComponentDiagram.puml (component relationships)
-    ├── EvaluationFlow.puml (sequence diagram)
-    └── TracingArchitecture.puml (tracing infrastructure)
+    ├── ComponentDiagram.puml (how is it composed?)
+    ├── AgenticBenchArch.puml (how does evaluation work?)
+    └── TracingArchitecture.puml (when do API calls happen?)
 ```
 
 ---

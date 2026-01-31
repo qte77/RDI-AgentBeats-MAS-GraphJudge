@@ -10,7 +10,8 @@ import argparse
 from datetime import datetime, timedelta
 from typing import Any
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
 
 from green.executor import Executor
 from green.messenger import Messenger
@@ -23,6 +24,25 @@ from green.models import (
     get_agent_extensions,
 )
 from green.settings import GreenSettings
+from green.trace_store import TraceStore
+
+
+class TracePayload(BaseModel):
+    """Payload for POST /traces endpoint."""
+
+    traces: list[dict[str, Any]]
+
+
+class RegisterPayload(BaseModel):
+    """Payload for POST /register endpoint."""
+
+    agent_url: str
+
+
+class PeersResponse(BaseModel):
+    """Response for GET /peers endpoint."""
+
+    peers: list[str]
 
 
 def _build_traces_from_pattern(pattern: dict[str, Any]) -> list[InteractionStep]:
@@ -184,6 +204,10 @@ def create_app(settings: GreenSettings | None = None) -> FastAPI:
 
     app = FastAPI(title="Green Agent A2A Server")
 
+    # Initialize trace store if not already set
+    if not hasattr(app.state, "trace_store"):
+        app.state.trace_store = TraceStore()
+
     @app.get("/.well-known/agent-card.json")
     async def get_agent_card() -> dict[str, Any]:  # pyright: ignore[reportUnusedFunction]
         """Return AgentCard per A2A protocol specification.
@@ -259,6 +283,65 @@ def create_app(settings: GreenSettings | None = None) -> FastAPI:
                 id=request.id,
                 error={"code": -32000, "message": f"Server error: {e!s}"},
             )
+
+    @app.post("/traces")
+    async def receive_traces(payload: TracePayload) -> dict[str, str]:  # pyright: ignore[reportUnusedFunction]
+        """Receive traces from Purple agents.
+
+        Fire-and-forget endpoint for async trace collection.
+
+        Args:
+            payload: TracePayload with traces list
+
+        Returns:
+            Success status
+        """
+        # Parse traces from JSON payload
+        traces: list[InteractionStep] = []
+        for trace_data in payload.traces:
+            trace = InteractionStep(
+                step_id=trace_data["step_id"],
+                trace_id=trace_data["trace_id"],
+                call_type=CallType(trace_data["call_type"]),
+                start_time=datetime.fromisoformat(trace_data["start_time"]),
+                end_time=datetime.fromisoformat(trace_data["end_time"]),
+                latency=trace_data["latency"],
+                error=trace_data.get("error"),
+                parent_step_id=trace_data.get("parent_step_id"),
+            )
+            traces.append(trace)
+
+        # Store traces
+        app.state.trace_store.add_traces(traces)
+
+        return {"status": "ok"}
+
+    @app.post("/register")
+    async def register_agent(payload: RegisterPayload) -> dict[str, str]:  # pyright: ignore[reportUnusedFunction]
+        """Register agent in Green's registry.
+
+        Args:
+            payload: RegisterPayload with agent_url
+
+        Returns:
+            Success status
+        """
+        if not payload.agent_url:
+            raise HTTPException(status_code=400, detail="agent_url is required")
+
+        app.state.trace_store.register_agent(payload.agent_url)
+
+        return {"status": "ok"}
+
+    @app.get("/peers")
+    async def get_peers() -> PeersResponse:  # pyright: ignore[reportUnusedFunction]
+        """Get list of registered agent URLs.
+
+        Returns:
+            PeersResponse with list of registered agent URLs
+        """
+        peers = app.state.trace_store.get_registered_agents()
+        return PeersResponse(peers=peers)
 
     return app
 

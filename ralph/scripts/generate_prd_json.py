@@ -1,9 +1,15 @@
 #!/usr/bin/env python3
 """
-Generate ralph/docs/prd.json from docs/PRD.md
+Generate ralph/docs/prd.json from docs/PRD.md or docs/GreenAgent-PRD.md
 
 Generalized parser that extracts features and story breakdown mapping from PRD.md.
 Supports incremental updates with content hashing.
+
+CRITICAL SAFETY RULES:
+1. NEVER modify stories marked as passed (passes: true)
+2. Only append new stories that don't already exist
+3. Only update incomplete stories (passes: false) if fields are missing
+4. Preserve all existing story metadata (completed_at, content_hash, etc.)
 """
 
 import hashlib
@@ -579,15 +585,27 @@ def enhance_stories_with_manual_details(stories: list[Story]) -> list[Story]:
 
 
 def main():
+    import sys
+
     # Paths (relative to project root)
     project_root = Path(__file__).parent.parent.parent
-    prd_path = project_root / "docs" / "PRD.md"
+
+    # Check for command-line argument or use default
+    if len(sys.argv) > 1:
+        prd_filename = sys.argv[1]
+        prd_path = project_root / prd_filename
+    else:
+        # Try GreenAgent-PRD.md first, then PRD.md
+        prd_path = project_root / "docs" / "GreenAgent-PRD.md"
+        if not prd_path.exists():
+            prd_path = project_root / "docs" / "PRD.md"
+
     existing_prd_json_path = project_root / "ralph" / "docs" / "prd.json"
     output_path = project_root / "ralph" / "docs" / "prd.json"
 
     # Check PRD.md exists
     if not prd_path.exists():
-        print(f"ERROR: PRD.md not found at {prd_path}")
+        print(f"ERROR: PRD file not found at {prd_path}")
         return 1
 
     # Read PRD.md
@@ -626,13 +644,33 @@ def main():
     existing_story_ids = {s["id"] for s in existing_stories}
 
     # Add content_hash and depends_on to existing stories if missing
+    # CRITICAL: Never modify stories marked as passed (passes: true)
+    passed_count = 0
+    updated_count = 0
     for story in existing_stories:
+        # Skip passed stories - they are immutable
+        if story.get("passes", False):
+            passed_count += 1
+            continue
+
+        # Only modify incomplete stories
+        modified = False
         if "content_hash" not in story:
             story["content_hash"] = compute_hash(
                 story["title"], story["description"], story["acceptance"]
             )
+            modified = True
         if "depends_on" not in story:
             story["depends_on"] = []
+            modified = True
+
+        if modified:
+            updated_count += 1
+
+    if passed_count > 0:
+        print(f"Protected {passed_count} passed stories from modification")
+    if updated_count > 0:
+        print(f"Updated {updated_count} incomplete stories with missing fields")
 
     # Filter out new stories that already exist (avoid duplicates)
     new_stories = [s for s in phase2_stories if s["id"] not in existing_story_ids]
@@ -646,21 +684,28 @@ def main():
     all_stories.sort(key=lambda s: int(s["id"].split("-")[1]))
 
     # Create final prd.json structure
-    prd_data = {
-        "project": "RDI-AgentBeats-TheBulletproofProtocol",
-        "description": (
+    # Auto-detect project and description from PRD file
+    prd_filename = prd_path.name
+    if "GreenAgent" in prd_filename:
+        project_name = "RDI-AgentBeats-GraphJudge"
+        description = (
+            "Graph-Based Coordination Benchmark - Green Agent (Assessor) for evaluating "
+            "multi-agent coordination quality through runtime graph analysis, LLM assessment, "
+            "and latency metrics."
+        )
+    else:
+        project_name = "RDI-AgentBeats-TheBulletproofProtocol"
+        description = (
             "Legal Domain Agent Benchmark for AgentBeats competition - "
             "IRS Section 41 R&D tax credit evaluator. "
             "Purple agent (reference implementation) generates test narratives, "
             "Green agent (benchmark) evaluates them for IRS compliance."
-        ),
-        "scope": (
-            "Phase 1 complete (STORY-001 to STORY-021): Core agents, A2A protocol, "
-            "ground truth dataset, Docker deployment, AgentBeats registration. "
-            "Phase 2 in progress (STORY-022 to STORY-043): Output alignment (P0), "
-            "Arena mode, Hybrid evaluation, Benchmark rigor."
-        ),
-        "source": "docs/PRD.md",
+        )
+
+    prd_data = {
+        "project": project_name,
+        "description": description,
+        "source": prd_filename,
         "generated": datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S"),
         "stories": all_stories,
     }

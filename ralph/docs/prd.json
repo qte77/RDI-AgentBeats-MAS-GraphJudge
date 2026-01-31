@@ -1,8 +1,8 @@
 {
   "project": "RDI-AgentBeats-GraphJudge",
   "description": "Graph-Based Coordination Benchmark - Green Agent (Assessor) for evaluating multi-agent coordination quality through runtime graph analysis, LLM assessment, and latency metrics.",
-  "source": "docs/GreenAgent-PRD.md",
-  "generated": "2026-01-31T12:00:00Z",
+  "source": "GreenAgent-PRD.md",
+  "generated": "2026-01-31 02:32:03",
   "stories": [
     {
       "id": "STORY-001",

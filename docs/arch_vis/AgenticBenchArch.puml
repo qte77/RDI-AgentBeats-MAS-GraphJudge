@@ -4,27 +4,57 @@ title RDI-AgentX-AgentBeats Competition Architecture
 skinparam component {
     BackgroundColor<<Agent>> #E8D5F2
     BackgroundColor<<Primary>> #C8E6C9
-    BackgroundColor<<Secondary>> #FFECB3
     BackgroundColor<<Plugin>> #B3E5FC
+    BackgroundColor<<Common>> #FFE0B2
+    BackgroundColor<<Role>> #FFCDD2
 }
 
 skinparam packageStyle rectangle
 skinparam linetype ortho
 
-package "PURPLE AGENT" as PurpleAgent #E8D5F2 {
+package "COMMON MODULE" as Common #FFE0B2 {
+  component "Models" as Models <<Common>>
+  component "Messenger" as CommonMsg <<Common>>
+  component "TraceReporter" as TraceReporter <<Common>>
+  component "PeerDiscovery" as PeerDiscovery <<Common>>
+}
+
+package "PURPLE AGENTS" as PurpleAgents #E8D5F2 {
+  component "Coordinator\n(hub)" as Coordinator <<Role>>
+  component "Researcher-1" as R1 <<Role>>
+  component "Researcher-2" as R2 <<Role>>
+
+  ' Hub-spoke pattern
+  Coordinator <--> R1 : delegate/respond
+  Coordinator <--> R2 : delegate/respond
 }
 
 package "GREEN AGENT" as GreenAgent #C8E6C9 {
-  component "Graph\n(PRIMARY)" as Graph <<Primary>>
-  component "LLM-as-Judge\n(PLUGIN)" as LLMJudge <<Plugin>>
-  component "Latency\n(PLUGIN)" as Latency <<Plugin>>
-  component "Text\n(PLUGIN)" as TextPlugin <<Plugin>>
+  component "TraceStore" as TraceStore <<Primary>>
+  component "Graph\n(Tier 1)" as Graph <<Primary>>
+  component "LLM-Judge\n(Tier 2)" as LLMJudge <<Plugin>>
+  component "Latency\n(Tier 2)" as Latency <<Plugin>>
 
+  TraceStore -[hidden]right- Graph
   Graph -[hidden]right- LLMJudge
   LLMJudge -[hidden]right- Latency
-  Latency -[hidden]right- TextPlugin
 }
 
-PurpleAgent -right-> GreenAgent
+' Common module usage
+Common -down-> PurpleAgents : uses
+Common -down-> GreenAgent : uses
+
+' Trace reporting
+PurpleAgents -right-> GreenAgent : async traces\n(/traces)
+
+' Peer discovery
+Coordinator ..> GreenAgent : GET /peers
+
+note bottom of PurpleAgents
+  Coordination Patterns:
+  - Hub-Spoke (shown)
+  - Chain: P1→P2→P3
+  - Mesh: All↔All
+end note
 
 @enduml

@@ -1,0 +1,71 @@
+@startuml TracingArchitecture
+title Multi-Agent Tracing (Role-Based Coordination)
+
+skinparam component {
+    BackgroundColor<<Green>> #C8E6C9
+    BackgroundColor<<Purple>> #E8D5F2
+    BackgroundColor<<Common>> #FFE0B2
+    BackgroundColor<<Store>> #B3E5FC
+    BackgroundColor<<Role>> #FFCDD2
+}
+
+' ===== GREEN AGENT =====
+package "Green Agent" <<Green>> #C8E6C9 {
+    component [TraceStore] as TraceStore <<Store>>
+    component [Agent Registry] as Registry <<Store>>
+
+    portin "POST /traces" as TracesIn
+    portin "POST /register" as RegisterIn
+    portout "GET /peers" as PeersOut
+
+    TracesIn --> TraceStore
+    RegisterIn --> Registry
+    Registry --> PeersOut
+}
+
+' ===== COMMON =====
+package "Common" <<Common>> #FFE0B2 {
+    component [TraceReporter] as Reporter
+    component [PeerDiscovery] as Discovery
+}
+
+' ===== PURPLE AGENTS =====
+package "Coordinator" <<Role>> #FFCDD2 {
+    component [Executor] as CoordExec
+}
+
+package "Researcher-1" <<Role>> #FFCDD2 {
+    component [Executor] as R1Exec
+}
+
+package "Researcher-2" <<Role>> #FFCDD2 {
+    component [Executor] as R2Exec
+}
+
+' ===== TRACE FLOW =====
+
+' Coordinator discovers peers
+CoordExec --> Discovery
+Discovery --> PeersOut : cached lookup
+
+' Hub-spoke coordination
+CoordExec --> R1Exec : A2A delegate
+CoordExec --> R2Exec : A2A delegate
+R1Exec --> CoordExec : response
+R2Exec --> CoordExec : response
+
+' Trace reporting (all agents)
+CoordExec --> Reporter
+R1Exec --> Reporter
+R2Exec --> Reporter
+Reporter --> TracesIn : fire-and-forget
+
+' ===== GRAPH RESULT =====
+note bottom of TraceStore
+  Graph Analysis Result:
+  - Coordinator: high betweenness
+  - Researchers: low centrality
+  - Pattern: hub-spoke detected
+end note
+
+@enduml

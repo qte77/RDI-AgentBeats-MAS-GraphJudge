@@ -1,63 +1,73 @@
 @startuml EvaluationFlow
-title GraphJudge Evaluation Flow
+title GraphJudge Evaluation Flow (Collaborative Research Task)
 
 skinparam participant {
     BackgroundColor<<Purple>> #E8D5F2
     BackgroundColor<<Green>> #C8E6C9
     BackgroundColor<<Eval>> #B3E5FC
+    BackgroundColor<<Role>> #FFCDD2
 }
 
-actor "Benchmark\nCreator" as User
+actor "User" as User
 participant "Green Agent" as Green <<Green>>
-participant "Messenger" as Msg <<Green>>
-participant "Purple Agent" as Purple <<Purple>>
-participant "Graph\n(PRIMARY)" as Graph <<Eval>>
-participant "LLM Judge\n(PLUGIN)" as LLM <<Eval>>
-participant "Latency\n(PLUGIN)" as Latency <<Eval>>
-participant "Text\n(PLUGIN)" as Text <<Eval>>
+participant "TraceStore" as Store <<Green>>
+participant "Coordinator" as Coord <<Role>>
+participant "Researcher-1" as R1 <<Role>>
+participant "Researcher-2" as R2 <<Role>>
+participant "Graph\n(Tier 1)" as Graph <<Eval>>
+participant "LLM Judge\n(Tier 2)" as LLM <<Eval>>
+participant "Latency\n(Tier 2)" as Latency <<Eval>>
 
 == Task Submission ==
-User -> Green: Submit task
+User -> Green: "Research topic X"
 activate Green
+Green -> Coord: delegate task
+activate Coord
 
-== Trace Capture ==
-Green -> Msg: Orchestrate agents
-activate Msg
+== Hub-Spoke Coordination ==
+Coord -> R1: subtask: "Find sources"
+activate R1
+Coord -> R2: subtask: "Analyze trends"
+activate R2
 
-loop For each Purple Agent
-    Msg -> Purple: Send task
-    activate Purple
-    Purple --> Msg: Execute and respond
-    deactivate Purple
-    Msg -> Msg: Capture interactions
-end
+R1 --> Coord: sources found
+R1 ->> Store: POST /traces
+deactivate R1
 
-Msg --> Green: Return traces
-deactivate Msg
+R2 --> Coord: trends analyzed
+R2 ->> Store: POST /traces
+deactivate R2
 
-== Evaluation ==
-Green -> Graph: Evaluate coordination
+Coord -> Coord: synthesize results
+Coord ->> Store: POST /traces
+Coord --> Green: research summary
+deactivate Coord
+
+== Trace Aggregation ==
+Green -> Store: get all traces
+Store --> Green: InteractionStep[]
+
+== Tiered Evaluation ==
+Green -> Graph: evaluate(traces)
 activate Graph
-Graph --> Green: Graph metrics
+note right: Detects hub-spoke pattern\nCoordinator = high centrality
+Graph --> Green: GraphMetrics
 deactivate Graph
 
-Green -> LLM: Evaluate quality
+Green -> LLM: evaluate(summary, context)
 activate LLM
-LLM --> Green: Judgment
+note right: Assesses research quality\nCoordination effectiveness
+LLM --> Green: LLMJudgment
 deactivate LLM
 
-Green -> Latency: Evaluate performance
+Green -> Latency: evaluate(traces)
 activate Latency
-Latency --> Green: Latency metrics
+note right: Measures response times\nIdentifies bottlenecks
+Latency --> Green: LatencyMetrics
 deactivate Latency
 
-Green -> Text: Evaluate text
-activate Text
-Text --> Green: Text metrics
-deactivate Text
-
 == Response ==
-Green --> User: Return evaluation results
+Green --> User: {graph, llm_judgment, latency}
 deactivate Green
 
 @enduml

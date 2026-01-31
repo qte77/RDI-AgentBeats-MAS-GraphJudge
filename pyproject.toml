@@ -1,7 +1,7 @@
 [project]
 name = "MAS-GraphJudge"
 version = "0.0.0"
-description = "MAS-GraphJudge"
+description = "A graph-based coordination benchmark where a 'Green Agent Judge' dissects multi-agent interactions into network graphs and evaluates collaboration quality through structural analysis and LLM assessment."
 authors = [
     {name = "qte77", email = "qte@77.gh"}
 ]
@@ -156,6 +156,11 @@ replace = 'version = "{new_version}"'
 
 [[tool.bumpversion.files]]
 filename = "src/green/__init__.py"
+search = '__version__ = "{current_version}"'
+replace = '__version__ = "{new_version}"'
+
+[[tool.bumpversion.files]]
+filename = "src/purple/__init__.py"
 search = '__version__ = "{current_version}"'
 replace = '__version__ = "{new_version}"'
 

@@ -1,60 +1,36 @@
 @startuml RDI-AgentX-Architecture
-title RDI-AgentX-AgentBeats Competition Architecture
+title AgentBeats Competition - Benchmark Flow\n//<color:gray>(How does evaluation work?)</color>//
 
 skinparam component {
-    BackgroundColor<<Agent>> #E8D5F2
-    BackgroundColor<<Primary>> #C8E6C9
-    BackgroundColor<<Plugin>> #B3E5FC
-    BackgroundColor<<Common>> #FFE0B2
-    BackgroundColor<<Role>> #FFCDD2
+    BackgroundColor<<Assessee>> #E8D5F2
+    BackgroundColor<<Assessor>> #C8E6C9
 }
 
 skinparam packageStyle rectangle
-skinparam linetype ortho
 
-package "COMMON MODULE" as Common #FFE0B2 {
-  component "Models" as Models <<Common>>
-  component "Messenger" as CommonMsg <<Common>>
-  component "TraceReporter" as TraceReporter <<Common>>
-  component "PeerDiscovery" as PeerDiscovery <<Common>>
-}
+' High-level actors
+component "Purple Agents\n(Under Test)" as Purple <<Assessee>>
+component "Green Agent\n(Assessor)" as Green <<Assessor>>
 
-package "PURPLE AGENTS" as PurpleAgents #E8D5F2 {
-  component "Coordinator\n(hub)" as Coordinator <<Role>>
-  component "Researcher-1" as R1 <<Role>>
-  component "Researcher-2" as R2 <<Role>>
+' Main benchmark flow
+Purple -right-> Green : 1. traces
+Green -down-> Green : 2. evaluate
+Green -up-> Purple : 4. scores
 
-  ' Hub-spoke pattern
-  Coordinator <--> R1 : delegate/respond
-  Coordinator <--> R2 : delegate/respond
-}
+note bottom of Purple
+  **Coordination Patterns**
+  ──────────────────
+  Hub-Spoke: C ↔ R1, R2
+  Chain: P1 → P2 → P3
+  Mesh: All ↔ All
+end note
 
-package "GREEN AGENT" as GreenAgent #C8E6C9 {
-  component "TraceStore" as TraceStore <<Primary>>
-  component "Graph\n(Tier 1)" as Graph <<Primary>>
-  component "LLM-Judge\n(Tier 2)" as LLMJudge <<Plugin>>
-  component "Latency\n(Tier 2)" as Latency <<Plugin>>
-
-  TraceStore -[hidden]right- Graph
-  Graph -[hidden]right- LLMJudge
-  LLMJudge -[hidden]right- Latency
-}
-
-' Common module usage
-Common -down-> PurpleAgents : uses
-Common -down-> GreenAgent : uses
-
-' Trace reporting
-PurpleAgents -right-> GreenAgent : async traces\n(/traces)
-
-' Peer discovery
-Coordinator ..> GreenAgent : GET /peers
-
-note bottom of PurpleAgents
-  Coordination Patterns:
-  - Hub-Spoke (shown)
-  - Chain: P1→P2→P3
-  - Mesh: All↔All
+note bottom of Green
+  **Evaluation Tiers (Plugins)**
+  ──────────────────
+  Tier 1: Graph metrics
+  Tier 2: LLM + Latency
+  Tier 3: Conventional Metrics
 end note
 
 @enduml

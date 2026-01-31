@@ -1,5 +1,5 @@
 @startuml ComponentDiagram
-title GraphJudge Component Architecture (Role-Based Coordination)
+title GraphJudge Component Architecture\n//<color:gray>(How is it composed?)</color>//
 
 skinparam component {
     BackgroundColor<<Agent>> #E8D5F2
@@ -14,15 +14,19 @@ skinparam package {
     BackgroundColor #FAFAFA
 }
 
+' Top: Shared infrastructure
 package "Common Module" <<Common>> #FFE0B2 {
     component [Models] as Models
     component [Messenger] as CommonMessenger
     component [TraceReporter] as TraceReporter
-    component [PeerDiscovery] as PeerDiscovery
     component [LLMClient] as LLMFactory
 }
 
-package "Purple Agents (Role-Based)" <<Agent>> #E8D5F2 {
+component [LLM API] as LLMApi <<External>> #FFECB3
+
+' Middle: Agent packages side by side
+package "Purple Agents (Assessee, Example Config)" <<Agent>> #E8D5F2 {
+    component [Executor] as PurpleExec
 
     package "Roles" <<Role>> #FFCDD2 {
         component [Coordinator] as CoordRole
@@ -30,58 +34,37 @@ package "Purple Agents (Role-Based)" <<Agent>> #E8D5F2 {
         component [Synthesizer] as SynthRole
     }
 
-    component [Executor\n(role dispatch)] as PurpleExec
-    component [Settings\n(role, peers)] as PurpleSettings
-
-    PurpleExec --> CoordRole
-    PurpleExec --> ResearchRole
-    PurpleExec --> SynthRole
-    PurpleSettings --> PurpleExec
+    PurpleExec -down-> CoordRole
+    PurpleExec -down-> ResearchRole
+    PurpleExec -down-> SynthRole
+    CoordRole <--> ResearchRole : delegate
 }
 
 package "Green Agent (Assessor)" <<Core>> #C8E6C9 {
-
-    package "Trace Collection" {
-        component [TraceStore] as TraceStore
-        component [/traces] as TracesEndpoint
-        component [/peers] as PeersEndpoint
-    }
-
-    package "Evaluation (Tiered)" <<Eval>> #B3E5FC {
-        component [Graph\n(Tier 1)] as GraphEval
-        component [LLM Judge\n(Tier 2)] as LLMEval
-        component [Latency\n(Tier 2)] as LatencyEval
-    }
-
+    component [TraceStore] as TraceStore
     component [Executor] as GreenExec
+
+    package "Evaluators" <<Eval>> #B3E5FC {
+        component [Graph] as GraphEval
+        component [LLM Judge] as LLMEval
+        component [Latency] as LatencyEval
+    }
+
+    TraceStore -down-> GreenExec
+    GreenExec -down-> GraphEval
+    GreenExec -down-> LLMEval
+    GreenExec -down-> LatencyEval
 }
 
-package "External" <<External>> #FFECB3 {
-    component [LLM API] as LLMApi
-}
+' Cross-package flows
+PurpleExec -right-> TraceStore : traces
+LLMFactory -right-> LLMApi
 
-' Common usage
-Models --> PurpleExec
-CommonMessenger --> CoordRole : A2A calls
-TraceReporter --> PurpleExec : report traces
-PeerDiscovery --> CoordRole : discover peers
-
-' Role interactions (hub-spoke)
-CoordRole --> ResearchRole : delegate
-ResearchRole --> CoordRole : respond
-
-' Trace flow
-PurpleExec --> TracesEndpoint : POST /traces
-TracesEndpoint --> TraceStore
-
-' Peer discovery
-CoordRole --> PeersEndpoint : GET /peers
-
-' Evaluation
-TraceStore --> GreenExec
-GreenExec --> GraphEval
-GreenExec --> LLMEval
-GreenExec --> LatencyEval
-LLMEval --> LLMApi
+note bottom of LLMFactory
+  Used by:
+  • Purple (roles)
+  • Green (orchestration)
+  • LLM Judge (eval)
+end note
 
 @enduml

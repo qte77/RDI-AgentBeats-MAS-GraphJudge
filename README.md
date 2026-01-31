@@ -31,10 +31,6 @@ through NetworkX metrics and LLM-as-judge evaluation.
 | 2    | LLM-Judge | Coordination quality assessment               |
 | 3    | Text      | Similarity metrics (plugin for PeerRead)      |
 
-## Architecture
-
-![Agentic Graph Benchmark Architecture](assets/AgenticBenchArch.png)
-
 ## Submission
 
 ### Competition Tracks

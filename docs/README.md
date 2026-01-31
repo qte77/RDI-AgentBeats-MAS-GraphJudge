@@ -11,10 +11,12 @@
 1. **[AgentBeats/ABSTRACT.md](AgentBeats/ABSTRACT.md)** - TL;DR: USP and value proposition
 
 #### Green Agent (Assessor)
+
 2. **[GreenAgent-UserStory.md](GreenAgent-UserStory.md)** - Product vision, problem statement, scope
 3. **[GreenAgent-PRD.md](GreenAgent-PRD.md)** - Technical requirements and story breakdown
 
 #### Purple Agent (Baseline Participant)
+
 4. **[PurpleAgent-UserStory.md](PurpleAgent-UserStory.md)** - Vision for baseline test fixture
 5. **[PurpleAgent-PRD.md](PurpleAgent-PRD.md)** - Technical requirements for baseline agent
 
@@ -31,11 +33,17 @@
 
 ### Architecture
 
-| Diagram | Focus |
-|---------|-------|
-| [ComponentDiagram.puml](arch_vis/ComponentDiagram.puml) | How is it composed? |
-| [AgenticBenchArch.puml](arch_vis/AgenticBenchArch.puml) | How does evaluation work? |
-| [TracingArchitecture.puml](arch_vis/TracingArchitecture.puml) | When do API calls happen? |
+#### Agentic Bench Architecture (How does evaluation work?)
+
+![Agentic Bench Architecture](../assets/AgenticBenchArch.png)
+
+#### Component Diagram (How is it composed?)
+
+![Component Diagram](../assets/ComponentDiagram.png)
+
+#### Tracing Architecture (When do API calls happen?)
+
+![Tracing Architecture](../assets/TracingArchitecture.png)
 
 See [arch_vis/](arch_vis/) for PlantUML source files.
 

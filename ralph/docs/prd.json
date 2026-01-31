@@ -373,8 +373,8 @@
         "src/green/models.py",
         "tests/test_common_models.py"
       ],
-      "passes": false,
-      "completed_at": null,
+      "passes": true,
+      "completed_at": "2026-01-31T20:31:53Z",
       "content_hash": "f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9",
       "depends_on": [
         "STORY-003"

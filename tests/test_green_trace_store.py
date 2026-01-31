@@ -231,7 +231,9 @@ class TestTraceStoreThreadSafety:
             store.register_agent(agent_url)
 
         async def run_concurrent_registrations():
-            await asyncio.gather(*[register_agent_async(f"http://agent{i}:8000") for i in range(10)])
+            await asyncio.gather(
+                *[register_agent_async(f"http://agent{i}:8000") for i in range(10)]
+            )
 
         # Run multiple concurrent registrations
         asyncio.run(run_concurrent_registrations())

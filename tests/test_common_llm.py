@@ -16,6 +16,24 @@ from common.llm_client import create_llm_client
 from common.settings import LLMSettings
 
 
+# Disable proxy for tests to avoid environment issues
+@pytest.fixture(autouse=True)
+def disable_proxy():
+    """Disable proxy environment variables for tests."""
+    with patch.dict(
+        os.environ,
+        {
+            "HTTP_PROXY": "",
+            "HTTPS_PROXY": "",
+            "ALL_PROXY": "",
+            "http_proxy": "",
+            "https_proxy": "",
+            "all_proxy": "",
+        },
+    ):
+        yield
+
+
 class TestLLMSettings:
     """Test suite for LLMSettings class."""
 
@@ -74,7 +92,8 @@ class TestCreateLLMClient:
 
     def test_creates_async_openai_client(self):
         """create_llm_client() should return AsyncOpenAI instance."""
-        client = create_llm_client()
+        settings = LLMSettings(api_key="test-key")
+        client = create_llm_client(settings)
         assert isinstance(client, AsyncOpenAI)
 
     def test_uses_settings_api_key(self):
@@ -85,9 +104,9 @@ class TestCreateLLMClient:
 
     def test_uses_settings_base_url(self):
         """create_llm_client() should use base URL from settings."""
-        settings = LLMSettings(base_url="https://factory.test.com")
+        settings = LLMSettings(api_key="test-key", base_url="https://factory.test.com")
         client = create_llm_client(settings)
-        assert client.base_url == "https://factory.test.com/"
+        assert str(client.base_url) == "https://factory.test.com"
 
     def test_uses_default_settings_if_none_provided(self):
         """create_llm_client() should create default settings if none provided."""
@@ -95,12 +114,14 @@ class TestCreateLLMClient:
             client = create_llm_client()
             assert client.api_key == "default-key"
 
-    def test_accepts_none_api_key(self):
-        """create_llm_client() should accept None as API key for compatibility."""
+    def test_requires_api_key(self):
+        """create_llm_client() should require API key (from settings or env)."""
+        from openai import OpenAIError
+
         settings = LLMSettings(api_key=None)
-        client = create_llm_client(settings)
-        # AsyncOpenAI accepts None for api_key (useful for testing)
-        assert isinstance(client, AsyncOpenAI)
+        with patch.dict(os.environ, {}, clear=True):
+            with pytest.raises(OpenAIError):
+                create_llm_client(settings)
 
 
 class TestGreenAgentBackwardCompatibility:

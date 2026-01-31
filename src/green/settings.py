@@ -11,23 +11,8 @@ from uuid import UUID, uuid4
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-
-class LLMSettings(BaseSettings):
-    """LLM client configuration.
-
-    Environment variables:
-        AGENTBEATS_LLM_API_KEY: API key for LLM service
-        AGENTBEATS_LLM_BASE_URL: Base URL for LLM API
-        AGENTBEATS_LLM_MODEL: Model identifier
-        AGENTBEATS_LLM_TEMPERATURE: Sampling temperature for LLM calls
-    """
-
-    model_config = SettingsConfigDict(env_prefix="AGENTBEATS_LLM_")
-
-    api_key: str | None = None
-    base_url: str = "https://api.openai.com/v1"
-    model: str = "gpt-4o-mini"
-    temperature: float = 0.0
+# Import LLMSettings from common module for single source of truth
+from common.settings import LLMSettings
 
 
 class GreenSettings(BaseSettings):

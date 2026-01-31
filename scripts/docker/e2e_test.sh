@@ -2,12 +2,12 @@
 #
 # Unified test script for GraphJudge agents
 #
-# Usage:
-#   ./scripts/docker/e2e_test.sh                    # Quick test (default)
-#   ./scripts/docker/e2e_test.sh quick              # Quick test
-#   ./scripts/docker/e2e_test.sh comprehensive      # Full test
-#   ./scripts/docker/e2e_test.sh --build            # Quick test with rebuild
-#   ./scripts/docker/e2e_test.sh comprehensive --build
+# Usage (from repo root):
+#   ./e2e_test.sh                    # Quick test (default)
+#   ./e2e_test.sh quick              # Quick test
+#   ./e2e_test.sh comprehensive      # Full test
+#   ./e2e_test.sh --build            # Quick test with rebuild
+#   ./e2e_test.sh comprehensive --build
 #
 # Environment variables:
 #   E2E_MODE=quick|comprehensive  # Test mode (default: quick)
@@ -15,7 +15,7 @@
 #
 # Prerequisites:
 #   - Docker and docker-compose installed
-#   - Ports 8001 and 8002 available
+#   - Ports 9009 (green) and 9010 (purple) available
 #
 
 set -e
@@ -105,8 +105,8 @@ docker-compose -f "$COMPOSE_FILE" up -d $BUILD_FLAG
 # Wait for containers to be healthy
 echo "Waiting for agents to be ready..."
 for i in {1..30}; do
-  if curl -s http://localhost:8001/.well-known/agent-card.json > /dev/null 2>&1 && \
-     curl -s http://localhost:8002/.well-known/agent-card.json > /dev/null 2>&1; then
+  if curl -s http://localhost:9009/.well-known/agent-card.json > /dev/null 2>&1 && \
+     curl -s http://localhost:9010/.well-known/agent-card.json > /dev/null 2>&1; then
     break
   fi
   sleep 1
@@ -125,7 +125,7 @@ if [ "$TEST_MODE" = "quick" ]; then
   # Step 3: Test Purple AgentCard
   echo ""
   echo "Step 3: Testing Purple AgentCard..."
-  PURPLE_CARD=$(curl -s http://localhost:8002/.well-known/agent-card.json)
+  PURPLE_CARD=$(curl -s http://localhost:9010/.well-known/agent-card.json)
   echo "$PURPLE_CARD" > "$LOG_DIR/purple_agent_card.json"
   if echo "$PURPLE_CARD" | grep -q "Purple Agent"; then
     pass "Purple AgentCard OK"
@@ -136,7 +136,7 @@ if [ "$TEST_MODE" = "quick" ]; then
   # Step 4: Test Green AgentCard
   echo ""
   echo "Step 4: Testing Green AgentCard..."
-  GREEN_CARD=$(curl -s http://localhost:8001/.well-known/agent-card.json)
+  GREEN_CARD=$(curl -s http://localhost:9009/.well-known/agent-card.json)
   echo "$GREEN_CARD" > "$LOG_DIR/green_agent_card.json"
   if echo "$GREEN_CARD" | grep -q "Green Agent"; then
     pass "Green AgentCard OK"
@@ -147,9 +147,9 @@ if [ "$TEST_MODE" = "quick" ]; then
   # Step 5: Test Purple task handling
   echo ""
   echo "Step 5: Testing Purple Agent (task handling)..."
-  PURPLE_RESPONSE=$(curl -s -X POST http://localhost:8002/ \
+  PURPLE_RESPONSE=$(curl -s -X POST http://localhost:9010/ \
     -H "Content-Type: application/json" \
-    -d '{"jsonrpc":"2.0","id":"1","method":"tasks.send","params":{"task":{"description":"Generate a test response"}}}')
+    -d '{"jsonrpc":"2.0","id":"1","method":"message/send","params":{"task":{"description":"Generate a test response"}}}')
   echo "$PURPLE_RESPONSE" > "$LOG_DIR/purple_response.json"
 
   if echo "$PURPLE_RESPONSE" | python3 -c "import sys,json; d=json.load(sys.stdin); exit(0 if 'result' in d and d.get('error') is None else 1)" 2>/dev/null; then
@@ -161,9 +161,9 @@ if [ "$TEST_MODE" = "quick" ]; then
   # Step 6: Test Green task handling
   echo ""
   echo "Step 6: Testing Green Agent (task handling)..."
-  GREEN_RESPONSE_1=$(curl -s -X POST http://localhost:8001/ \
+  GREEN_RESPONSE_1=$(curl -s -X POST http://localhost:9009/ \
     -H "Content-Type: application/json" \
-    -d '{"jsonrpc":"2.0","id":"2","method":"tasks.send","params":{"task":{"description":"Evaluate test task 1"}}}')
+    -d '{"jsonrpc":"2.0","id":"2","method":"message/send","params":{"task":{"description":"Evaluate test task 1"}}}')
   echo "$GREEN_RESPONSE_1" > "$LOG_DIR/green_response_1.json"
 
   if echo "$GREEN_RESPONSE_1" | python3 -c "import sys,json; d=json.load(sys.stdin); exit(0 if 'result' in d and d.get('error') is None else 1)" 2>/dev/null; then
@@ -175,9 +175,9 @@ if [ "$TEST_MODE" = "quick" ]; then
   # Step 7: Test Green second task
   echo ""
   echo "Step 7: Testing Green Agent (second task)..."
-  GREEN_RESPONSE_2=$(curl -s -X POST http://localhost:8001/ \
+  GREEN_RESPONSE_2=$(curl -s -X POST http://localhost:9009/ \
     -H "Content-Type: application/json" \
-    -d '{"jsonrpc":"2.0","id":"3","method":"tasks.send","params":{"task":{"description":"Evaluate test task 2"}}}')
+    -d '{"jsonrpc":"2.0","id":"3","method":"message/send","params":{"task":{"description":"Evaluate test task 2"}}}')
   echo "$GREEN_RESPONSE_2" > "$LOG_DIR/green_response_2.json"
 
   if echo "$GREEN_RESPONSE_2" | python3 -c "import sys,json; d=json.load(sys.stdin); exit(0 if 'result' in d and d.get('error') is None else 1)" 2>/dev/null; then
@@ -216,8 +216,8 @@ results = {
     'timestamp': datetime.utcnow().isoformat() + 'Z',
     'test_mode': 'quick',
     'agents': {
-        'green': 'localhost:8001',
-        'purple': 'localhost:8002'
+        'green': 'localhost:9009',
+        'purple': 'localhost:9010'
     },
     'tests_run': 8,
     'status': 'completed'
@@ -263,9 +263,9 @@ else
     echo "Testing $INDEX: $EXPECTED_CLASS (expected score: $EXPECTED_SCORE)..."
 
     # Call Green Agent with interaction pattern for evaluation
-    RESPONSE=$(curl -s -X POST http://localhost:8001/ \
+    RESPONSE=$(curl -s -X POST http://localhost:9009/ \
       -H "Content-Type: application/json" \
-      -d "{\"jsonrpc\":\"2.0\",\"id\":\"$INDEX\",\"method\":\"tasks.send\",\"params\":{\"task\":{\"description\":\"$NARRATIVE\",\"interaction_pattern\":$PATTERN}}}")
+      -d "{\"jsonrpc\":\"2.0\",\"id\":\"$INDEX\",\"method\":\"message/send\",\"params\":{\"task\":{\"description\":\"$NARRATIVE\",\"interaction_pattern\":$PATTERN}}}")
 
     # Save response
     echo "$RESPONSE" > "$LOG_DIR/${INDEX}_response.json"

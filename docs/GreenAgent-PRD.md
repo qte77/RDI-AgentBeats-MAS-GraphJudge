@@ -731,7 +731,7 @@ Reference: `github.com/RDI-Foundation/green-agent-template/tree/example/debate_j
 
 - SDK: A2A SDK (a2a-sdk>=0.3.20) for Agent, Task, and Message operations
 - Agent Card: AgentCard at `/.well-known/agent-card.json` declaring AgentSkill and AgentCapabilities
-- Task Operations: `tasks.send`, `tasks.query`, `tasks.update` methods
+- Task Operations: `message/send` method per A2A specification
 - Message Types: TextPart, DataPart content in A2A Message protocol
 - Traceability: A2A Traceability Extension for distributed call tracing
 - Error Handling: JSONRPCErrorResponse with proper error codes per A2A specification

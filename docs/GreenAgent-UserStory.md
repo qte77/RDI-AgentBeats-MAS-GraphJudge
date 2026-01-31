@@ -64,7 +64,7 @@ This benchmark transforms abstract "collaboration quality" into concrete, measur
 **Acceptance Criteria:**
 
 - [ ] GreenAgent exposes AgentCard at `/.well-known/agent-card.json` declaring evaluation capabilities
-- [ ] Accepts task submissions via A2A JSON-RPC 2.0 protocol (`tasks.send` method)
+- [ ] Accepts task submissions via A2A JSON-RPC 2.0 protocol (`message/send` method)
 - [ ] Supports configurable scenarios (agent URLs, task descriptions, expected interactions)
 - [ ] Orchestrates multi-agent execution through A2A protocol Task lifecycle management
 - [ ] Captures all agent-to-agent interactions during task execution via A2A Traceability Extension

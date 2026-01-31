@@ -23,23 +23,24 @@ class TestPurpleAgentCard:
             assert response.status_code == 200
 
     async def test_agent_card_has_required_fields(self):
-        """AgentCard contains required A2A fields."""
+        """AgentCard contains required A2A fields and validates against schema."""
         from uuid import UUID
+
+        from common.models import AgentCard
 
         app = create_app()
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             response = await client.get("/.well-known/agent-card.json")
-            card = response.json()
+            card_data = response.json()
 
-            # Verify required fields
-            assert "agentId" in card
-            # agentId should be a valid UUID (A2A compliance)
-            UUID(card["agentId"])  # Raises if invalid
-            assert "name" in card
-            assert "description" in card
-            assert "capabilities" in card
-            assert "protocols" in card["capabilities"]
-            assert "a2a" in card["capabilities"]["protocols"]
+            # Validate against Pydantic model (ensures A2A SDK compatibility)
+            card = AgentCard.model_validate(card_data)
+
+            # Verify agentId is a valid UUID (A2A compliance)
+            UUID(card.agentId)  # Raises if invalid
+
+            # Verify A2A protocol support
+            assert "a2a" in card.capabilities.protocols
 
 
 class TestPurpleAgentJSONRPC:

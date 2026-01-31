@@ -209,8 +209,11 @@ class TestTraceStoreThreadSafety:
         async def add_traces_async():
             store.add_traces(sample_traces[:1])
 
+        async def run_concurrent_additions():
+            await asyncio.gather(*[add_traces_async() for _ in range(10)])
+
         # Run multiple concurrent additions
-        asyncio.run(asyncio.gather(*[add_traces_async() for _ in range(10)]))
+        asyncio.run(run_concurrent_additions())
 
         # Should have 10 traces (one per call)
         all_traces = store.get_all_traces()
@@ -227,10 +230,11 @@ class TestTraceStoreThreadSafety:
         async def register_agent_async(agent_url: str):
             store.register_agent(agent_url)
 
+        async def run_concurrent_registrations():
+            await asyncio.gather(*[register_agent_async(f"http://agent{i}:8000") for i in range(10)])
+
         # Run multiple concurrent registrations
-        asyncio.run(
-            asyncio.gather(*[register_agent_async(f"http://agent{i}:8000") for i in range(10)])
-        )
+        asyncio.run(run_concurrent_registrations())
 
         # Should have 10 unique agents
         agents = store.get_registered_agents()

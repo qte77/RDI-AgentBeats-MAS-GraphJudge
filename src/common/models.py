@@ -1,6 +1,7 @@
 """Shared models for AgentBeats Green and Purple agents.
 
 This module provides common data models used by both Green and Purple agents:
+- A2A Protocol: AgentCard
 - A2A Traceability Extension: InteractionStep, CallType
 - JSON-RPC 2.0 Protocol: JSONRPCRequest, JSONRPCResponse
 
@@ -13,7 +14,66 @@ from datetime import datetime
 from enum import Enum
 from typing import Any
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, Field
+
+# ruff: noqa: N815 - A2A protocol requires camelCase field names
+
+# =============================================================================
+# A2A Protocol Models
+# =============================================================================
+
+
+class AgentSkill(BaseModel):
+    """Agent skill definition per A2A protocol."""
+
+    id: str
+    name: str
+    description: str
+    tags: list[str] = Field(default_factory=list)
+
+
+class AgentCapabilities(BaseModel):
+    """Agent capabilities per A2A protocol."""
+
+    protocols: list[str]
+    extensions: list[dict[str, str]] = Field(default_factory=list)
+
+
+class AgentEndpoints(BaseModel):
+    """Agent endpoints per A2A protocol."""
+
+    a2a: str
+    health: str
+
+
+class AgentCard(BaseModel):
+    """AgentCard model per A2A protocol specification.
+
+    Single source of truth for A2A AgentCard structure validation.
+    Used by both Green and Purple agents to ensure SDK compatibility.
+
+    Required by A2A SDK ClientFactory.connect() for agent discovery.
+
+    Note: Field names use camelCase per A2A spec (not Python convention).
+    """
+
+    model_config = ConfigDict(
+        # Allow camelCase field names for external API compliance
+        # Suppresses ruff N815 warnings for spec-required naming
+        populate_by_name=True,
+    )
+
+    agentId: str  # noqa: N815 - A2A spec requires camelCase
+    name: str
+    description: str
+    version: str
+    url: str
+    defaultInputModes: list[str]  # noqa: N815 - A2A spec requires camelCase
+    defaultOutputModes: list[str]  # noqa: N815 - A2A spec requires camelCase
+    skills: list[AgentSkill]
+    capabilities: AgentCapabilities
+    endpoints: AgentEndpoints
+
 
 # =============================================================================
 # A2A Traceability Extension Models

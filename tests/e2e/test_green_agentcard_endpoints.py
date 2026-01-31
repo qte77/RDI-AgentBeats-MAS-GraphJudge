@@ -21,23 +21,22 @@ class TestGreenAgentCard:
             assert response.status_code == 200
 
     async def test_green_agentcard_has_required_fields(self):
-        """Green Agent AgentCard contains required A2A fields."""
+        """Green Agent AgentCard contains required A2A fields and validates against schema."""
         from uuid import UUID
 
+        from common.models import AgentCard
         from green.server import create_app
 
         app = create_app()
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             response = await client.get("/.well-known/agent-card.json")
-            card = response.json()
+            card_data = response.json()
 
-            # Verify required A2A fields
-            assert "agentId" in card
-            # agentId should be a valid UUID (A2A compliance)
-            UUID(card["agentId"])  # Raises if invalid
-            assert "name" in card
-            assert "description" in card
-            assert "capabilities" in card
+            # Validate against Pydantic model (ensures A2A SDK compatibility)
+            card = AgentCard.model_validate(card_data)
+
+            # Verify agentId is a valid UUID (A2A compliance)
+            UUID(card.agentId)  # Raises if invalid
 
     async def test_green_agentcard_declares_protocol_support(self):
         """Green Agent AgentCard declares A2A protocol support."""
@@ -81,23 +80,22 @@ class TestPurpleAgentCard:
             assert response.status_code == 200
 
     async def test_purple_agentcard_has_required_fields(self):
-        """Purple Agent AgentCard contains required A2A fields."""
+        """Purple Agent AgentCard contains required A2A fields and validates against schema."""
         from uuid import UUID
 
+        from common.models import AgentCard
         from purple.server import create_app
 
         app = create_app()
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             response = await client.get("/.well-known/agent-card.json")
-            card = response.json()
+            card_data = response.json()
 
-            # Verify required A2A fields
-            assert "agentId" in card
-            # agentId should be a valid UUID (A2A compliance)
-            UUID(card["agentId"])  # Raises if invalid
-            assert "name" in card
-            assert "description" in card
-            assert "capabilities" in card
+            # Validate against Pydantic model (ensures A2A SDK compatibility)
+            card = AgentCard.model_validate(card_data)
+
+            # Verify agentId is a valid UUID (A2A compliance)
+            UUID(card.agentId)  # Raises if invalid
 
     async def test_purple_agentcard_declares_protocol_support(self):
         """Purple Agent AgentCard declares A2A protocol support."""

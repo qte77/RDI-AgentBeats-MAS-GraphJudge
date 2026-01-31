@@ -42,6 +42,18 @@ def create_app(settings: PurpleSettings | None = None) -> FastAPI:
             "agentId": str(settings.agent_uuid),
             "name": "Purple Agent (Test Fixture)",
             "description": "Simple A2A-compliant agent for E2E testing and validation",
+            "version": "1.0.0",
+            "url": settings.get_card_url(),
+            "defaultInputModes": ["text"],
+            "defaultOutputModes": ["text"],
+            "skills": [
+                {
+                    "id": "process",
+                    "name": "Process Task",
+                    "description": "Process simple test tasks",
+                    "tags": ["testing", "validation"],
+                }
+            ],
             "capabilities": {
                 "protocols": ["a2a"],
                 "extensions": [],

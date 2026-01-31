@@ -116,11 +116,15 @@ Fixed-rounds placeholder at `src/green/executor.py:25`. See `docs/research/trace
 
 ### A2A Protocol Compliance
 
-Current implementation uses `tasks.send`. Should migrate to A2A standard `message/send`.
+✅ **COMPLETED**: Migrated from `tasks.send` to A2A standard `message/send`.
 
 **Spec**: <https://google.github.io/A2A/specification/>
 
-**Files**: `src/green/server.py:176`, `src/purple/server.py:101`, `scripts/docker/e2e_test.sh`
+**Updated Files**:
+- ✅ `src/green/server.py:260` - Using `message/send`
+- ✅ `src/purple/server.py:78` - Using `message/send`
+- ✅ `scripts/docker/e2e_test.sh` - Updated all test requests
+- ✅ Documentation updated (UserStory, PRD, Demo Script)
 
 ### Scenario Configuration
 

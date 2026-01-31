@@ -237,6 +237,96 @@ CMD ["--host", "0.0.0.0", "--port", "9010"]
 
 ---
 
+### Feature 7: LLM Capability and Trace Reporting
+
+**Description:** Optional LLM capability for real task processing and trace reporting to Green Agent for coordination analysis.
+
+**Acceptance Criteria:**
+
+- [ ] Purple settings include LLMSettings (disabled by default)
+- [ ] Purple executor uses LLM for task processing when enabled
+- [ ] Fallback to simple response when LLM disabled
+- [ ] Environment variable `PURPLE_LLM_ENABLED` controls feature
+- [ ] Purple settings include `green_agent_url` and `static_peers`
+- [ ] Purple executor reports traces to Green during task execution
+- [ ] Trace reporting is fire-and-forget (non-blocking)
+- [ ] Purple executor uses PeerDiscovery for peer lookup
+
+**Technical Requirements:**
+
+- Uses common LLMSettings from `src/common/settings.py`
+- Uses TraceReporter from `src/common/trace_reporter.py`
+- Uses PeerDiscovery from `src/common/peer_discovery.py`
+
+**Files:**
+
+- `src/purple/settings.py`
+- `src/purple/executor.py`
+- `src/purple/server.py`
+
+---
+
+### Feature 8: Collaborative Research Task (Role System)
+
+**Description:** Enable Purple agents to coordinate on research tasks with assignable roles (coordinator, researcher, synthesizer). Demonstrates Green's graph analysis through real multi-agent coordination patterns.
+
+**Acceptance Criteria:**
+
+- [ ] Purple agent role system (coordinator, researcher, synthesizer)
+- [ ] Role configurable via `PURPLE_ROLE` environment variable
+- [ ] Default role is 'researcher' for backward compatibility
+- [ ] Coordinator discovers peers via PeerDiscovery
+- [ ] Coordinator delegates subtasks to peer researchers
+- [ ] Coordinator collects and synthesizes responses
+- [ ] Researchers process incoming research requests
+- [ ] Researchers return structured research output
+- [ ] Optional LLM integration for meaningful content
+- [ ] Fallback to template-based output when LLM disabled
+- [ ] Hub-spoke coordination pattern (coordinator as hub)
+- [ ] Each delegation creates traceable A2A interaction
+- [ ] scenario.toml supports multiple `[[participants]]` with role env vars
+- [ ] docker-compose supports N Purple agents with different ports/roles
+
+**Technical Requirements:**
+
+- Role assignment via `PURPLE_ROLE` environment variable
+- Peer URLs via `PURPLE_STATIC_PEERS` (comma-separated)
+- Same Docker image, different roles via env vars
+
+**Coordination Patterns:**
+
+| Pattern | Graph | Green Detects |
+|---------|-------|---------------|
+| Hub-Spoke | P1↔P2, P1↔P3 | High centrality, bottleneck |
+| Chain | P1→P2→P3 | Low density, sequential |
+| Mesh | All↔All | High density, distributed |
+
+**Files:**
+
+- `src/purple/settings.py`
+- `src/purple/executor.py`
+- `src/purple/roles/__init__.py`
+- `src/purple/roles/coordinator.py`
+- `src/purple/roles/researcher.py`
+- `scenario.toml`
+- `docker-compose-local.yaml`
+
+---
+
+## Notes for Ralph Loop
+
+<!-- PARSER REQUIREMENT: Include story count in parentheses -->
+<!-- PARSER REQUIREMENT: Use (depends: STORY-XXX, STORY-YYY) for dependencies -->
+
+Story Breakdown (6 stories total):
+
+- **Feature 7 (LLM + Tracing)** → STORY-024: Purple agent LLM capability (depends: STORY-019, STORY-020), STORY-025: Purple agent trace reporting integration (depends: STORY-021, STORY-024)
+- **Feature 8 (Role System)** → STORY-026: Purple agent role system (depends: STORY-025), STORY-027: Coordinator role implementation (depends: STORY-026), STORY-028: Researcher role implementation (depends: STORY-026), STORY-029: Multi-agent scenario configuration (depends: STORY-027, STORY-028)
+
+**Note:** Stories STORY-019, STORY-020, STORY-021 are common infrastructure stories defined in GreenAgent-PRD.md and must be completed first.
+
+---
+
 ## Non-Functional Requirements
 
 ### Performance

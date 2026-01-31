@@ -40,7 +40,7 @@ purpose: How, Enhance evaluation system with real LLM integration, plugin archit
 
 <!-- PARSER REQUIREMENT: Use exactly "#### Feature N:" format -->
 
-### Feature 1: A2A Protocol Communication
+#### Feature 1: A2A Protocol Communication
 
 **Description:** Real agent-to-agent communication via A2A SDK for authentic coordination measurement. Replaces mock REST protocol with production-grade A2A JSON-RPC communication.
 
@@ -204,42 +204,318 @@ purpose: How, Enhance evaluation system with real LLM integration, plugin archit
 
 **Description:** Base Purple Agent (minimal test fixture) and ground truth dataset for validating the Green Agent evaluation pipeline. The Base Purple Agent is a simplified A2A-compliant agent implementation built into the `purple-agent` Docker image.
 
+##### 6.1 Base Purple Agent (Test Fixture)
+
 **Acceptance Criteria:**
 
-- [ ] Base Purple Agent implemented as A2A-compliant test fixture
-- [ ] Ground truth dataset with labeled test scenarios (`data/ground_truth.json`)
+- [x] Base Purple Agent implemented as A2A-compliant test fixture
+- [x] AgentCard at `/.well-known/agent-card.json`
+- [x] JSON-RPC 2.0 handler for `message/send`
+- [x] Returns valid responses for evaluation tasks
+- [x] Configurable via environment variables (`PURPLE_HOST`, `PURPLE_PORT`)
+
+##### 6.2 Ground Truth Dataset
+
+**Acceptance Criteria:**
+
+- [x] Ground truth dataset with labeled test scenarios (`data/ground_truth.json`)
   - Source: Small subset of PeerRead dataset from HuggingFace (`allenai/PeerRead`)
-  - Format: JSON with paper abstracts, reviews, and coordination task labels
-  - Subset size: 10-20 diverse samples for reproducible E2E validation
-- [ ] E2E tests validate both agents' AgentCards are accessible
-- [ ] E2E tests verify Purple Agent generates expected outputs
-- [ ] E2E tests verify Green Agent correctly classifies ground truth scenarios
-- [ ] Comprehensive tests report accuracy metrics against ground truth
+  - Format: JSON with interaction patterns and expected metrics
+  - Subset size: 12 diverse samples for reproducible E2E validation
+- [x] Scenarios cover: high_coordination, low_coordination, bottleneck, medium_coordination, partial_isolation
+- [x] Each scenario includes: `interaction_pattern` (agents, edges) and `expected_metrics`
+
+##### 6.3 E2E Tests (Ground Truth Validation)
+
+**Acceptance Criteria:**
+
+- [x] E2E tests validate both agents' AgentCards are accessible
+- [x] E2E tests verify Purple Agent generates expected outputs
+- [x] E2E tests verify Green Agent correctly classifies ground truth scenarios
+- [x] Comprehensive tests report accuracy metrics against ground truth
 - [x] Container orchestration supports isolated testing *(docker-compose-local.yaml)*
+
+##### 6.4 AgentBeats Submission E2E Test (Full Platform Integration)
+
+**Description:** Validates the complete AgentBeats submission flow including agent registration, scenario execution via `agentbeats-client`, and `output/results.json` generation for leaderboard submission.
+
+**AgentBeats Submission Flow:**
+
+```text
+┌─────────────────────────────────────────────────────────────────────────┐
+│                        GitHub Actions Workflow                          │
+│              .github/workflows/agentbeats-run-scenario.yml              │
+└─────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│  1. scenario.toml → generate_compose.py → docker-compose.yml            │
+│     - Resolves agentbeats_id → docker image via agentbeats.dev API      │
+│     - Generates a2a-scenario.toml for agentbeats-client                 │
+└─────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│  2. docker compose up                                                   │
+│  ┌───────────────┐   ┌───────────────┐   ┌────────────────────────┐    │
+│  │  Green Agent  │   │ Purple Agent  │   │   agentbeats-client    │    │
+│  │  (Assessor)   │◄─►│ (Participant) │   │   (Orchestrator)       │    │
+│  │  Port: 9009   │   │  Port: 9009   │   │                        │    │
+│  └───────┬───────┘   └───────────────┘   └───────────┬────────────┘    │
+│          │                                           │                  │
+│          │  A2A Protocol (JSON-RPC 2.0)              │ Reads            │
+│          │  - message/send                           │ a2a-scenario.toml│
+│          │  - Trace collection                       │                  │
+│          │  - Graph evaluation                       │                  │
+│          ▼                                           ▼                  │
+│  ┌─────────────────────────────────────────────────────────────────┐   │
+│  │                    output/results.json                          │   │
+│  │  {                                                              │   │
+│  │    "participants": {"agent": "<uuid>"},                         │   │
+│  │    "results": [{                                                │   │
+│  │      "score": 80.0,                                             │   │
+│  │      "domain": "graph-assessment",                              │   │
+│  │      "task_rewards": {                                          │   │
+│  │        "overall_score": 0.8,                                    │   │
+│  │        "graph_density": 0.5,                                    │   │
+│  │        "coordination_quality": 0.33                             │   │
+│  │      },                                                         │   │
+│  │      "detail": { graph_metrics, latency_metrics, ... }          │   │
+│  │    }]                                                           │   │
+│  │  }                                                              │   │
+│  └─────────────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│  3. Submit to AgentBeats Leaderboard                                    │
+│     - Copy results to submissions/ and results/ directories             │
+│     - Create PR to upstream repository                                  │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+**Acceptance Criteria:**
+
+**Agent Registration:**
+- [ ] Green Agent registered at agentbeats.dev with valid `agentbeats_id`
+- [ ] Purple Agent registered at agentbeats.dev with valid `agentbeats_id`
+- [ ] `scenario.toml` contains valid `agentbeats_id` for both agents
+- [ ] Docker images accessible at `ghcr.io/${GH_USERNAME}/green-agent:latest` and `purple-agent:latest`
+
+**Scenario Configuration:**
+- [ ] `scenario.toml` properly configures `[green_agent]` and `[[participants]]`
+- [ ] `generate_compose.py` successfully resolves images from agentbeats.dev API
+- [ ] Generated `docker-compose.yml` includes all required services
+- [ ] Generated `a2a-scenario.toml` contains correct endpoints
+
+**E2E Execution:**
+- [ ] Green Agent receives task from `agentbeats-client`
+- [ ] Green Agent sends A2A `message/send` to Purple Agent
+- [ ] Green Agent captures `InteractionStep` traces during communication
+- [ ] Green Agent computes `GraphMetrics` via NetworkX from traces
+- [ ] Green Agent returns structured evaluation results
+
+**Results Output (`output/results.json`):**
+- [ ] File created at `output/results.json`
+- [ ] Contains `participants` object with agent UUIDs
+- [ ] Contains `results` array with evaluation data
+- [ ] Each result includes: `score`, `domain`, `pass_rate`, `max_score`, `time_used`
+- [ ] Each result includes `task_rewards`: `overall_score`, `graph_density`, `coordination_quality`
+- [ ] Each result includes `detail`: `graph_metrics`, `latency_metrics`, `reasoning`
+
+**Workflow Validation:**
+- [ ] `.github/workflows/agentbeats-run-scenario.yml` executes successfully
+- [ ] Provenance recorded via `record_provenance.py`
+- [ ] Submission branch created with results
+
+**results.json Schema:**
+
+```json
+{
+  "participants": {
+    "agent": "<participant-uuid>"
+  },
+  "results": [
+    {
+      "pass_rate": 80.0,
+      "time_used": 0.0,
+      "max_score": 100.0,
+      "domain": "graph-assessment",
+      "score": 80.0,
+      "task_rewards": {
+        "overall_score": 0.8,
+        "graph_density": 0.5,
+        "coordination_quality": 0.33
+      },
+      "detail": {
+        "overall_score": 0.8,
+        "reasoning": "Evaluation summary",
+        "coordination_quality": "high|medium|low|bottleneck",
+        "strengths": [],
+        "weaknesses": [],
+        "graph_metrics": {
+          "graph_density": 0.5,
+          "has_bottleneck": false,
+          "isolated_agents": [],
+          "coordination_quality": "medium"
+        },
+        "latency_metrics": {
+          "avg": 1250.0,
+          "p50": 1000.0,
+          "p95": 2000.0,
+          "p99": 2500.0
+        }
+      }
+    }
+  ]
+}
+```
+
+**Leaderboard SQL Query (DuckDB):**
+
+The AgentBeats leaderboard uses DuckDB to parse `results.json` files. The following query extracts metrics for the coordination benchmark:
+
+```sql
+-- AgentBeats Coordination Benchmark Leaderboard Query
+-- Parses output/results.json for graph-based coordination metrics
+SELECT
+    json_extract_string(
+        to_json(participants),
+        '$.' || list_extract(json_keys(to_json(participants)), 1)
+    ) AS participant_id,
+    ROUND(res.pass_rate, 1) AS "Pass Rate",
+    ROUND(res.score, 1) AS "Score",
+    res.domain AS "Domain",
+    ROUND(res.task_rewards.overall_score * 100, 1) AS "Overall %",
+    ROUND(res.task_rewards.graph_density * 100, 1) AS "Density %",
+    CASE
+        WHEN res.task_rewards.coordination_quality >= 0.66 THEN 'High'
+        WHEN res.task_rewards.coordination_quality >= 0.33 THEN 'Medium'
+        ELSE 'Low'
+    END AS "Coordination",
+    res.detail.coordination_quality AS "Quality",
+    res.detail.graph_metrics.has_bottleneck AS "Bottleneck",
+    COALESCE(list_length(res.detail.graph_metrics.isolated_agents), 0) AS "Isolated",
+    ROUND(res.detail.latency_metrics.avg, 0) AS "Avg Latency (ms)",
+    ROUND(res.detail.latency_metrics.p95, 0) AS "P95 Latency (ms)"
+FROM results
+CROSS JOIN UNNEST(results) AS r(res)
+ORDER BY "Score" DESC, "Pass Rate" DESC;
+```
+
+**Query Output Columns:**
+
+| Column | Source | Description |
+|--------|--------|-------------|
+| `participant_id` | `participants.agent` | Evaluated agent UUID |
+| `Pass Rate` | `results[].pass_rate` | Percentage of passed evaluations |
+| `Score` | `results[].score` | Overall score (0-100) |
+| `Domain` | `results[].domain` | "graph-assessment" |
+| `Overall %` | `task_rewards.overall_score` | LLM judge overall score |
+| `Density %` | `task_rewards.graph_density` | Graph density metric |
+| `Coordination` | `task_rewards.coordination_quality` | High/Medium/Low classification |
+| `Quality` | `detail.coordination_quality` | Raw quality string |
+| `Bottleneck` | `detail.graph_metrics.has_bottleneck` | Bottleneck detected |
+| `Isolated` | `detail.graph_metrics.isolated_agents` | Count of isolated agents |
+| `Avg Latency (ms)` | `detail.latency_metrics.avg` | Average response time |
+| `P95 Latency (ms)` | `detail.latency_metrics.p95` | 95th percentile latency |
 
 **Technical Requirements:**
 
-- Base Purple Agent follows RDI green-agent-template pattern
-- Ground truth source: PeerRead dataset (HuggingFace `allenai/PeerRead`)
-- Ground truth format: JSON with labeled coordination scenarios derived from peer review interactions
-- Docker Compose orchestration for isolated testing
-- Docker image: `ghcr.io/${GH_USERNAME}/purple-agent:latest` (built from `Dockerfile.purple`)
+- `agentbeats-client` container (v1.0.0) orchestrates the evaluation
+- Green Agent must respond to tasks initiated by `agentbeats-client`
+- Results must be written to `/app/output/results.json` (mounted volume)
+- All agents must pass healthchecks before `agentbeats-client` starts
+
+**Green Agent Evaluation Modes:**
+
+The Green Agent supports two evaluation modes, both producing the same `output/results.json` format:
+
+| Mode | Trigger | Use Case | Trace Source |
+|------|---------|----------|--------------|
+| **Ground Truth** | `task.interaction_pattern` provided | Unit tests, accuracy validation | JSON → InteractionStep |
+| **Live A2A** | No `interaction_pattern` | Production, E2E tests | Actual A2A communication |
+
+**Live A2A Evaluation Flow (Production Mode):**
+
+```text
+agentbeats-client                    Green Agent                     Purple Agent
+      │                                   │                                │
+      │  POST / (message/send)            │                                │
+      │  {"task": {"description": "..."}} │                                │
+      │──────────────────────────────────►│                                │
+      │                                   │                                │
+      │                                   │  POST / (message/send)         │
+      │                                   │  A2A JSON-RPC request          │
+      │                                   │───────────────────────────────►│
+      │                                   │                                │
+      │                                   │  ◄─── InteractionStep created  │
+      │                                   │       (trace capture)          │
+      │                                   │                                │
+      │                                   │  JSON-RPC response             │
+      │                                   │◄───────────────────────────────│
+      │                                   │                                │
+      │                                   │  GraphEvaluator.evaluate()     │
+      │                                   │  - NetworkX builds DiGraph     │
+      │                                   │  - Computes centrality metrics │
+      │                                   │  - Detects bottlenecks         │
+      │                                   │                                │
+      │                                   │  LLMJudge.evaluate()           │
+      │                                   │  - Semantic quality assessment │
+      │                                   │                                │
+      │                                   │  LatencyEvaluator.evaluate()   │
+      │                                   │  - p50, p95, p99 percentiles   │
+      │                                   │                                │
+      │                                   │  Write output/results.json     │
+      │                                   │  (AgentBeatsOutputModel)       │
+      │                                   │                                │
+      │  JSON-RPC response               │                                │
+      │  {"result": {"status": "completed", "evaluation": {...}}}         │
+      │◄──────────────────────────────────│                                │
+```
+
+**Key Implementation Details:**
+
+1. **Trace Capture** (`src/green/messenger.py`):
+   - `Messenger.send_message()` creates `InteractionStep` for each A2A call
+   - Captures: `step_id`, `trace_id`, `call_type`, `start_time`, `end_time`, `latency`
+
+2. **Graph Analysis** (`src/green/evals/graph.py`):
+   - `GraphEvaluator._build_graph()` creates `nx.DiGraph` from traces
+   - Nodes = agents (step_id), Edges = interactions (parent_step_id → step_id)
+   - Computes: degree/betweenness/closeness centrality, density, clustering
+
+3. **Results Generation** (`src/green/server.py`):
+   - `_process_evaluation_request()` orchestrates full evaluation
+   - `AgentBeatsOutputModel.from_evaluation_results()` formats output
+   - Writes to `settings.output_file` (default: `output/results.json`)
+
+**E2E Test Requirements:**
+
+- [ ] Test Live A2A mode: Green → Purple actual communication
+- [ ] Test trace capture during real `message/send` exchange
+- [ ] Test NetworkX graph built from captured traces (not JSON patterns)
+- [ ] Test `output/results.json` written with correct schema
+- [ ] Test via `docker-compose-local.yaml` (no mocking)
+- [ ] Test via GitHub Actions workflow (full submission simulation)
 
 **Files:**
 
-- `src/purple/` (Base Purple Agent implementation)
+- `scenario.toml` - AgentBeats scenario configuration
+- `.github/workflows/agentbeats-run-scenario.yml` *(exists)*
+- `scripts/leaderboard/generate_compose.py` *(exists)*
+- `scripts/leaderboard/record_provenance.py` *(exists)*
+- `output/results.json` - Generated evaluation results
+- `Dockerfile.green` *(exists)*
 - `Dockerfile.purple` *(exists)*
-- `data/ground_truth.json`
-- `tests/e2e/`
 - `docker-compose-local.yaml` *(exists)*
+- `tests/e2e/test_live_a2a_evaluation.py` *(new - validates Live A2A mode)*
 
 ---
 
-#### Feature 7: Multi-Agent Tracing Architecture
+#### Feature 7: Shared Infrastructure and Trace Collection
 
-**Description:** Enable Purple agents to communicate with each other while Green
-traces all interactions. Includes shared infrastructure (common module), optional
-LLM capability for Purple, and async trace reporting.
+**Description:** Shared infrastructure (common module) for code reuse between Green and Purple agents, plus Green Agent endpoints for receiving trace reports from Purple agents.
 
 **Acceptance Criteria:**
 
@@ -250,8 +526,6 @@ LLM capability for Purple, and async trace reporting.
 - [ ] PeerDiscovery supports static peers + Green registry
 - [ ] Green `/traces` endpoint receives async trace reports
 - [ ] Green `/register` and `/peers` endpoints for agent registry
-- [ ] Purple optional LLM capability (disabled by default)
-- [ ] Purple reports traces to Green during task execution
 - [ ] All existing tests continue to pass
 - [ ] New tests for common module and trace infrastructure
 
@@ -272,53 +546,8 @@ LLM capability for Purple, and async trace reporting.
 - `src/common/peer_discovery.py`
 - `src/green/trace_store.py`
 - `src/green/server.py` (add endpoints)
-- `src/purple/settings.py` (add LLM settings)
-- `src/purple/executor.py` (add LLM + tracing)
 
----
-
-#### Feature 8: Collaborative Research Task (Purple Agent Roles)
-
-**Description:** Enable Purple agents to coordinate on research tasks with
-assignable roles (coordinator, researcher, synthesizer). Demonstrates Green's
-graph analysis, LLM-as-judge, and latency metrics through real multi-agent
-coordination patterns.
-
-**Acceptance Criteria:**
-
-- [ ] Purple agent role system (coordinator, researcher, synthesizer)
-- [ ] Coordinator delegates subtasks to peer researchers
-- [ ] Researchers produce structured research output
-- [ ] Synthesizer combines research into final summary
-- [ ] Hub-spoke coordination pattern (coordinator as hub)
-- [ ] Chain coordination pattern (sequential handoff)
-- [ ] Mesh coordination pattern (all-to-all for small N)
-- [ ] scenario.toml supports multiple [[participants]] with role env vars
-- [ ] docker-compose supports N Purple agents with different ports/roles
-- [ ] Research output suitable for LLM-as-judge evaluation
-
-**Technical Requirements:**
-
-- Role assignment via `PURPLE_ROLE` environment variable
-- Peer URLs via `PURPLE_STATIC_PEERS` (comma-separated)
-- Same Docker image, different roles via env vars
-- Coordination pattern configurable
-
-**Coordination Patterns:**
-
-| Pattern | Graph | Green Detects |
-|---------|-------|---------------|
-| Hub-Spoke | P1↔P2, P1↔P3 | High centrality, bottleneck |
-| Chain | P1→P2→P3 | Low density, sequential |
-| Mesh | All↔All | High density, distributed |
-
-**Files:**
-
-- `src/purple/settings.py` (add role, peers config)
-- `src/purple/executor.py` (role-based execution)
-- `src/purple/roles/` (coordinator, researcher, synthesizer)
-- `scenario.toml` (multi-participant config)
-- `docker-compose-local.yaml` (multi-agent orchestration)
+**Note:** Purple Agent extensions (LLM capability, trace reporting integration, role system) are defined in [PurpleAgent-PRD.md](PurpleAgent-PRD.md).
 
 ---
 
@@ -488,7 +717,7 @@ class BaseEvaluator(ABC):
 <!-- PARSER REQUIREMENT: Include story count in parentheses -->
 <!-- PARSER REQUIREMENT: Use (depends: STORY-XXX, STORY-YYY) for dependencies -->
 
-Story Breakdown (29 stories total):
+Story Breakdown (23 stories total):
 
 - **Feature 1 (A2A Protocol Communication)** → STORY-001: Messenger with A2A SDK + extensions, STORY-002: InteractionStep model integration (depends: STORY-001), STORY-003: Executor with trace collection and cleanup (depends: STORY-002), STORY-004: Add OpenAI dependency to pyproject.toml (depends: STORY-003), STORY-005: Green Agent business logic (agent.py) (depends: STORY-004), STORY-006: Green Agent A2A HTTP server (server.py) (depends: STORY-005)
 - **Feature 2 (Graph-Based Coordination Analysis)** → STORY-013: Graph evaluator test suite (depends: STORY-003), STORY-014: Graph-based coordination analysis implementation (depends: STORY-013)
@@ -496,10 +725,13 @@ Story Breakdown (29 stories total):
 - **Feature 4 (Latency Metrics Evaluation)** → STORY-010: Latency metrics evaluator (depends: STORY-009)
 - STORY-011: Wire all evaluators in Executor pipeline (depends: STORY-003, STORY-010)
 - **Feature 5 (Extensibility Documentation)** → STORY-012: Extensibility documentation and examples (depends: STORY-011)
-- **Feature 6 (E2E Testing Infrastructure)** → STORY-015: Base Purple Agent implementation (depends: STORY-003), STORY-016: E2E test suite with ground truth validation (depends: STORY-015, STORY-011)
+- **Feature 6 (E2E Testing Infrastructure)** → STORY-015: Base Purple Agent implementation (depends: STORY-003), STORY-016: E2E test suite with ground truth validation + baseline tracing (depends: STORY-015, STORY-011)
 - STORY-017: Create demo video script (depends: STORY-011)
-- **Feature 7 (Multi-Agent Tracing Architecture)** → STORY-018: Common module with shared models (depends: STORY-003), STORY-019: Common LLM settings and client factory (depends: STORY-018), STORY-020: Common messenger (depends: STORY-018), STORY-021: Trace reporter for async trace collection (depends: STORY-018), STORY-022: Peer discovery (depends: STORY-018), STORY-023: Green trace collector endpoints (depends: STORY-011, STORY-021), STORY-024: Purple agent LLM capability (depends: STORY-019, STORY-020), STORY-025: Purple agent trace reporting integration (depends: STORY-021, STORY-024)
-- **Feature 8 (Collaborative Research Task)** → STORY-026: Purple agent role system (depends: STORY-025), STORY-027: Coordinator role implementation (depends: STORY-026), STORY-028: Researcher role implementation (depends: STORY-026), STORY-029: Multi-agent scenario configuration (depends: STORY-027, STORY-028)
+- **Feature 7 (Shared Infrastructure + Trace Collection)** → STORY-018: Common module with shared models (depends: STORY-003), STORY-019: Common LLM settings and client factory (depends: STORY-018), STORY-020: Common messenger (depends: STORY-018), STORY-021: Trace reporter for async trace collection (depends: STORY-018), STORY-022: Peer discovery (depends: STORY-018), STORY-023: Green trace collector endpoints (depends: STORY-011, STORY-021)
+
+**Note:** Purple Agent stories (STORY-024 to STORY-029) are defined in [PurpleAgent-PRD.md](PurpleAgent-PRD.md).
+
+**Enhancement:** Feature 6.4 (E2E Baseline Tracing Test) can be implemented after STORY-023 (Green trace collector endpoints) completes, as it validates the full trace collection flow.
 
 ---
 
@@ -520,31 +752,31 @@ STORY-005      STORY-014                              │     ┌─────
 (Agent.py)     (Graph impl)                           │     ↓          ↓          ↓          ↓
     ↓                                                 │ STORY-019  STORY-020  STORY-021  STORY-022
 STORY-006                                             │ (LLM cfg)  (Messenger)(TraceRep) (PeerDisc)
-(Server.py)                                           │     │          │          │
-    ↓                                                 │     └────┬─────┘          │
-STORY-007                                             │          ↓                │
-(LLM config)                                          │     STORY-024             │
-    ↓                                                 │     (Purple LLM)          │
-STORY-008                                             │          │                │
-(LLM prompt)                                          │          └────────────────┤
-    ↓                                                 │                           ↓
-STORY-009                                             │                     STORY-025
-(LLM API)                                             │                     (Purple tracing)
-    ↓                                                 │
-STORY-010 ────────────────────────────────────────────┘
-(Latency)                                             │
-    ↓                                                 ↓
-STORY-011 (Integration) ──────────┬──────────────────┬──────────────┬─────────────┐
-    ↓                             ↓                  ↓              ↓             ↓
-STORY-012                   STORY-017          STORY-016        (merged)    STORY-023
-(Extensibility docs)        (Demo script)      (E2E tests)          │       (Green traces)
-                                                    ↑               │
-                                                    │               │
-                                             STORY-015 ─────────────┘
-                                             (Purple Agent)
+(Server.py)                                           │                          │
+    ↓                                                 │                          │
+STORY-007                                             │                          │
+(LLM config)                                          │                          │
+    ↓                                                 │                          │
+STORY-008                                             │                          │
+(LLM prompt)                                          │                          │
+    ↓                                                 │                          │
+STORY-009                                             │                          │
+(LLM API)                                             │                          │
+    ↓                                                 │                          │
+STORY-010 ────────────────────────────────────────────┘                          │
+(Latency)                                             │                          │
+    ↓                                                 ↓                          │
+STORY-011 (Integration) ──────────┬──────────────────┬──────────────┬────────────┘
+    ↓                             ↓                  ↓              │
+STORY-012                   STORY-017          STORY-016           │
+(Extensibility docs)        (Demo script)      (E2E tests)         │
+                                                    ↑              │
+                                                    │              ↓
+                                             STORY-015       STORY-023
+                                             (Purple Agent)  (Green traces)
 ```
 
-#### Feature 7 Dependency Graph (Detail)
+##### Feature 7 Dependency Graph (Detail)
 
 ```text
 STORY-003 (Executor - PASSED)
@@ -555,38 +787,18 @@ STORY-018 (Common models)
     ▼            ▼            ▼            ▼
 STORY-019    STORY-020    STORY-021    STORY-022
 (LLM settings)(Messenger) (TraceReporter)(PeerDiscovery)
-    │            │            │
-    └────────────┴────────────┘
-                 │
-                 ▼
-           STORY-024 (Purple LLM)
-                 │
-                 ▼
-           STORY-025 (Purple tracing)
 
 STORY-011 (Integration - PASSED)
     │
     └──────────────┐
                    ▼
              STORY-023 (Green trace endpoints)
+                   ↑
+                   │
+             STORY-021 (TraceReporter)
 ```
 
-#### Feature 8 Dependency Graph (Detail)
-
-```text
-STORY-025 (Purple tracing - from Feature 7)
-    │
-    ▼
-STORY-026 (Role system)
-    ├────────────┐
-    ▼            ▼
-STORY-027    STORY-028
-(Coordinator)(Researcher)
-    │            │
-    └─────┬──────┘
-          ▼
-    STORY-029 (Multi-agent scenario)
-```
+**Note:** Purple Agent stories (STORY-024 to STORY-029) continue from STORY-023 and are documented in [PurpleAgent-PRD.md](PurpleAgent-PRD.md).
 
 ### Verification After Each Phase
 

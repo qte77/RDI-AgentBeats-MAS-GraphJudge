@@ -24,7 +24,7 @@ def mock_client():
 @pytest.fixture
 def mock_client_factory():
     """Mock ClientFactory.connect."""
-    with patch("green.messenger.ClientFactory") as factory:
+    with patch("common.messenger.ClientFactory") as factory:
         # Make connect an AsyncMock since ClientFactory.connect is async
         factory.connect = AsyncMock()
         yield factory
@@ -80,7 +80,7 @@ class TestMessengerMessageSending:
         """Messages created via create_text_message_object()."""
         mock_client_factory.connect.return_value = mock_client
 
-        with patch("green.messenger.create_text_message_object") as mock_create:
+        with patch("common.messenger.create_text_message_object") as mock_create:
             mock_message = MagicMock()
             mock_create.return_value = mock_message
 

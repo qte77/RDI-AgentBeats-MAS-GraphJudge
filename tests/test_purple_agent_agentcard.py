@@ -97,7 +97,7 @@ class TestPurpleAgentMessenger:
         """Messenger uses ClientFactory.connect() from a2a-sdk."""
         from purple.messenger import Messenger
 
-        with patch("purple.messenger.ClientFactory") as factory:
+        with patch("common.messenger.ClientFactory") as factory:
             mock_client = MagicMock()
             mock_client.close = AsyncMock()
             factory.connect = AsyncMock(return_value=mock_client)

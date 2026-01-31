@@ -9,9 +9,7 @@ This test suite validates STORY-018:
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
-
-import pytest
+from datetime import UTC, datetime
 
 
 def test_common_module_exports_all_types():
@@ -43,8 +41,8 @@ def test_interaction_step_model_structure():
     """Verify InteractionStep conforms to A2A Traceability Extension Step spec."""
     from common import CallType, InteractionStep
 
-    now = datetime.now(timezone.utc)
-    later = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
+    later = datetime.now(UTC)
 
     step = InteractionStep(
         step_id="step-123",
@@ -74,8 +72,8 @@ def test_interaction_step_with_error():
     """Verify InteractionStep handles error field."""
     from common import CallType, InteractionStep
 
-    now = datetime.now(timezone.utc)
-    later = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
+    later = datetime.now(UTC)
 
     step = InteractionStep(
         step_id="step-error",
@@ -93,8 +91,8 @@ def test_interaction_step_with_parent():
     """Verify InteractionStep supports hierarchical nesting via parent_step_id."""
     from common import CallType, InteractionStep
 
-    now = datetime.now(timezone.utc)
-    later = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
+    later = datetime.now(UTC)
 
     child_step = InteractionStep(
         step_id="step-child",

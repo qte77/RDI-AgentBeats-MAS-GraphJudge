@@ -39,7 +39,7 @@ def create_app(settings: PurpleSettings | None = None) -> FastAPI:
             AgentCard with agent metadata and capabilities
         """
         return {
-            "agentId": "purple-agent",
+            "agentId": str(settings.agent_uuid),
             "name": "Purple Agent (Test Fixture)",
             "description": "Simple A2A-compliant agent for E2E testing and validation",
             "capabilities": {

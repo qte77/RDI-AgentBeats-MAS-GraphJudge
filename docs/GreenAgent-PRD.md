@@ -235,6 +235,48 @@ purpose: How, Enhance evaluation system with real LLM integration, plugin archit
 
 ---
 
+#### Feature 7: Multi-Agent Tracing Architecture
+
+**Description:** Enable Purple agents to communicate with each other while Green
+traces all interactions. Includes shared infrastructure (common module), optional
+LLM capability for Purple, and async trace reporting.
+
+**Acceptance Criteria:**
+
+- [ ] Common module with shared models (CallType, InteractionStep, JSONRPC)
+- [ ] Common LLMSettings shared between Green and Purple
+- [ ] Common Messenger eliminates code duplication
+- [ ] TraceReporter for async fire-and-forget trace reporting
+- [ ] PeerDiscovery supports static peers + Green registry
+- [ ] Green `/traces` endpoint receives async trace reports
+- [ ] Green `/register` and `/peers` endpoints for agent registry
+- [ ] Purple optional LLM capability (disabled by default)
+- [ ] Purple reports traces to Green during task execution
+- [ ] All existing tests continue to pass
+- [ ] New tests for common module and trace infrastructure
+
+**Technical Requirements:**
+
+- httpx for async HTTP client
+- Backward compatible re-exports
+- Fire-and-forget trace reporting (non-blocking)
+
+**Files:**
+
+- `src/common/__init__.py`
+- `src/common/models.py`
+- `src/common/settings.py`
+- `src/common/messenger.py`
+- `src/common/llm_client.py`
+- `src/common/trace_reporter.py`
+- `src/common/peer_discovery.py`
+- `src/green/trace_store.py`
+- `src/green/server.py` (add endpoints)
+- `src/purple/settings.py` (add LLM settings)
+- `src/purple/executor.py` (add LLM + tracing)
+
+---
+
 ## Non-Functional Requirements
 
 **Performance:**
@@ -401,7 +443,7 @@ class BaseEvaluator(ABC):
 <!-- PARSER REQUIREMENT: Include story count in parentheses -->
 <!-- PARSER REQUIREMENT: Use (depends: STORY-XXX, STORY-YYY) for dependencies -->
 
-Story Breakdown (17 stories total):
+Story Breakdown (25 stories total):
 
 - **Feature 1 (A2A Protocol Communication)** → STORY-001: Messenger with A2A SDK + extensions, STORY-002: InteractionStep model integration (depends: STORY-001), STORY-003: Executor with trace collection and cleanup (depends: STORY-002), STORY-004: Add OpenAI dependency to pyproject.toml (depends: STORY-003), STORY-005: Green Agent business logic (agent.py) (depends: STORY-004), STORY-006: Green Agent A2A HTTP server (server.py) (depends: STORY-005)
 - **Feature 2 (Graph-Based Coordination Analysis)** → STORY-013: Graph evaluator test suite (depends: STORY-003), STORY-014: Graph-based coordination analysis implementation (depends: STORY-013)
@@ -411,6 +453,7 @@ Story Breakdown (17 stories total):
 - **Feature 5 (Extensibility Documentation)** → STORY-012: Extensibility documentation and examples (depends: STORY-011)
 - **Feature 6 (E2E Testing Infrastructure)** → STORY-015: Base Purple Agent implementation (depends: STORY-003), STORY-016: E2E test suite with ground truth validation (depends: STORY-015, STORY-011)
 - STORY-017: Create demo video script (depends: STORY-011)
+- **Feature 7 (Multi-Agent Tracing Architecture)** → STORY-018: Common module with shared models (depends: STORY-003), STORY-019: Common LLM settings and client factory (depends: STORY-018), STORY-020: Common messenger (depends: STORY-018), STORY-021: Trace reporter for async trace collection (depends: STORY-018), STORY-022: Peer discovery (depends: STORY-018), STORY-023: Green trace collector endpoints (depends: STORY-011, STORY-021), STORY-024: Purple agent LLM capability (depends: STORY-019, STORY-020), STORY-025: Purple agent trace reporting integration (depends: STORY-021, STORY-024)
 
 ---
 
@@ -422,37 +465,64 @@ STORY-001 (Messenger with A2A SDK)
 STORY-002 (InteractionStep model)
     ↓
 STORY-003 (Executor with trace collection)
-    ├─────────────────┬─────────────┬─────────────────┐
-    ↓                 ↓             ↓                 ↓
-STORY-004      STORY-013      STORY-015         STORY-011
-(OpenAI dep)   (Graph test)   (Purple Agent)    (Integration)
-    ↓                 ↓                               ↑
-STORY-005      STORY-014                              │
-(Agent.py)     (Graph impl)                           │
-    ↓                                                 │
-STORY-006                                             │
-(Server.py)                                           │
-    ↓                                                 │
-STORY-007                                             │
-(LLM config)                                          │
-    ↓                                                 │
-STORY-008                                             │
-(LLM prompt)                                          │
-    ↓                                                 │
-STORY-009                                             │
-(LLM API)                                             │
+    ├─────────────────┬─────────────┬─────────────────┬─────────────────┐
+    ↓                 ↓             ↓                 ↓                 ↓
+STORY-004      STORY-013      STORY-015         STORY-011        STORY-018
+(OpenAI dep)   (Graph test)   (Purple Agent)    (Integration)    (Common models)
+    ↓                 ↓                               ↑                 │
+STORY-005      STORY-014                              │     ┌──────────┼──────────┬──────────┐
+(Agent.py)     (Graph impl)                           │     ↓          ↓          ↓          ↓
+    ↓                                                 │ STORY-019  STORY-020  STORY-021  STORY-022
+STORY-006                                             │ (LLM cfg)  (Messenger)(TraceRep) (PeerDisc)
+(Server.py)                                           │     │          │          │
+    ↓                                                 │     └────┬─────┘          │
+STORY-007                                             │          ↓                │
+(LLM config)                                          │     STORY-024             │
+    ↓                                                 │     (Purple LLM)          │
+STORY-008                                             │          │                │
+(LLM prompt)                                          │          └────────────────┤
+    ↓                                                 │                           ↓
+STORY-009                                             │                     STORY-025
+(LLM API)                                             │                     (Purple tracing)
     ↓                                                 │
 STORY-010 ────────────────────────────────────────────┘
-(Latency)
-    ↓
-STORY-011 (Integration) ──────────┬──────────────────┬──────────────┐
-    ↓                             ↓                  ↓              ↓
-STORY-012                   STORY-017          STORY-016        (merged)
-(Extensibility docs)        (Demo script)      (E2E tests)          │
+(Latency)                                             │
+    ↓                                                 ↓
+STORY-011 (Integration) ──────────┬──────────────────┬──────────────┬─────────────┐
+    ↓                             ↓                  ↓              ↓             ↓
+STORY-012                   STORY-017          STORY-016        (merged)    STORY-023
+(Extensibility docs)        (Demo script)      (E2E tests)          │       (Green traces)
                                                     ↑               │
                                                     │               │
                                              STORY-015 ─────────────┘
                                              (Purple Agent)
+```
+
+#### Feature 7 Dependency Graph (Detail)
+
+```text
+STORY-003 (Executor - PASSED)
+    │
+    ▼
+STORY-018 (Common models)
+    ├────────────┬────────────┬────────────┐
+    ▼            ▼            ▼            ▼
+STORY-019    STORY-020    STORY-021    STORY-022
+(LLM settings)(Messenger) (TraceReporter)(PeerDiscovery)
+    │            │            │
+    └────────────┴────────────┘
+                 │
+                 ▼
+           STORY-024 (Purple LLM)
+                 │
+                 ▼
+           STORY-025 (Purple tracing)
+
+STORY-011 (Integration - PASSED)
+    │
+    └──────────────┐
+                   ▼
+             STORY-023 (Green trace endpoints)
 ```
 
 ### Verification After Each Phase

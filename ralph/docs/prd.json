@@ -1,7 +1,7 @@
 {
   "project": "RDI-AgentBeats-GraphJudge",
   "description": "Graph-Based Coordination Benchmark - Green Agent (Assessor) for evaluating multi-agent coordination quality through runtime graph analysis, LLM assessment, and text similarity metrics.",
-  "scope": "Phase 1-6: A2A Protocol Compliance, Graph Analysis, LLM Integration, Latency Metrics, Documentation & Testing, E2E Infrastructure",
+  "scope": "Phase 1-7: A2A Protocol Compliance, Graph Analysis, LLM Integration, Latency Metrics, Documentation & Testing, E2E Infrastructure, Multi-Agent Tracing Architecture",
   "source": "docs/GreenAgent-PRD.md",
   "generated": "2026-01-27T17:11:12Z",
   "stories": [
@@ -408,6 +408,196 @@
       "content_hash": "7c6e2f9b4a7d0e1c5f8a3d6e9b2c5f8a1d4e7a0c3f6a9d2e5c8b1d4e7a0c",
       "depends_on": [
         "STORY-011"
+      ]
+    },
+    {
+      "id": "STORY-018",
+      "title": "Common module with shared models",
+      "description": "Create common module with shared models (CallType, InteractionStep, JSONRPCRequest/Response) for use by both Green and Purple agents. Establishes foundation for shared infrastructure.",
+      "acceptance": [
+        "src/common/__init__.py exports all shared types",
+        "src/common/models.py contains CallType, InteractionStep, JSONRPCRequest, JSONRPCResponse",
+        "Models conform to A2A Traceability Extension Step specification",
+        "Green agent re-exports from common (backward compatible)",
+        "All tests pass: uv run pytest tests/test_common_models.py"
+      ],
+      "files": [
+        "src/common/__init__.py",
+        "src/common/models.py",
+        "src/green/models.py",
+        "tests/test_common_models.py"
+      ],
+      "passes": false,
+      "completed_at": null,
+      "content_hash": "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2",
+      "depends_on": [
+        "STORY-003"
+      ]
+    },
+    {
+      "id": "STORY-019",
+      "title": "Common LLM settings and client factory",
+      "description": "Create shared LLMSettings and LLM client factory in common module. Eliminates duplication between Green and Purple agents.",
+      "acceptance": [
+        "src/common/settings.py contains LLMSettings class",
+        "LLMSettings supports env vars: AGENTBEATS_LLM_API_KEY, AGENTBEATS_LLM_BASE_URL, AGENTBEATS_LLM_MODEL",
+        "src/common/llm_client.py provides create_llm_client() factory",
+        "Green agent uses common LLMSettings (backward compatible)",
+        "All tests pass: uv run pytest tests/test_common_llm.py"
+      ],
+      "files": [
+        "src/common/settings.py",
+        "src/common/llm_client.py",
+        "src/green/settings.py",
+        "tests/test_common_llm.py"
+      ],
+      "passes": false,
+      "completed_at": null,
+      "content_hash": "b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3",
+      "depends_on": [
+        "STORY-018"
+      ]
+    },
+    {
+      "id": "STORY-020",
+      "title": "Common messenger (eliminate duplication)",
+      "description": "Move messenger implementation to common module, eliminating code duplication between Green and Purple agents.",
+      "acceptance": [
+        "src/common/messenger.py contains A2A Messenger implementation",
+        "Messenger uses ClientFactory.connect() from a2a-sdk",
+        "Green and Purple agents re-export from common",
+        "Backward compatible imports maintained",
+        "All tests pass: uv run pytest tests/test_common_messenger.py"
+      ],
+      "files": [
+        "src/common/messenger.py",
+        "src/green/messenger.py",
+        "src/purple/messenger.py",
+        "tests/test_common_messenger.py"
+      ],
+      "passes": false,
+      "completed_at": null,
+      "content_hash": "c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4",
+      "depends_on": [
+        "STORY-018"
+      ]
+    },
+    {
+      "id": "STORY-021",
+      "title": "Trace reporter for async trace collection",
+      "description": "Create TraceReporter for async fire-and-forget trace reporting from Purple agents to Green.",
+      "acceptance": [
+        "src/common/trace_reporter.py contains TraceReporter class",
+        "TraceReporter sends traces to Green's /traces endpoint",
+        "Fire-and-forget pattern (non-blocking)",
+        "Graceful handling of Green unavailability",
+        "All tests pass: uv run pytest tests/test_common_trace_reporter.py"
+      ],
+      "files": [
+        "src/common/trace_reporter.py",
+        "tests/test_common_trace_reporter.py"
+      ],
+      "passes": false,
+      "completed_at": null,
+      "content_hash": "d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5",
+      "depends_on": [
+        "STORY-018"
+      ]
+    },
+    {
+      "id": "STORY-022",
+      "title": "Peer discovery (static + Green registry)",
+      "description": "Create PeerDiscovery for discovering peer agents via static configuration and Green registry.",
+      "acceptance": [
+        "src/common/peer_discovery.py contains PeerDiscovery class",
+        "Supports static peers configuration",
+        "Supports Green registry lookup via /peers endpoint",
+        "Caches peer list with configurable TTL",
+        "All tests pass: uv run pytest tests/test_common_peer_discovery.py"
+      ],
+      "files": [
+        "src/common/peer_discovery.py",
+        "tests/test_common_peer_discovery.py"
+      ],
+      "passes": false,
+      "completed_at": null,
+      "content_hash": "e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6",
+      "depends_on": [
+        "STORY-018"
+      ]
+    },
+    {
+      "id": "STORY-023",
+      "title": "Green trace collector endpoints",
+      "description": "Add /traces, /register, and /peers endpoints to Green agent for trace collection and agent registry.",
+      "acceptance": [
+        "POST /traces endpoint receives async trace reports",
+        "POST /register endpoint registers agents in Green's registry",
+        "GET /peers endpoint returns list of registered agent URLs",
+        "src/green/trace_store.py provides in-memory trace storage",
+        "All tests pass: uv run pytest tests/test_green_trace_store.py tests/test_green_server_traces.py"
+      ],
+      "files": [
+        "src/green/trace_store.py",
+        "src/green/server.py",
+        "tests/test_green_trace_store.py",
+        "tests/test_green_server_traces.py"
+      ],
+      "passes": false,
+      "completed_at": null,
+      "content_hash": "f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7",
+      "depends_on": [
+        "STORY-011",
+        "STORY-021"
+      ]
+    },
+    {
+      "id": "STORY-024",
+      "title": "Purple agent LLM capability",
+      "description": "Add optional LLM capability to Purple agent for real task processing. Disabled by default.",
+      "acceptance": [
+        "Purple settings include LLMSettings (disabled by default)",
+        "Purple executor uses LLM for task processing when enabled",
+        "Fallback to simple response when LLM disabled",
+        "Environment variable PURPLE_LLM_ENABLED controls feature",
+        "All tests pass: uv run pytest tests/test_purple_executor_llm.py"
+      ],
+      "files": [
+        "src/purple/settings.py",
+        "src/purple/executor.py",
+        "tests/test_purple_executor_llm.py"
+      ],
+      "passes": false,
+      "completed_at": null,
+      "content_hash": "a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8",
+      "depends_on": [
+        "STORY-019",
+        "STORY-020"
+      ]
+    },
+    {
+      "id": "STORY-025",
+      "title": "Purple agent trace reporting integration",
+      "description": "Integrate trace reporting into Purple agent executor for async trace collection by Green.",
+      "acceptance": [
+        "Purple settings include green_agent_url and static_peers",
+        "Purple executor reports traces to Green during task execution",
+        "Trace reporting is fire-and-forget (non-blocking)",
+        "Purple executor uses PeerDiscovery for peer lookup",
+        "All tests pass: uv run pytest tests/test_purple_tracing.py"
+      ],
+      "files": [
+        "src/purple/settings.py",
+        "src/purple/executor.py",
+        "src/purple/server.py",
+        "tests/test_purple_tracing.py"
+      ],
+      "passes": false,
+      "completed_at": null,
+      "content_hash": "b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9",
+      "depends_on": [
+        "STORY-021",
+        "STORY-024"
       ]
     }
   ]

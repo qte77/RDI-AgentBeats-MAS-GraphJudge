@@ -9,7 +9,7 @@ through structural analysis and LLM assessment.
 ![Version](https://img.shields.io/badge/version-0.0.0-58f4c2.svg)
 [![License](https://img.shields.io/badge/license-BSD3Clause-58f4c2.svg)](LICENSE.md)
 [![CodeQL](https://github.com/qte77/RDI-AgentX-AgentBeats-CompetitionRDI-AgentX-AgentBeats-GraphJudge/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/qte77/RDI-AgentX-AgentBeats-CompetitionRDI-AgentX-AgentBeats-GraphJudge/actions/workflows/github-code-scanning/codeql)
-[![CodeFactor](https://www.codefactor.io/repository/github/qte77/RDI-AgentX-AgentBeats-CompetitionRDI-AgentX-AgentBeats-GraphJudge/badge)](https://www.codefactor.io/repository/github/qte77/RDI-AgentX-AgentBeats-CompetitionRDI-AgentX-AgentBeats-GraphJudge)
+[![CodeFactor](https://www.codefactor.io/repository/github/qte77/rdi-agentx-agentbeats-graphjudge/badge)](https://www.codefactor.io/repository/github/qte77/rdi-agentx-agentbeats-graphjudge)
 [![ruff](https://github.com/qte77/RDI-AgentX-AgentBeats-CompetitionRDI-AgentX-AgentBeats-GraphJudge/actions/workflows/ruff.yaml/badge.svg)](https://github.com/qte77/RDI-AgentX-AgentBeats-CompetitionRDI-AgentX-AgentBeats-GraphJudge/actions/workflows/ruff.yaml)
 [![pytest](https://github.com/qte77/RDI-AgentX-AgentBeats-CompetitionRDI-AgentX-AgentBeats-GraphJudge/actions/workflows/pytest.yaml/badge.svg)](https://github.com/qte77/RDI-AgentX-AgentBeats-CompetitionRDI-AgentX-AgentBeats-GraphJudge/actions/workflows/pytest.yaml)
 

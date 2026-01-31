@@ -45,9 +45,6 @@ site/
 .mypy_cache/
 .complexipy_cache/
 
-# Misc
-ralph/
-
 # Platform runtime output (keep directory via .gitkeep)
 output/*.json
 output/*.log

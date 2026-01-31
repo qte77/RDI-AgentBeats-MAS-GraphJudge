@@ -22,9 +22,12 @@
 
 1. **[AgentBeats/QUICKSTART.md](AgentBeats/QUICKSTART.md)** - Get running in 5 minutes
 
-### Platform Integration
+### Platform Integration & Competition
 
-1. **[AgentBeats/AGENTBEATS_REGISTRATION.md](AgentBeats/AGENTBEATS_REGISTRATION.md)** - Platform registration process
+1. **[AgentBeats/COMPETITION-ALIGNMENT.md](AgentBeats/COMPETITION-ALIGNMENT.md)** - Competition alignment analysis (97% aligned)
+2. **[AgentBeats/SUBMISSION-GUIDE.md](AgentBeats/SUBMISSION-GUIDE.md)** - Phase 1 submission checklist
+3. **[AgentBeats/AGENTBEATS_REGISTRATION.md](AgentBeats/AGENTBEATS_REGISTRATION.md)** - Platform registration process
+4. **[AgentBeats/LIMITATIONS.md](AgentBeats/LIMITATIONS.md)** - Scope boundaries and deferred features
 
 ### Architecture
 
@@ -59,8 +62,10 @@ docs/
 ├── AgentBeats/
 │   ├── ABSTRACT.md (TL;DR)
 │   ├── QUICKSTART.md (developer setup)
-│   ├── AGENTBEATS_REGISTRATION.md
-│   ├── SUBMISSION-GUIDE.md (Phase 1 requirements)
+│   ├── COMPETITION-ALIGNMENT.md (alignment analysis)
+│   ├── LIMITATIONS.md (scope boundaries)
+│   ├── AGENTBEATS_REGISTRATION.md (registration guide)
+│   ├── SUBMISSION-GUIDE.md (Phase 1 checklist)
 │   ├── RESOURCES.md (external links)
 │   ├── DEMO_VIDEO_SCRIPT.md (demo recording guide)
 │   ├── output_schema.md (JSON output format)
@@ -90,7 +95,10 @@ Read: AgentBeats/QUICKSTART.md
 # 2. Understand the vision
 Read: GreenAgent-UserStory.md → GreenAgent-PRD.md
 
-# 3. Deploy to platform
+# 3. Check competition alignment
+Read: AgentBeats/COMPETITION-ALIGNMENT.md
+
+# 4. Deploy to platform
 Read: AgentBeats/SUBMISSION-GUIDE.md
 ```
 
@@ -101,6 +109,8 @@ Read: AgentBeats/SUBMISSION-GUIDE.md
 | Question | Document |
 | ---------- | ---------- |
 | TL;DR? | AgentBeats/ABSTRACT.md |
+| Competition aligned? | AgentBeats/COMPETITION-ALIGNMENT.md |
+| What's out of scope? | AgentBeats/LIMITATIONS.md |
 | Green Agent vision? | GreenAgent-UserStory.md |
 | Green Agent requirements? | GreenAgent-PRD.md |
 | Purple Agent vision? | PurpleAgent-UserStory.md |
@@ -108,6 +118,7 @@ Read: AgentBeats/SUBMISSION-GUIDE.md
 | Get started? | AgentBeats/QUICKSTART.md |
 | Architecture? | arch_vis/*.puml |
 | Deploy? | AgentBeats/AGENTBEATS_REGISTRATION.md |
+| Submit? | AgentBeats/SUBMISSION-GUIDE.md |
 | Tracing/plugins? | research/MULTI_AGENT_TRACING.md |
 | TODOs? | TODO.md |
 

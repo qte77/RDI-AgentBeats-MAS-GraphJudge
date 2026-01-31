@@ -82,4 +82,13 @@ curl localhost:9009/.well-known/agent.json
 
 ### Developer Setup
 
-See [docs/QUICKSTART.md](docs/QUICKSTART.md) for local development, Docker build, and environment configuration.
+See [docs/AgentBeats/QUICKSTART.md](docs/AgentBeats/QUICKSTART.md) for local development, Docker build, and environment configuration.
+
+## Competition
+
+| Document | Purpose |
+|----------|---------|
+| [COMPETITION-ALIGNMENT.md](docs/AgentBeats/COMPETITION-ALIGNMENT.md) | Alignment analysis with competition requirements |
+| [SUBMISSION-GUIDE.md](docs/AgentBeats/SUBMISSION-GUIDE.md) | Phase 1 submission checklist |
+| [LIMITATIONS.md](docs/AgentBeats/LIMITATIONS.md) | Scope boundaries and deferred features |
+| [RESOURCES.md](docs/AgentBeats/RESOURCES.md) | External links and references |

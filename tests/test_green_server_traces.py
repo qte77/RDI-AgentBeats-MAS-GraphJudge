@@ -6,12 +6,8 @@ Tests for POST /traces, POST /register, and GET /peers endpoints.
 
 from __future__ import annotations
 
-from datetime import datetime
-
 import pytest
 from httpx import ASGITransport, AsyncClient
-
-from common.models import CallType, InteractionStep
 
 
 @pytest.fixture

@@ -5,7 +5,7 @@ applies-to: Agents and humans
 purpose: Why and What, Product vision, value proposition, and success metrics
 ---
 
-> **Scope**: This document covers the **Green Agent (Assessor)** - the benchmark system that evaluates coordination. The **Purple Agent (Assessee)** - the multi-agent system under test - will be documented separately.
+> **Scope**: This document covers the **Green Agent (Assessor)** - the benchmark system that evaluates coordination. For the **Purple Agent (Assessee)** - the baseline test fixture - see [PurpleAgent-UserStory.md](PurpleAgent-UserStory.md).
 >
 > **Naming Convention**: Some AgentBeats docs use "White Agent" for assessee; this project solely  uses "Purple Agent" (equivalent role).
 >

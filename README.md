@@ -2,8 +2,9 @@
 
 > Measure how, not just whether
 
-A GreenAgent for [AgentBeats competition](https://rdi.berkeley.edu/agentx-agentbeats.html)
-that evaluates **how agents coordinate**, not just whether they succeed.
+A graph-based coordination benchmark where a "Green Agent Judge" dissects
+multi-agent interactions into network graphs and evaluates collaboration quality
+through structural analysis and LLM assessment.
 
 ![Version](https://img.shields.io/badge/version-0.0.0-58f4c2.svg)
 [![License](https://img.shields.io/badge/license-BSD3Clause-58f4c2.svg)](LICENSE.md)

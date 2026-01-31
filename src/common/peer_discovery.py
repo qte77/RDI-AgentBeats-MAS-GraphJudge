@@ -68,7 +68,8 @@ class PeerDiscovery:
         # Query Green registry if configured
         if self._green_url:
             green_peers = await self._fetch_green_peers()
-            peers.extend(green_peers)
+            if green_peers:  # Only extend if we got results
+                peers.extend(green_peers)
 
         # Deduplicate while preserving order
         unique_peers = list(dict.fromkeys(peers))
@@ -108,18 +109,17 @@ class PeerDiscovery:
         try:
             async with httpx.AsyncClient(timeout=self._timeout) as client:
                 response = await client.get(f"{self._green_url}/peers")
+                response.raise_for_status()
                 data = response.json()
 
-                # Extract peers from response
-                if isinstance(data, dict) and "peers" in data:
-                    peers = data["peers"]
-                    if isinstance(peers, list):
-                        return peers
+            # Extract peers from response (outside async context)
+            if isinstance(data, dict) and "peers" in data:
+                peers = data["peers"]
+                if isinstance(peers, list):
+                    return peers
 
-                logger.warning(
-                    f"Invalid response format from {self._green_url}/peers: {data}"
-                )
-                return []
+            logger.warning(f"Invalid response format from {self._green_url}/peers: {data}")
+            return []
 
         except httpx.TimeoutException:
             logger.warning(f"Timeout fetching peers from {self._green_url}/peers")

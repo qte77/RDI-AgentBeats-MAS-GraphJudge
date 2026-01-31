@@ -5,7 +5,6 @@ RED phase: These tests should FAIL initially since common.peer_discovery doesn't
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -47,9 +46,7 @@ class TestPeerDiscoveryInitialization:
 
     def test_peer_discovery_accepts_both_sources(self, static_peers):
         """PeerDiscovery can use both static and Green registry sources."""
-        discovery = PeerDiscovery(
-            static_peers=static_peers, green_url="http://green:8000"
-        )
+        discovery = PeerDiscovery(static_peers=static_peers, green_url="http://green:8000")
         assert discovery is not None
 
     def test_peer_discovery_has_default_ttl(self):
@@ -60,9 +57,7 @@ class TestPeerDiscoveryInitialization:
 
     def test_peer_discovery_accepts_custom_ttl(self):
         """PeerDiscovery accepts custom cache TTL."""
-        discovery = PeerDiscovery(
-            static_peers=["http://agent1:8000"], cache_ttl=120.0
-        )
+        discovery = PeerDiscovery(static_peers=["http://agent1:8000"], cache_ttl=120.0)
         assert discovery._cache_ttl == 120.0
 
 
@@ -135,9 +130,7 @@ class TestPeerDiscoveryGreenRegistry:
             mock_client.__aexit__ = AsyncMock()
             mock_client_class.return_value = mock_client
 
-            discovery = PeerDiscovery(
-                static_peers=static_peers, green_url="http://green:8000"
-            )
+            discovery = PeerDiscovery(static_peers=static_peers, green_url="http://green:8000")
             peers = await discovery.get_peers()
 
             # Should contain all peers from both sources (deduplicated)
@@ -316,9 +309,7 @@ class TestPeerDiscoveryErrorHandling:
             mock_client.__aexit__ = AsyncMock()
             mock_client_class.return_value = mock_client
 
-            discovery = PeerDiscovery(
-                static_peers=static_peers, green_url="http://green:8000"
-            )
+            discovery = PeerDiscovery(static_peers=static_peers, green_url="http://green:8000")
 
             # Should return static peers when Green fails
             peers = await discovery.get_peers()

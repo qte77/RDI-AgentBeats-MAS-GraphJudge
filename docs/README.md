@@ -245,12 +245,6 @@ python -m green.server
 
 **Previous**: Used hardcoded path, now fully configurable
 
-### UUID Validation
-
-Agent UUID validation is currently permissive (allows non-UUID strings). Consider enforcing strict UUID format for AgentBeats compliance.
-
-See `src/green/agentbeats_schema.py:124`.
-
 ### Dynamic Agent Discovery
 
 Purple agent URL is configured via `PURPLE_AGENT_URL` environment variable, but true dynamic discovery (e.g., via service registry) is not implemented.

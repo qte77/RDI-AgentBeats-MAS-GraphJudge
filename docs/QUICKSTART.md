@@ -71,7 +71,7 @@ See [AgentBeats/AGENTBEATS_REGISTRATION.md](AgentBeats/AGENTBEATS_REGISTRATION.m
 | `GREEN_PORT` | `9009` | Server port |
 | `GREEN_CARD_URL` | `http://{host}:{port}` | AgentCard URL (auto-constructed if not set) |
 | `GREEN_OUTPUT_FILE` | `output/results.json` | Evaluation results output path |
-| `AGENT_UUID` | `green-agent` | Agent identifier |
+| `AGENT_UUID` | `550e8400-e29b-41d4-a716-446655440000` | Agent UUID (A2A compliant) |
 | `PURPLE_AGENT_URL` | `http://localhost:8002` | Purple agent URL for testing |
 | **Purple Agent (Test Fixture)** | | |
 | `PURPLE_HOST` | `0.0.0.0` | Server bind host |

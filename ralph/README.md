@@ -139,7 +139,7 @@ Source: [Claude Code Skills](https://code.claude.com/docs/en/skills#advanced-pat
 
 ## Quick Start
 
-See [TEMPLATE_USAGE.md](TEMPLATE_USAGE.md) for setup and commands reference.
+See [TEMPLATE_USAGE.md](docs/TEMPLATE_USAGE.md) for setup and commands reference.
 
 ## Security
 
@@ -157,17 +157,38 @@ For enhanced network security, adopt Claude Code's [reference devcontainer](http
 PRD.md → prd.json → Ralph Loop → src/ + tests/ → progress.txt
 ```
 
+### Phase-Specific PRD Management
+
+**Project uses phase-specific PRDs:**
+- `docs/GreenAgent-PRD.md` - Phase 1 (Green Agent benchmark)
+- `docs/PurpleAgent-PRD.md` - Phase 2 (Purple Agent competition)
+
+**Ralph tooling expects `docs/PRD.md`:**
+- `docs/PRD.md` is a **symlink** to the currently active phase PRD
+- `generate_prd_json.py` parses only `PRD.md` (no changes needed)
+
+**Switching phases:**
+```bash
+# Switch to Phase 1 (Green Agent)
+cd docs && ln -sf GreenAgent-PRD.md PRD.md
+
+# Switch to Phase 2 (Purple Agent)
+cd docs && ln -sf PurpleAgent-PRD.md PRD.md
+```
+
+**Current:** `PRD.md` → `GreenAgent-PRD.md` (Phase 1 active)
+
 ## Structure
 
 ```text
 ralph/
 ├── CHANGELOG.md            # Ralph Loop version history
 ├── README.md               # Methodology (this file)
-├── TEMPLATE_USAGE.md       # Setup and usage guide
 ├── docs/
 │   ├── LEARNINGS.md        # Patterns and lessons learned
 │   ├── prd.json            # Story tracking (gitignored)
 │   ├── progress.txt        # Execution log (gitignored)
+│   ├── TEMPLATE_USAGE.md       # Setup and usage guide
 │   └── templates/          # Project templates
 │       ├── prd.json.template
 │       ├── prd.md.template

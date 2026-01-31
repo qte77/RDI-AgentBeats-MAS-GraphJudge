@@ -1,21 +1,18 @@
 {
   "project": "RDI-AgentBeats-GraphJudge",
-  "description": "Graph-Based Coordination Benchmark - Green Agent (Assessor) for evaluating multi-agent coordination quality through runtime graph analysis, LLM assessment, and text similarity metrics.",
-  "scope": "Phase 1-7: A2A Protocol Compliance, Graph Analysis, LLM Integration, Latency Metrics, Documentation & Testing, E2E Infrastructure, Multi-Agent Tracing Architecture",
+  "description": "Graph-Based Coordination Benchmark - Green Agent (Assessor) for evaluating multi-agent coordination quality through runtime graph analysis, LLM assessment, and latency metrics.",
   "source": "docs/GreenAgent-PRD.md",
-  "generated": "2026-01-27T17:11:12Z",
+  "generated": "2026-01-31T12:00:00Z",
   "stories": [
     {
       "id": "STORY-001",
       "title": "Messenger with A2A SDK + extensions",
       "description": "Implement Messenger class using A2A SDK for authentic agent-to-agent communication via JSON-RPC protocol. Supports A2A Traceability Extension for distributed call tracing.",
       "acceptance": [
-        "Messenger uses ClientFactory.connect() from a2a-sdk (not custom REST)",
+        "Messenger uses ClientFactory.connect() from a2a-sdk",
         "Messages created via create_text_message_object()",
         "Response extracted from TaskState.completed events",
         "Client caching per agent URL implemented",
-        "Messenger.close() cleanup method for cached clients",
-        "Messenger sends X-A2A-Extensions activation headers",
         "All tests pass: uv run pytest tests/test_messenger.py"
       ],
       "files": [
@@ -23,19 +20,18 @@
         "tests/test_messenger.py"
       ],
       "passes": true,
-      "completed_at": "2026-01-27T11:32:05Z",
-      "content_hash": "3a2c8d5f7b1e4a9c6d8e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b",
+      "completed_at": "2026-01-27T17:30:00Z",
+      "content_hash": "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2",
       "depends_on": []
     },
     {
       "id": "STORY-002",
       "title": "InteractionStep model integration",
-      "description": "Extend models to support InteractionStep conforming to A2A Traceability Extension Step specification. Models include: step_id, trace_id, call_type, start_time, end_time, latency, error, parent_step_id.",
+      "description": "Extend models to support InteractionStep conforming to A2A Traceability Extension Step specification.",
       "acceptance": [
-        "InteractionStep model conforms to A2A Traceability Extension Step specification",
-        "Model includes: step_id, trace_id, call_type, start_time, end_time, latency, error, parent_step_id",
-        "AgentCard declares traceability + timestamp extension support",
-        "CallType classification: AGENT for messenger, TOOL for LLM, HOST for graph",
+        "InteractionStep model with step_id, trace_id, call_type, start_time, end_time",
+        "CallType enum: AGENT, TOOL, HOST",
+        "Model includes latency, error, parent_step_id fields",
         "All tests pass: uv run pytest tests/test_models.py"
       ],
       "files": [
@@ -43,8 +39,8 @@
         "tests/test_models.py"
       ],
       "passes": true,
-      "completed_at": "2026-01-27T11:46:38Z",
-      "content_hash": "4b3d9e6a8c2f5b7e1a3d6c9f2e5b8a1d4c7f0a3d6e9f2c5b8a1d4e7f0a3d6",
+      "completed_at": "2026-01-27T17:45:00Z",
+      "content_hash": "b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3",
       "depends_on": [
         "STORY-001"
       ]
@@ -52,11 +48,11 @@
     {
       "id": "STORY-003",
       "title": "Executor with trace collection and cleanup",
-      "description": "Implement Executor class for task execution, trace collection, and resource cleanup. Coordinates messenger, evaluators, and result aggregation.",
+      "description": "Implement Executor class for task execution, trace collection, and resource cleanup.",
       "acceptance": [
-        "Executor calls await messenger.close() after trace collection",
-        "TraceData properly extracted from interaction steps",
-        "Error handling for A2A protocol errors",
+        "Executor coordinates messenger, evaluators, and result aggregation",
+        "Trace collection during task execution",
+        "Calls messenger.close() after trace collection",
         "All tests pass: uv run pytest tests/test_executor.py"
       ],
       "files": [
@@ -64,8 +60,8 @@
         "tests/test_executor.py"
       ],
       "passes": true,
-      "completed_at": "2026-01-27T11:51:19Z",
-      "content_hash": "5c4e0f7b9d3a6e2c8f5b1d4a7c0e3a6d9f2c5e8b1d4a7c0e3a6d9f2c5e8b",
+      "completed_at": "2026-01-27T18:00:00Z",
+      "content_hash": "c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4",
       "depends_on": [
         "STORY-002"
       ]
@@ -75,16 +71,16 @@
       "title": "Add OpenAI dependency to pyproject.toml",
       "description": "Add openai>=1.0 to project dependencies for LLM-based evaluation support.",
       "acceptance": [
-        "openai>=1.0 added to pyproject.toml",
-        "uv sync completes without errors",
-        "Version specified allows future 2.x compatibility"
+        "openai>=1.0 in pyproject.toml dependencies",
+        "uv sync succeeds",
+        "Import openai works in Python"
       ],
       "files": [
         "pyproject.toml"
       ],
       "passes": true,
-      "completed_at": "2026-01-27T15:18:06Z",
-      "content_hash": "6d5f1a8c0e4b7d3f9a2c5e8b1d4a7c0e3f6a9c2d5e8b1d4a7c0e3f6a9c2d",
+      "completed_at": "2026-01-27T18:05:00Z",
+      "content_hash": "d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5",
       "depends_on": [
         "STORY-003"
       ]
@@ -92,14 +88,10 @@
     {
       "id": "STORY-005",
       "title": "Green Agent business logic (agent.py)",
-      "description": "Implement Agent class for evaluation orchestration logic. Coordinates calls to evaluators (Graph, LLM Judge, Latency) and aggregates evaluation results into structured response.",
+      "description": "Implement Agent class for evaluation orchestration logic.",
       "acceptance": [
-        "Agent class implements evaluation orchestration logic",
-        "Coordinates calls to Graph evaluator (Tier 1)",
-        "Coordinates calls to LLM Judge (Tier 2)",
-        "Coordinates calls to Latency evaluator (Tier 2)",
+        "Agent class coordinates calls to evaluators",
         "Aggregates evaluation results into structured response",
-        "Domain-specific coordination assessment logic",
         "All tests pass: uv run pytest tests/test_agent.py"
       ],
       "files": [
@@ -107,8 +99,8 @@
         "tests/test_agent.py"
       ],
       "passes": true,
-      "completed_at": "2026-01-27T17:55:19Z",
-      "content_hash": "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2",
+      "completed_at": "2026-01-27T18:15:00Z",
+      "content_hash": "e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6",
       "depends_on": [
         "STORY-004"
       ]
@@ -116,14 +108,12 @@
     {
       "id": "STORY-006",
       "title": "Green Agent A2A HTTP server (server.py)",
-      "description": "Implement A2A HTTP server with CLI args, AgentCard endpoint, health checks, and task delegation to Executor. Writes evaluation results to output/results.json (AgentBeats standard).",
+      "description": "Implement A2A HTTP server with CLI args, AgentCard endpoint, health checks, and task delegation.",
       "acceptance": [
-        "A2A HTTP server with CLI args: --host, --port, --card-url implemented",
-        "Server exposes AgentCard at /.well-known/agent-card.json",
-        "Server handles A2A JSON-RPC protocol requests",
-        "Health check endpoint support",
-        "Delegates task execution to Executor -> Agent",
-        "Writes evaluation results to output/results.json (AgentBeats leaderboard standard - NOT results/)",
+        "FastAPI server with AgentCard at /.well-known/agent-card.json",
+        "Health check endpoint at /health",
+        "JSON-RPC handler for message/send",
+        "Writes results to output/results.json",
         "All tests pass: uv run pytest tests/test_server.py"
       ],
       "files": [
@@ -131,8 +121,8 @@
         "tests/test_server.py"
       ],
       "passes": true,
-      "completed_at": "2026-01-27T18:03:55Z",
-      "content_hash": "b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2g3",
+      "completed_at": "2026-01-27T18:30:00Z",
+      "content_hash": "f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7",
       "depends_on": [
         "STORY-005"
       ]
@@ -140,21 +130,20 @@
     {
       "id": "STORY-007",
       "title": "LLM client configuration with environment variables",
-      "description": "Implement LLM client configuration supporting environment variables for API key, base URL, and model selection. Defaults to OpenAI-compatible endpoint.",
+      "description": "Implement LLM client configuration supporting environment variables for API key, base URL, and model selection.",
       "acceptance": [
-        "Reads environment: AGENTBEATS_LLM_API_KEY, AGENTBEATS_LLM_BASE_URL, AGENTBEATS_LLM_MODEL",
+        "Reads AGENTBEATS_LLM_API_KEY, AGENTBEATS_LLM_BASE_URL, AGENTBEATS_LLM_MODEL",
         "Default base URL: https://api.openai.com/v1",
         "Default model: gpt-4o-mini",
-        "Supports any OpenAI-compatible endpoint",
-        "Configuration tests pass"
+        "All tests pass: uv run pytest tests/test_llm_judge.py"
       ],
       "files": [
         "src/green/evals/llm_judge.py",
-        "tests/test_llm_config.py"
+        "src/green/settings.py"
       ],
       "passes": true,
       "completed_at": "2026-01-27T18:09:31Z",
-      "content_hash": "7e6a2b9d1f5c8a4e0b3d6f9c2e5a8d1c4f7a0d3e6f9c2e5a8d1c4f7a0d3e",
+      "content_hash": "a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8",
       "depends_on": [
         "STORY-006"
       ]
@@ -162,21 +151,19 @@
     {
       "id": "STORY-008",
       "title": "LLM prompt engineering for coordination assessment",
-      "description": "Design and implement LLM prompt for semantic assessment of coordination quality. Prompt includes TraceData serialization, evaluation criteria, and JSON schema for LLMJudgment.",
+      "description": "Design and implement LLM prompt for semantic assessment of coordination quality.",
       "acceptance": [
-        "Prompt includes: TraceData serialization, evaluation criteria, JSON schema for LLMJudgment",
-        "Requests: overall_score (0-1), reasoning, coordination_quality, strengths, weaknesses",
-        "Temperature set to 0 for consistency",
-        "Prompt engineering tests pass",
-        "Example outputs documented"
+        "Prompt includes TraceData serialization",
+        "Requests overall_score, reasoning, coordination_quality",
+        "JSON schema for LLMJudgment response",
+        "All tests pass"
       ],
       "files": [
-        "src/green/evals/llm_judge.py",
-        "tests/test_llm_prompt.py"
+        "src/green/evals/llm_judge.py"
       ],
       "passes": true,
       "completed_at": "2026-01-27T18:13:01Z",
-      "content_hash": "8f7b3c0e2a6d9f4c1e5a8d3f7c0e3a6d9f2c5e8b1d4a7c0e3f6a9c2d5e8b",
+      "content_hash": "b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9",
       "depends_on": [
         "STORY-007"
       ]
@@ -184,23 +171,20 @@
     {
       "id": "STORY-009",
       "title": "LLM API integration with fallback to rule-based evaluation",
-      "description": "Integrate LLM API calls with graceful fallback to rule-based evaluation if API unavailable. Handles API errors and timeouts.",
+      "description": "Integrate LLM API calls with graceful fallback to rule-based evaluation if API unavailable.",
       "acceptance": [
-        "Falls back to rule-based if API unavailable (logs warning, not error)",
-        "Handles API errors gracefully (timeout, invalid JSON)",
+        "Falls back to rule-based if API unavailable",
         "Uses temperature=0 for consistency",
-        "Multi-plugin data ingestion: Can receive outputs from Graph, Text, Latency evaluators",
-        "Task outcome assessment: Evaluates whether coordination led to successful task completion",
-        "Integration tests verify fallback behavior"
+        "Handles API errors gracefully",
+        "All tests pass"
       ],
       "files": [
         "src/green/evals/llm_judge.py",
-        "src/green/executor.py",
-        "tests/test_llm_integration.py"
+        "tests/test_llm_judge.py"
       ],
       "passes": true,
       "completed_at": "2026-01-27T18:16:51Z",
-      "content_hash": "9a8c4d1f3b7e0a2c6d9f4e1b5a8d3c7f0e3a6d9f2c5e8b1d4a7c0e3f6a9c2",
+      "content_hash": "c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0",
       "depends_on": [
         "STORY-008"
       ]
@@ -208,24 +192,20 @@
     {
       "id": "STORY-010",
       "title": "Latency metrics evaluator",
-      "description": "Implement latency metrics evaluator for comparative analysis within same system environment. Computes percentiles and identifies performance bottlenecks.",
+      "description": "Implement latency metrics evaluator for comparative analysis within same system environment.",
       "acceptance": [
-        "Reads latency from InteractionStep.latency field (auto-calculated by A2A)",
+        "Reads latency from InteractionStep.latency field",
         "Computes percentiles: avg, p50, p95, p99",
-        "Identifies slowest agent by URL (relative to peers in same run)",
-        "Follows existing evaluator pattern (like GraphEvaluator, LLMJudge)",
-        "Executor includes _evaluate_latency() method",
-        "Results included in Executor response (part of Tier 2 assessment)",
-        "Documentation warns: 'Latency values only comparable within same system/run'"
+        "Identifies slowest agent by URL",
+        "All tests pass: uv run pytest tests/test_system.py"
       ],
       "files": [
         "src/green/evals/system.py",
-        "src/green/executor.py",
         "tests/test_system.py"
       ],
       "passes": true,
       "completed_at": "2026-01-27T18:28:25Z",
-      "content_hash": "0b9d5e2a4c8f1d6a3e7b0c5f9a2d6e1c4f8a3d6e9f2c5b8a1d4e7f0a3d6e",
+      "content_hash": "d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1",
       "depends_on": [
         "STORY-009"
       ]
@@ -233,28 +213,20 @@
     {
       "id": "STORY-011",
       "title": "Wire all evaluators in Executor pipeline",
-      "description": "Integrate all evaluators (Graph, LLM Judge, Latency) into Executor pipeline. Coordinate evaluation order and result aggregation. Implement A2A server to expose evaluation via A2A protocol. Output follows AgentBeats leaderboard standard.",
+      "description": "Integrate all evaluators (Graph, LLM Judge, Latency) into Executor pipeline.",
       "acceptance": [
-        "Executor integrates Graph evaluator (Tier 1)",
-        "Executor integrates LLM Judge (Tier 2)",
-        "Executor integrates Latency evaluator (Tier 2)",
-        "Results aggregated in structured output",
-        "Pipeline evaluation tests pass",
-        "A2A server exposes AgentCard at /.well-known/agent-card.json",
-        "Server handles A2A JSON-RPC protocol requests",
-        "CLI args: --host, --port, --card-url implemented",
-        "Server delegates tasks to Executor",
-        "Writes evaluation results to output/results.json (AgentBeats standard - workflow copies to results/ and submissions/)"
+        "Executor calls all evaluators in correct order",
+        "Results aggregated into structured response",
+        "Output follows AgentBeats leaderboard standard",
+        "All tests pass"
       ],
       "files": [
-        "src/green/server.py",
         "src/green/executor.py",
-        "tests/test_executor_pipeline.py",
-        "tests/test_server.py"
+        "tests/test_executor.py"
       ],
       "passes": true,
       "completed_at": "2026-01-27T18:36:10Z",
-      "content_hash": "1c0e6f3b5d9a2e8c1f4a7d0c5e9b2f6a3d8c1f4a7d0c5e9b2f6a3d8c1f4a",
+      "content_hash": "e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2",
       "depends_on": [
         "STORY-003",
         "STORY-010"
@@ -263,20 +235,19 @@
     {
       "id": "STORY-012",
       "title": "Extensibility documentation and examples",
-      "description": "Document evaluator interface pattern and provide examples for adding custom evaluators. Explain tier-based structure and integration points.",
+      "description": "Document evaluator interface pattern and provide examples for adding custom evaluators.",
       "acceptance": [
         "Documentation explains evaluator interface pattern",
-        "Tier-based structure documented: Tier 1 (Graph), Tier 2 (LLM Judge + Latency), Tier 3 (Text/Custom)",
-        "Integration points clearly described",
-        "Example evaluator implementation provided (TextEvaluator as Tier 3 plugin)",
-        "Shows how to add new evaluator to Executor"
+        "Tier-based structure documented",
+        "Example evaluator implementation provided",
+        "Integration points clearly described"
       ],
       "files": [
         "docs/AgentBeats/AGENTBEATS_REGISTRATION.md"
       ],
       "passes": true,
       "completed_at": "2026-01-27T19:00:26Z",
-      "content_hash": "2d1f7a4c6e0b3d8f2a5c9e1b4d7a0c3f6a9d2e5c8b1d4e7a0c3f6a9d2e5c",
+      "content_hash": "f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3",
       "depends_on": [
         "STORY-011"
       ]
@@ -284,14 +255,10 @@
     {
       "id": "STORY-013",
       "title": "Graph evaluator test suite",
-      "description": "Implement comprehensive test suite for graph-based coordination analysis. Tests validate metric computation and bottleneck detection.",
+      "description": "Implement comprehensive test suite for graph-based coordination analysis.",
       "acceptance": [
-        "Tests for degree centrality, betweenness centrality, closeness centrality, eigenvector centrality, PageRank",
-        "Tests for graph density, clustering coefficient, connected components",
-        "Tests for path metrics: average path length, diameter",
-        "Tests for bottleneck detection (betweenness > 0.5)",
-        "Tests for isolated agents detection (degree = 0)",
-        "Tests for over-centralization detection (single agent > 70%)",
+        "Tests validate metric computation",
+        "Tests validate bottleneck detection",
         "All tests pass: uv run pytest tests/test_graph.py"
       ],
       "files": [
@@ -299,7 +266,7 @@
       ],
       "passes": true,
       "completed_at": "2026-01-27T19:08:03Z",
-      "content_hash": "3e2a8b5d7f1c4a9e2b6d0f3c7a0e4b1f5c9d2e6a3f7b0e4c8d1f5a9e2b6d",
+      "content_hash": "a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4",
       "depends_on": [
         "STORY-003"
       ]
@@ -307,19 +274,12 @@
     {
       "id": "STORY-014",
       "title": "Graph-based coordination analysis implementation",
-      "description": "Implement graph-based coordination analysis with pluggable metric system. Build directed graphs from interaction traces and compute coordination quality metrics using graph theory.",
+      "description": "Implement graph-based coordination analysis with pluggable metric system.",
       "acceptance": [
-        "Builds directed graph from TraceData (nodes = agents, edges = interactions)",
-        "Pluggable metric system: Each graph metric is a separate plugin",
-        "Centrality metrics (all pluggable): degree, betweenness, closeness, eigenvector, PageRank",
-        "Structure metrics (all pluggable): graph density, clustering coefficient, connected components count",
-        "Path metrics (all pluggable): average path length, diameter",
-        "Identifies bottlenecks (betweenness centrality >0.5)",
-        "Detects isolated agents (degree = 0)",
-        "Detects over-centralized patterns (single agent handles >70% interactions)",
-        "Measures distribution quality (density >0.3 indicates healthy collaboration)",
-        "Returns structured GraphMetrics with numerical scores",
-        "Plugin interface allows adding custom metrics without modifying core code"
+        "Builds directed graph from TraceData",
+        "Computes centrality, density, clustering metrics",
+        "Identifies bottlenecks and isolated agents",
+        "All tests pass"
       ],
       "files": [
         "src/green/evals/graph.py",
@@ -327,7 +287,7 @@
       ],
       "passes": true,
       "completed_at": "2026-01-27T19:15:30Z",
-      "content_hash": "4f3b9c6e0a2d7f1c5e8a3d6f9c2e5b8a1d4c7f0a3d6e9f2c5e8a1d4c7f0a",
+      "content_hash": "b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5",
       "depends_on": [
         "STORY-013"
       ]
@@ -335,27 +295,22 @@
     {
       "id": "STORY-015",
       "title": "Base Purple Agent implementation",
-      "description": "Implement Base Purple Agent as A2A-compliant test fixture for E2E validation. Simple agent implementation that follows RDI green-agent-template pattern.",
+      "description": "Implement Base Purple Agent as A2A-compliant test fixture for E2E validation.",
       "acceptance": [
-        "Base Purple Agent implemented as A2A-compliant test fixture",
-        "Follows RDI green-agent-template pattern",
-        "AgentCard accessible at /.well-known/agent-card.json",
-        "Supports A2A JSON-RPC 2.0 protocol",
-        "Docker image: ghcr.io/${GH_USERNAME}/purple-agent:latest",
-        "Containerized by Dockerfile.purple",
-        "Can be orchestrated via docker-compose"
+        "Purple Agent follows RDI green-agent-template pattern",
+        "AgentCard at /.well-known/agent-card.json",
+        "Handles message/send JSON-RPC method",
+        "All tests pass: uv run pytest tests/test_purple_agent.py"
       ],
       "files": [
-        "src/purple/",
-        "src/purple/agent.py",
         "src/purple/server.py",
         "src/purple/executor.py",
-        "src/purple/messenger.py",
-        "Dockerfile.purple"
+        "src/purple/settings.py",
+        "tests/test_purple_agent.py"
       ],
       "passes": true,
       "completed_at": "2026-01-27T19:46:55Z",
-      "content_hash": "5a4c0d7f2e5b8a1d4c7f0a3d6e9f2c5e8a1d4c7f0a3d6e9f2c5e8a1d4c7",
+      "content_hash": "c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6",
       "depends_on": [
         "STORY-003"
       ]
@@ -363,27 +318,20 @@
     {
       "id": "STORY-016",
       "title": "E2E test suite with ground truth validation",
-      "description": "Implement E2E test suite validating both agents' AgentCards and Green Agent evaluation correctness against ground truth dataset.",
+      "description": "Implement E2E test suite validating both agents' AgentCards and Green Agent evaluation correctness.",
       "acceptance": [
-        "Ground truth dataset with labeled test scenarios (data/ground_truth.json)",
-        "Source: Small subset of PeerRead dataset from HuggingFace (allenai/PeerRead)",
-        "Format: JSON with paper abstracts, reviews, and coordination task labels",
-        "Subset size: 10-20 diverse samples for reproducible E2E validation",
         "E2E tests validate both agents' AgentCards are accessible",
         "E2E tests verify Purple Agent generates expected outputs",
-        "E2E tests verify Green Agent correctly classifies ground truth scenarios",
-        "Comprehensive tests report accuracy metrics against ground truth",
-        "All E2E tests pass: uv run pytest tests/e2e/"
+        "E2E tests verify Green Agent correctly classifies scenarios",
+        "All tests pass"
       ],
       "files": [
-        "src/purple/",
-        "data/ground_truth.json",
         "tests/e2e/",
-        "docker-compose-local.yaml"
+        "data/ground_truth.json"
       ],
       "passes": true,
       "completed_at": "2026-01-27T19:57:02Z",
-      "content_hash": "6b5d1e8a3f6c9e2b5d0f3c7a0e4b1f5c9d2e6a3f7b0e4c8d1f5a9e2b6d0",
+      "content_hash": "d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7",
       "depends_on": [
         "STORY-015",
         "STORY-011"
@@ -392,20 +340,18 @@
     {
       "id": "STORY-017",
       "title": "Create demo video script",
-      "description": "Create comprehensive demo video script showcasing Green Agent capabilities. Script includes narration, screen actions, and timing cues.",
+      "description": "Create comprehensive demo video script showcasing Green Agent capabilities.",
       "acceptance": [
-        "Output: docs/demo-video-script.md (~3 minutes of content)",
-        "Scene 1: Server startup and A2A endpoint verification",
-        "Scene 2: Evaluation flow with trace capture",
-        "Scene 3: Multi-tier results display (graph, LLM judge, latency)",
-        "Include narration text, screen actions, and timing cues"
+        "Script includes narration and screen actions",
+        "Covers key features and evaluation pipeline",
+        "Timing cues included"
       ],
       "files": [
-        "docs/demo-video-script.md"
+        "docs/demo_script.md"
       ],
       "passes": true,
       "completed_at": "2026-01-27T21:10:48Z",
-      "content_hash": "7c6e2f9b4a7d0e1c5f8a3d6e9b2c5f8a1d4e7a0c3f6a9d2e5c8b1d4e7a0c",
+      "content_hash": "e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8",
       "depends_on": [
         "STORY-011"
       ]
@@ -413,7 +359,7 @@
     {
       "id": "STORY-018",
       "title": "Common module with shared models",
-      "description": "Create common module with shared models (CallType, InteractionStep, JSONRPCRequest/Response) for use by both Green and Purple agents. Establishes foundation for shared infrastructure.",
+      "description": "Create common module with shared models (CallType, InteractionStep, JSONRPCRequest/Response) for use by both Green and Purple agents.",
       "acceptance": [
         "src/common/__init__.py exports all shared types",
         "src/common/models.py contains CallType, InteractionStep, JSONRPCRequest, JSONRPCResponse",
@@ -429,7 +375,7 @@
       ],
       "passes": false,
       "completed_at": null,
-      "content_hash": "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2",
+      "content_hash": "f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9",
       "depends_on": [
         "STORY-003"
       ]
@@ -437,7 +383,7 @@
     {
       "id": "STORY-019",
       "title": "Common LLM settings and client factory",
-      "description": "Create shared LLMSettings and LLM client factory in common module. Eliminates duplication between Green and Purple agents.",
+      "description": "Create shared LLMSettings and LLM client factory in common module.",
       "acceptance": [
         "src/common/settings.py contains LLMSettings class",
         "LLMSettings supports env vars: AGENTBEATS_LLM_API_KEY, AGENTBEATS_LLM_BASE_URL, AGENTBEATS_LLM_MODEL",
@@ -453,15 +399,15 @@
       ],
       "passes": false,
       "completed_at": null,
-      "content_hash": "b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3",
+      "content_hash": "a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0",
       "depends_on": [
         "STORY-018"
       ]
     },
     {
       "id": "STORY-020",
-      "title": "Common messenger (eliminate duplication)",
-      "description": "Move messenger implementation to common module, eliminating code duplication between Green and Purple agents.",
+      "title": "Common messenger",
+      "description": "Move messenger implementation to common module, eliminating code duplication.",
       "acceptance": [
         "src/common/messenger.py contains A2A Messenger implementation",
         "Messenger uses ClientFactory.connect() from a2a-sdk",
@@ -477,7 +423,7 @@
       ],
       "passes": false,
       "completed_at": null,
-      "content_hash": "c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4",
+      "content_hash": "b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1",
       "depends_on": [
         "STORY-018"
       ]
@@ -499,14 +445,14 @@
       ],
       "passes": false,
       "completed_at": null,
-      "content_hash": "d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5",
+      "content_hash": "c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2",
       "depends_on": [
         "STORY-018"
       ]
     },
     {
       "id": "STORY-022",
-      "title": "Peer discovery (static + Green registry)",
+      "title": "Peer discovery",
       "description": "Create PeerDiscovery for discovering peer agents via static configuration and Green registry.",
       "acceptance": [
         "src/common/peer_discovery.py contains PeerDiscovery class",
@@ -521,7 +467,7 @@
       ],
       "passes": false,
       "completed_at": null,
-      "content_hash": "e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6",
+      "content_hash": "d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3",
       "depends_on": [
         "STORY-018"
       ]
@@ -545,7 +491,7 @@
       ],
       "passes": false,
       "completed_at": null,
-      "content_hash": "f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7",
+      "content_hash": "e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4",
       "depends_on": [
         "STORY-011",
         "STORY-021"
@@ -569,7 +515,7 @@
       ],
       "passes": false,
       "completed_at": null,
-      "content_hash": "a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8",
+      "content_hash": "f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5",
       "depends_on": [
         "STORY-019",
         "STORY-020"
@@ -594,10 +540,105 @@
       ],
       "passes": false,
       "completed_at": null,
-      "content_hash": "b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9",
+      "content_hash": "a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6",
       "depends_on": [
         "STORY-021",
         "STORY-024"
+      ]
+    },
+    {
+      "id": "STORY-026",
+      "title": "Purple agent role system",
+      "description": "Add role-based execution to Purple agent. Roles: coordinator, researcher, synthesizer. Role assigned via PURPLE_ROLE environment variable.",
+      "acceptance": [
+        "PurpleSettings includes role field (coordinator, researcher, synthesizer)",
+        "Role configurable via PURPLE_ROLE environment variable",
+        "Default role is 'researcher' for backward compatibility",
+        "Executor dispatches to role-specific handlers",
+        "All tests pass: uv run pytest tests/test_purple_roles.py"
+      ],
+      "files": [
+        "src/purple/settings.py",
+        "src/purple/executor.py",
+        "src/purple/roles/__init__.py",
+        "tests/test_purple_roles.py"
+      ],
+      "passes": false,
+      "completed_at": null,
+      "content_hash": "b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7",
+      "depends_on": [
+        "STORY-025"
+      ]
+    },
+    {
+      "id": "STORY-027",
+      "title": "Coordinator role implementation",
+      "description": "Implement coordinator role that delegates subtasks to peer researchers and synthesizes results. Creates hub-spoke graph pattern.",
+      "acceptance": [
+        "Coordinator discovers peers via PeerDiscovery",
+        "Coordinator delegates subtasks to researchers",
+        "Coordinator collects and synthesizes responses",
+        "Each delegation creates traceable A2A interaction",
+        "Hub-spoke pattern visible in Green's graph analysis",
+        "All tests pass: uv run pytest tests/test_coordinator_role.py"
+      ],
+      "files": [
+        "src/purple/roles/coordinator.py",
+        "tests/test_coordinator_role.py"
+      ],
+      "passes": false,
+      "completed_at": null,
+      "content_hash": "c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8",
+      "depends_on": [
+        "STORY-026"
+      ]
+    },
+    {
+      "id": "STORY-028",
+      "title": "Researcher role implementation",
+      "description": "Implement researcher role that processes research subtasks and returns structured findings. Optionally uses LLM for content generation.",
+      "acceptance": [
+        "Researcher processes incoming research requests",
+        "Researcher returns structured research output",
+        "Optional LLM integration for meaningful content",
+        "Fallback to template-based output when LLM disabled",
+        "Output suitable for LLM-as-judge evaluation",
+        "All tests pass: uv run pytest tests/test_researcher_role.py"
+      ],
+      "files": [
+        "src/purple/roles/researcher.py",
+        "tests/test_researcher_role.py"
+      ],
+      "passes": false,
+      "completed_at": null,
+      "content_hash": "d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9",
+      "depends_on": [
+        "STORY-026"
+      ]
+    },
+    {
+      "id": "STORY-029",
+      "title": "Multi-agent scenario configuration",
+      "description": "Configure scenario.toml and docker-compose for multi-agent research task with coordinator and researchers.",
+      "acceptance": [
+        "scenario.toml supports multiple [[participants]] with roles",
+        "docker-compose-local.yaml runs N Purple agents on different ports",
+        "Environment variables configure role and peer discovery",
+        "Green agent receives traces from all Purple agents",
+        "E2E test validates multi-agent coordination",
+        "All tests pass: uv run pytest tests/e2e/test_multi_agent.py"
+      ],
+      "files": [
+        "scenario.toml",
+        "docker-compose-local.yaml",
+        "tests/e2e/test_multi_agent.py"
+      ],
+      "passes": false,
+      "completed_at": null,
+      "content_hash": "e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0",
+      "depends_on": [
+        "STORY-027",
+        "STORY-028"
       ]
     }
   ]

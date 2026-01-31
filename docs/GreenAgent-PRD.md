@@ -277,6 +277,51 @@ LLM capability for Purple, and async trace reporting.
 
 ---
 
+#### Feature 8: Collaborative Research Task (Purple Agent Roles)
+
+**Description:** Enable Purple agents to coordinate on research tasks with
+assignable roles (coordinator, researcher, synthesizer). Demonstrates Green's
+graph analysis, LLM-as-judge, and latency metrics through real multi-agent
+coordination patterns.
+
+**Acceptance Criteria:**
+
+- [ ] Purple agent role system (coordinator, researcher, synthesizer)
+- [ ] Coordinator delegates subtasks to peer researchers
+- [ ] Researchers produce structured research output
+- [ ] Synthesizer combines research into final summary
+- [ ] Hub-spoke coordination pattern (coordinator as hub)
+- [ ] Chain coordination pattern (sequential handoff)
+- [ ] Mesh coordination pattern (all-to-all for small N)
+- [ ] scenario.toml supports multiple [[participants]] with role env vars
+- [ ] docker-compose supports N Purple agents with different ports/roles
+- [ ] Research output suitable for LLM-as-judge evaluation
+
+**Technical Requirements:**
+
+- Role assignment via `PURPLE_ROLE` environment variable
+- Peer URLs via `PURPLE_STATIC_PEERS` (comma-separated)
+- Same Docker image, different roles via env vars
+- Coordination pattern configurable
+
+**Coordination Patterns:**
+
+| Pattern | Graph | Green Detects |
+|---------|-------|---------------|
+| Hub-Spoke | P1↔P2, P1↔P3 | High centrality, bottleneck |
+| Chain | P1→P2→P3 | Low density, sequential |
+| Mesh | All↔All | High density, distributed |
+
+**Files:**
+
+- `src/purple/settings.py` (add role, peers config)
+- `src/purple/executor.py` (role-based execution)
+- `src/purple/roles/` (coordinator, researcher, synthesizer)
+- `scenario.toml` (multi-participant config)
+- `docker-compose-local.yaml` (multi-agent orchestration)
+
+---
+
 ## Non-Functional Requirements
 
 **Performance:**
@@ -443,7 +488,7 @@ class BaseEvaluator(ABC):
 <!-- PARSER REQUIREMENT: Include story count in parentheses -->
 <!-- PARSER REQUIREMENT: Use (depends: STORY-XXX, STORY-YYY) for dependencies -->
 
-Story Breakdown (25 stories total):
+Story Breakdown (29 stories total):
 
 - **Feature 1 (A2A Protocol Communication)** → STORY-001: Messenger with A2A SDK + extensions, STORY-002: InteractionStep model integration (depends: STORY-001), STORY-003: Executor with trace collection and cleanup (depends: STORY-002), STORY-004: Add OpenAI dependency to pyproject.toml (depends: STORY-003), STORY-005: Green Agent business logic (agent.py) (depends: STORY-004), STORY-006: Green Agent A2A HTTP server (server.py) (depends: STORY-005)
 - **Feature 2 (Graph-Based Coordination Analysis)** → STORY-013: Graph evaluator test suite (depends: STORY-003), STORY-014: Graph-based coordination analysis implementation (depends: STORY-013)
@@ -454,6 +499,7 @@ Story Breakdown (25 stories total):
 - **Feature 6 (E2E Testing Infrastructure)** → STORY-015: Base Purple Agent implementation (depends: STORY-003), STORY-016: E2E test suite with ground truth validation (depends: STORY-015, STORY-011)
 - STORY-017: Create demo video script (depends: STORY-011)
 - **Feature 7 (Multi-Agent Tracing Architecture)** → STORY-018: Common module with shared models (depends: STORY-003), STORY-019: Common LLM settings and client factory (depends: STORY-018), STORY-020: Common messenger (depends: STORY-018), STORY-021: Trace reporter for async trace collection (depends: STORY-018), STORY-022: Peer discovery (depends: STORY-018), STORY-023: Green trace collector endpoints (depends: STORY-011, STORY-021), STORY-024: Purple agent LLM capability (depends: STORY-019, STORY-020), STORY-025: Purple agent trace reporting integration (depends: STORY-021, STORY-024)
+- **Feature 8 (Collaborative Research Task)** → STORY-026: Purple agent role system (depends: STORY-025), STORY-027: Coordinator role implementation (depends: STORY-026), STORY-028: Researcher role implementation (depends: STORY-026), STORY-029: Multi-agent scenario configuration (depends: STORY-027, STORY-028)
 
 ---
 
@@ -523,6 +569,23 @@ STORY-011 (Integration - PASSED)
     └──────────────┐
                    ▼
              STORY-023 (Green trace endpoints)
+```
+
+#### Feature 8 Dependency Graph (Detail)
+
+```text
+STORY-025 (Purple tracing - from Feature 7)
+    │
+    ▼
+STORY-026 (Role system)
+    ├────────────┐
+    ▼            ▼
+STORY-027    STORY-028
+(Coordinator)(Researcher)
+    │            │
+    └─────┬──────┘
+          ▼
+    STORY-029 (Multi-agent scenario)
 ```
 
 ### Verification After Each Phase

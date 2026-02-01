@@ -10,7 +10,7 @@
 #
 # Usage:
 #   export GHCR_PAT=<your-github-pat>
-#   export GITHUB_USERNAME=<your-github-username>
+#   export GH_USERNAME=<your-github-username>
 #   bash scripts/push.sh
 
 set -e
@@ -27,14 +27,16 @@ echo "=============================="
 echo ""
 
 # Validate required environment variables
-GITHUB_USERNAME="${GITHUB_USERNAME:-}"
+GH_USERNAME="${GH_USERNAME:-}"
 GHCR_PAT="${GHCR_PAT:-}"
+GREEN_AGENT_IMAGE_NAME="mas-graphjudge-green"
+PURPLE_AGENT_IMAGE_NAME="mas-graphjudge-purple"
 
-if [ -z "$GITHUB_USERNAME" ]; then
-  echo -e "${RED}Error: GITHUB_USERNAME environment variable is not set${NC}"
+if [ -z "$GH_USERNAME" ]; then
+  echo -e "${RED}Error: GH_USERNAME environment variable is not set${NC}"
   echo ""
   echo "Usage:"
-  echo "  export GITHUB_USERNAME=<your-github-username>"
+  echo "  export GH_USERNAME=<your-github-username>"
   echo "  export GHCR_PAT=<your-github-pat>"
   echo "  bash scripts/push.sh"
   echo ""
@@ -53,34 +55,34 @@ if [ -z "$GHCR_PAT" ]; then
   echo "  4. Copy the generated token"
   echo ""
   echo "Usage:"
-  echo "  export GITHUB_USERNAME=<your-github-username>"
+  echo "  export GH_USERNAME=<your-github-username>"
   echo "  export GHCR_PAT=<your-github-pat>"
   echo "  bash scripts/push.sh"
   echo ""
   exit 1
 fi
 
-echo -e "${BLUE}GitHub username:${NC} $GITHUB_USERNAME"
+echo -e "${BLUE}GitHub username:${NC} $GH_USERNAME"
 echo -e "${BLUE}Registry:${NC} ghcr.io"
 echo ""
 
 # Authenticate with GHCR
 echo -e "${GREEN}[1/3] Authenticating with GitHub Container Registry...${NC}"
-echo "$GHCR_PAT" | docker login ghcr.io -u "$GITHUB_USERNAME" --password-stdin
+echo "$GHCR_PAT" | docker login ghcr.io -u "$GH_USERNAME" --password-stdin
 
 echo -e "${GREEN}✓ Authentication successful${NC}"
 echo ""
 
 # Push Green Agent
 echo -e "${GREEN}[2/3] Pushing Agent Green Agent...${NC}"
-docker push ghcr.io/${GITHUB_USERNAME}/green-agent:latest
+docker push ghcr.io/${GH_USERNAME}/${GREEN_AGENT_IMAGE_NAME}:latest
 
 echo -e "${GREEN}✓ Green agent pushed successfully${NC}"
 echo ""
 
 # Push Purple Agent
 echo -e "${GREEN}[3/3] Pushing Agent Purple Agent...${NC}"
-docker push ghcr.io/${GITHUB_USERNAME}/purple-agent:latest
+docker push ghcr.io/${GH_USERNAME}/${PURPLE_AGENT_IMAGE_NAME}:latest
 
 echo -e "${GREEN}✓ Purple agent pushed successfully${NC}"
 echo ""
@@ -89,12 +91,12 @@ echo ""
 echo -e "${GREEN}Push Complete!${NC}"
 echo ""
 echo "Images pushed to GHCR:"
-echo "  - ghcr.io/${GITHUB_USERNAME}/green-agent:latest"
-echo "  - ghcr.io/${GITHUB_USERNAME}/purple-agent:latest"
+echo "  - ghcr.io/${GH_USERNAME}/${GREEN_AGENT_IMAGE_NAME}:latest"
+echo "  - ghcr.io/${GH_USERNAME}/${PURPLE_AGENT_IMAGE_NAME}:latest"
 echo ""
 echo "View your packages at:"
-echo "  https://github.com/${GITHUB_USERNAME}?tab=packages"
+echo "  https://github.com/${GH_USERNAME}?tab=packages"
 echo ""
 echo "To use these images, update scenario.toml with:"
-echo "  ghcr_url = \"ghcr.io/${GITHUB_USERNAME}/green-agent:latest\""
+echo "  ghcr_url = \"ghcr.io/${GH_USERNAME}/${GREEN_AGENT_IMAGE_NAME}:latest\""
 echo ""

@@ -100,7 +100,7 @@ info() { echo -e "${YELLOW}ℹ $1${NC}"; echo "INFO: $1" >> "$LOG_DIR/summary.lo
 # ============================================================================
 
 echo "Step 1: Starting containers..."
-docker-compose -f "$COMPOSE_FILE" up -d $BUILD_FLAG
+docker-compose --env-file /dev/null -f "$COMPOSE_FILE" up -d $BUILD_FLAG
 
 # Wait for containers to be healthy
 echo "Waiting for agents to be ready..."
@@ -116,7 +116,7 @@ if [ "$TEST_MODE" = "quick" ]; then
   # Quick mode: basic checks
   echo ""
   echo "Step 2: Checking containers..."
-  if docker-compose -f "$COMPOSE_FILE" ps | grep -q "Up"; then
+  if docker-compose --env-file /dev/null -f "$COMPOSE_FILE" ps | grep -q "Up"; then
     pass "Containers running"
   else
     fail "Containers not running"
@@ -399,7 +399,7 @@ ls -lh "$LOG_DIR"
 echo ""
 read -p "Stop containers? (y/N): " STOP
 if [ "$STOP" = "y" ] || [ "$STOP" = "Y" ]; then
-  docker-compose -f "$COMPOSE_FILE" down
+  docker-compose --env-file /dev/null -f "$COMPOSE_FILE" down
   echo "Containers stopped."
 fi
 

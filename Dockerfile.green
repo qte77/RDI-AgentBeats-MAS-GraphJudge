@@ -50,6 +50,9 @@ ENV PATH="/app/.venv/bin:$PATH"
 COPY --from=builder /app/src/green /app/src/green
 COPY --from=builder /app/src/common /app/src/common
 
+# Create output directory for evaluation results (writable by appuser)
+RUN mkdir -p /app/output && chown appuser:appgroup /app/output
+
 # Set PYTHONPATH so Python can find the modules
 ENV PYTHONPATH="/app/src:$PYTHONPATH"
 

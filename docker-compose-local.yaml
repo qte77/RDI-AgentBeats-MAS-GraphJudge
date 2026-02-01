@@ -25,6 +25,7 @@ services:
     environment:
       - PURPLE_HOST=0.0.0.0
       - PURPLE_PORT=9010
+      - PURPLE_CARD_URL=http://purple:9010
     networks:
       - agentbeats
     container_name: purple

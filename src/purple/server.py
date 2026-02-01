@@ -7,6 +7,7 @@ and task delegation following green-agent-template pattern.
 from __future__ import annotations
 
 import argparse
+import uuid
 from typing import Any
 
 from fastapi import FastAPI
@@ -15,6 +16,47 @@ from purple.executor import Executor
 from purple.messenger import Messenger
 from purple.models import JSONRPCRequest, JSONRPCResponse
 from purple.settings import PurpleSettings
+
+
+def _extract_text_from_part(part: Any) -> str:
+    """Extract text from an A2A message part."""
+    if not isinstance(part, dict):
+        return ""
+    # Try direct text field first, then nested root.text
+    text = part.get("text", "")
+    if not text:
+        root = part.get("root")
+        if isinstance(root, dict):
+            text = root.get("text", "")
+    return str(text) if text else ""  # type: ignore[arg-type]
+
+
+def _extract_task_description(params: dict[str, Any]) -> str:
+    """Extract task description from A2A message or legacy task format.
+
+    Args:
+        params: JSON-RPC request params
+
+    Returns:
+        Task description string, empty if not found
+    """
+    # Try A2A standard message format: params.message.parts[0].text
+    message = params.get("message")
+    if isinstance(message, dict):
+        parts = message.get("parts")
+        if isinstance(parts, list) and parts:
+            text = _extract_text_from_part(parts[0])
+            if text:
+                return text
+
+    # Fall back to legacy: params.task.description
+    task = params.get("task")
+    if isinstance(task, dict):
+        desc = task.get("description", "")
+        if desc:
+            return str(desc)  # type: ignore[arg-type]
+
+    return ""
 
 
 def create_app(settings: PurpleSettings | None = None) -> FastAPI:
@@ -93,19 +135,20 @@ def create_app(settings: PurpleSettings | None = None) -> FastAPI:
                     error={"code": -32601, "message": f"Method not found: {request.method}"},
                 )
 
-            # Extract task description
-            task_params = request.params.get("task", {})
-            task_description = task_params.get("description", "")
+            task_description = _extract_task_description(request.params)
 
             if not task_description:
                 return JSONRPCResponse(
                     id=request.id,
-                    error={"code": -32602, "message": "Invalid params: task.description required"},
+                    error={
+                        "code": -32602,
+                        "message": "Invalid params: message.parts or task.description required",
+                    },
                 )
 
             # Execute task via Executor
             executor = Executor()
-            messenger = Messenger()
+            messenger = Messenger(a2a_settings=settings.a2a)
 
             result = await executor.execute_task(
                 task_description=task_description,
@@ -113,12 +156,24 @@ def create_app(settings: PurpleSettings | None = None) -> FastAPI:
                 agent_url=settings.get_card_url(),
             )
 
-            # Return JSON-RPC success response
+            # Return A2A-compliant JSON-RPC success response
             return JSONRPCResponse(
                 id=request.id,
                 result={
-                    "status": "completed",
-                    "response": result,
+                    "id": str(uuid.uuid4()),
+                    "contextId": str(uuid.uuid4()),
+                    "status": {"state": "completed"},
+                    "artifacts": [
+                        {
+                            "artifactId": str(uuid.uuid4()),
+                            "parts": [
+                                {
+                                    "kind": "text",
+                                    "text": result,
+                                }
+                            ],
+                        }
+                    ],
                 },
             )
 

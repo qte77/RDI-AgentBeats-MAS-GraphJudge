@@ -142,7 +142,7 @@ async def _process_evaluation_request(
     if interaction_pattern:
         traces = _build_traces_from_pattern(interaction_pattern)
     else:
-        messenger = Messenger()
+        messenger = Messenger(a2a_settings=settings.a2a)
         traces = await executor.execute_task(
             task_description=task_description,
             messenger=messenger,
@@ -166,10 +166,8 @@ async def _process_evaluation_request(
     with settings.output_file.open("w") as f:
         f.write(agentbeats_output.to_json(indent=2))
 
-    tier1_graph: Any = evaluation_results.get("tier1_graph") or {}
-    graph_metrics: dict[str, Any] = (
-        tier1_graph.model_dump() if hasattr(tier1_graph, "model_dump") else {}
-    )
+    # tier1_graph is already a dict after executor.evaluate_all() conversion
+    graph_metrics: dict[str, Any] = evaluation_results.get("tier1_graph") or {}
 
     return {
         "status": "completed",

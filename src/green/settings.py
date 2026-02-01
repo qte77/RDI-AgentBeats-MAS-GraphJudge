@@ -11,8 +11,8 @@ from uuid import UUID, uuid4
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-# Import LLMSettings from common module for single source of truth
-from common.settings import LLMSettings
+# Import settings from common module for single source of truth
+from common.settings import A2ASettings, LLMSettings
 
 
 class GreenSettings(BaseSettings):
@@ -66,6 +66,9 @@ class GreenSettings(BaseSettings):
 
     # Nested LLM settings
     llm: LLMSettings = Field(default_factory=LLMSettings)
+
+    # Nested A2A settings
+    a2a: A2ASettings = Field(default_factory=A2ASettings)
 
     def get_card_url(self) -> str:
         """Get AgentCard URL, constructing from host/port if not explicitly set."""

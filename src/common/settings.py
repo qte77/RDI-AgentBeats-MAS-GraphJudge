@@ -25,3 +25,17 @@ class LLMSettings(BaseSettings):
     base_url: str = "https://api.openai.com/v1"
     model: str = "gpt-4o-mini"
     temperature: float = 0.0
+
+
+class A2ASettings(BaseSettings):
+    """A2A protocol client configuration.
+
+    Environment variables:
+        AGENTBEATS_A2A_TIMEOUT: Timeout in seconds for A2A client connections (default: 30.0)
+        AGENTBEATS_A2A_CONNECT_TIMEOUT: Connect timeout in seconds (default: 10.0)
+    """
+
+    model_config = SettingsConfigDict(env_prefix="AGENTBEATS_A2A_")
+
+    timeout: float = 30.0
+    connect_timeout: float = 10.0

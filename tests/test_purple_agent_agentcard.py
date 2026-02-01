@@ -98,10 +98,16 @@ class TestPurpleAgentMessenger:
         """Messenger uses ClientFactory.connect() from a2a-sdk."""
         from purple.messenger import Messenger
 
-        with patch("common.messenger.ClientFactory") as factory:
+        with (
+            patch("common.messenger.ClientFactory") as factory,
+            patch("common.messenger.httpx.AsyncClient") as mock_async_client,
+            patch("common.messenger.httpx.Timeout") as mock_timeout,
+        ):
             mock_client = MagicMock()
             mock_client.close = AsyncMock()
             factory.connect = AsyncMock(return_value=mock_client)
+            mock_timeout.return_value = MagicMock()
+            mock_async_client.return_value = MagicMock()
 
             messenger = Messenger()
             await messenger.send_message("http://test.com", "Test message")

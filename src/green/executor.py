@@ -206,11 +206,26 @@ class Executor:
             - tier2_latency: Performance metrics
         """
         # Tier 1: Graph evaluation (structural analysis)
-        tier1_graph = await self._evaluate_graph(traces, graph_evaluator)
+        tier1_graph_result = await self._evaluate_graph(traces, graph_evaluator)
+
+        # FIXME: Convert Pydantic models to dicts for downstream consumers.
+        # Prefer passing Pydantic models directly and updating consumers to use
+        # model attributes instead of dict.get() for type safety.
+        tier1_graph: dict[str, Any] | None
+        if tier1_graph_result is not None and hasattr(tier1_graph_result, "model_dump"):
+            tier1_graph = tier1_graph_result.model_dump()  # type: ignore[union-attr]
+        elif isinstance(tier1_graph_result, dict):
+            tier1_graph = tier1_graph_result
+        else:
+            tier1_graph = None
 
         # Tier 2: LLM Judge and Latency evaluation
         # Pass graph results to LLM for enriched context
-        tier2_llm = await self._evaluate_llm(traces, llm_judge, tier1_graph)
+        tier2_llm = await self._evaluate_llm(
+            traces,
+            llm_judge,
+            tier1_graph,  # type: ignore[arg-type]
+        )
         tier2_latency = await self._evaluate_latency_tier2(traces, latency_evaluator)
 
         return {

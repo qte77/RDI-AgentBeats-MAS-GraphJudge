@@ -8,8 +8,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from a2a.client import Client, ClientFactory, create_text_message_object
+import httpx
+from a2a.client import Client, ClientConfig, ClientFactory, create_text_message_object
 from a2a.types import TaskState
+
+from common.settings import A2ASettings
 
 if TYPE_CHECKING:
     pass
@@ -18,9 +21,14 @@ if TYPE_CHECKING:
 class Messenger:
     """Agent messenger using A2A SDK."""
 
-    def __init__(self) -> None:
-        """Initialize messenger with client cache."""
+    def __init__(self, a2a_settings: A2ASettings | None = None) -> None:
+        """Initialize messenger with client cache.
+
+        Args:
+            a2a_settings: A2A configuration settings for timeout and connection parameters
+        """
         self._clients: dict[str, Client] = {}
+        self._settings = a2a_settings or A2ASettings()
 
     async def send_message(
         self, url: str, message: str, extensions: list[str] | None = None
@@ -40,7 +48,18 @@ class Messenger:
         """
         # Get or create cached client for this URL
         if url not in self._clients:
-            self._clients[url] = await ClientFactory.connect(url)
+            # Configure httpx client with proper timeout settings
+            timeout = httpx.Timeout(
+                timeout=self._settings.timeout,
+                connect=self._settings.connect_timeout,
+            )
+            httpx_client = httpx.AsyncClient(timeout=timeout)
+
+            # Create client config with configured httpx client
+            client_config = ClientConfig(httpx_client=httpx_client)
+
+            # Connect using ClientFactory with timeout-configured client
+            self._clients[url] = await ClientFactory.connect(url, client_config=client_config)
 
         client = self._clients[url]
 

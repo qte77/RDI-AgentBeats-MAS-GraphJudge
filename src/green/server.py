@@ -215,11 +215,8 @@ def create_app(settings: GreenSettings | None = None) -> FastAPI:
         """
         return {
             "agentId": settings.agent_uuid,
-            "name": "Green Agent (Assessor)",
-            "description": (
-                "Multi-agent coordination quality evaluator using graph analysis, "
-                "LLM assessment, and latency metrics"
-            ),
+            "name": settings.agent_name,
+            "description": settings.agent_description,
             "version": settings.agent_version,
             "url": settings.get_card_url(),
             "defaultInputModes": ["text"],
@@ -398,7 +395,7 @@ def main() -> None:
         app,
         host=args.host,
         port=args.port,
-        log_level="info",
+        log_level=settings.log_level,
     )
 
 

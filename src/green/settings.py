@@ -27,8 +27,10 @@ class GreenSettings(BaseSettings):
         GREEN_COORDINATION_ROUNDS: Number of coordination rounds (default: 3)
         GREEN_ROUND_DELAY_SECONDS: Delay between rounds in seconds (default: 0.1)
         GREEN_AGENT_VERSION: Agent version string (default: 1.0.0)
+        GREEN_AGENT_DESCRIPTION: Agent description for AgentCard
         GREEN_DOMAIN: Evaluation domain (default: graph-assessment)
         GREEN_MAX_SCORE: Maximum score for evaluation (default: 100.0)
+        GREEN_LOG_LEVEL: Uvicorn log level (default: info)
         AGENT_UUID: Agent identifier (default: green-agent)
         PURPLE_AGENT_URL: URL for Purple Agent (default: http://{host}:{purple_port})
     """
@@ -39,6 +41,7 @@ class GreenSettings(BaseSettings):
     host: str = "0.0.0.0"
     port: int = 9009  # Container port (host: 9009)
     purple_port: int = 9010
+    log_level: str = "info"
 
     # Execution settings
     coordination_rounds: int = 3
@@ -46,6 +49,10 @@ class GreenSettings(BaseSettings):
 
     # Agent metadata
     agent_version: str = "1.0.0"
+    agent_description: str = (
+        "Multi-agent coordination quality evaluator using graph analysis, "
+        "LLM assessment, and latency metrics"
+    )
     domain: str = "graph-assessment"
     max_score: float = 100.0
 

@@ -82,9 +82,9 @@ def create_app(settings: PurpleSettings | None = None) -> FastAPI:
         """
         return {
             "agentId": str(settings.agent_uuid),
-            "name": "Purple Agent (Test Fixture)",
-            "description": "Simple A2A-compliant agent for E2E testing and validation",
-            "version": "1.0.0",
+            "name": settings.agent_name,
+            "description": settings.agent_description,
+            "version": settings.agent_version,
             "url": settings.get_card_url(),
             "defaultInputModes": ["text"],
             "defaultOutputModes": ["text"],
@@ -240,7 +240,7 @@ def main() -> None:
         app,
         host=args.host,
         port=args.port,
-        log_level="info",
+        log_level=settings.log_level,
     )
 
 

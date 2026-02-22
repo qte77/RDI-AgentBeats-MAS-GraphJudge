@@ -113,6 +113,19 @@ class InteractionStep(BaseModel):
 
 
 # =============================================================================
+# Trace Collection Configuration
+# =============================================================================
+
+
+class TraceCollectionConfig(BaseModel):
+    """Configurable timeout and idle detection settings for adaptive trace collection."""
+
+    max_timeout_seconds: int = 30
+    idle_threshold_seconds: int = 5
+    use_completion_signals: bool = True
+
+
+# =============================================================================
 # JSON-RPC 2.0 Protocol Models
 # =============================================================================
 

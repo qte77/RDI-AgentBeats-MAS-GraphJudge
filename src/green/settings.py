@@ -12,6 +12,7 @@ from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # Import settings from common module for single source of truth
+from common.models import TraceCollectionConfig
 from common.settings import A2ASettings, LLMSettings
 
 
@@ -69,6 +70,9 @@ class GreenSettings(BaseSettings):
 
     # Nested A2A settings
     a2a: A2ASettings = Field(default_factory=A2ASettings)
+
+    # Nested trace collection settings
+    trace_collection: TraceCollectionConfig = Field(default_factory=TraceCollectionConfig)
 
     def get_card_url(self) -> str:
         """Get AgentCard URL, constructing from host/port if not explicitly set."""

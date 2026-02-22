@@ -127,7 +127,7 @@ Read: AgentBeats/SUBMISSION-GUIDE.md
 | Architecture? | arch_vis/*.puml |
 | Deploy? | AgentBeats/AGENTBEATS_REGISTRATION.md |
 | Submit? | AgentBeats/SUBMISSION-GUIDE.md |
-| Tracing/plugins? | research/MULTI_AGENT_TRACING.md |
+| Tracing/plugins? | research/MULTI_AGENT_TRACING.md, AgentBeats/AGENTBEATS_REGISTRATION.md |
 | TODOs? | TODO.md |
 
 ---

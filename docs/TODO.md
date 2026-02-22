@@ -78,12 +78,12 @@
   - [ ] Create clear documentation hierarchy
   - [ ] Update cross-references between docs
 
-- [x] **Update architecture visualizations**
+- [ ] **Update architecture visualizations**
   - [x] Refresh PlantUML diagrams in `arch_vis/`
   - [x] Add sequence diagrams for evaluation pipeline
   - [x] Document component interactions
   - [x] Add data flow diagrams (TracingArchitecture.puml)
-  - [x] Ensure diagrams match current implementation
+  - [ ] Update diagrams for STORY-031/034 (BaseEvaluator, TraceCollectionConfig, adaptive collection)
 
 - [ ] **Local development workflow documentation**
   - [ ] Document how to trigger evaluation locally (not just server startup)
@@ -110,9 +110,9 @@
 
 ### Trace Collection Strategy
 
-**Status**: Design complete, awaiting implementation (YAGNI).
+✅ **COMPLETED**: Adaptive trace collection implemented (STORY-031). Fixed-rounds preserved for backward compatibility.
 
-Fixed-rounds placeholder at `src/green/executor.py:25`. See `docs/research/trace-collection-strategy.md`.
+See `docs/research/trace-collection-strategy.md` for original design rationale.
 
 ### A2A Protocol Compliance
 

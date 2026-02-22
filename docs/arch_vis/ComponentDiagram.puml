@@ -20,6 +20,7 @@ package "Common Module" <<Common>> #FFE0B2 {
     component [Messenger] as CommonMessenger
     component [TraceReporter] as TraceReporter
     component [LLMClient] as LLMFactory
+    component [TraceCollectionConfig] as TraceCollectionCfg
 }
 
 component [LLM API] as LLMApi <<External>> #FFECB3
@@ -45,9 +46,14 @@ package "Green Agent (Assessor)" <<Core>> #C8E6C9 {
     component [Executor] as GreenExec
 
     package "Evaluators" <<Eval>> #B3E5FC {
+        component [BaseEvaluator] as BaseEval
         component [Graph] as GraphEval
         component [LLM Judge] as LLMEval
         component [Latency] as LatencyEval
+
+        GraphEval -up-|> BaseEval
+        LLMEval -up-|> BaseEval
+        LatencyEval -up-|> BaseEval
     }
 
     TraceStore -down-> GreenExec
@@ -59,6 +65,7 @@ package "Green Agent (Assessor)" <<Core>> #C8E6C9 {
 ' Cross-package flows
 PurpleExec -right-> TraceStore : traces
 LLMFactory -right-> LLMApi
+TraceCollectionCfg .down.> GreenExec : adaptive collection
 
 note bottom of LLMFactory
   Used by:

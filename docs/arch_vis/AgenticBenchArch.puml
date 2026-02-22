@@ -30,7 +30,7 @@ note bottom of Green
   ──────────────────
   Tier 1: Graph metrics
   Tier 2: LLM + Latency
-  Tier 3: Conventional Metrics
+  Tier 3: Custom Plugins (BaseEvaluator)
 end note
 
 @enduml

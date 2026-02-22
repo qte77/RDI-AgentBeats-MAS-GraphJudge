@@ -34,4 +34,19 @@ note right of Green
   graph analysis
 end note
 
+== Green Agent: Adaptive Trace Collection ==
+
+Green -> Green : execute_task(agent_url)
+loop adaptive (idle + timeout + completion signal)
+    Green -> Purple : send_message (A2A)
+    Purple --> Green : response
+    Green -> Green : record InteractionStep\n(with agent_url)
+end
+
+note right of Green
+  Two trace paths:
+  1. Push: Purple → TraceReporter → Green POST /traces
+  2. Pull: Green Executor → Messenger → Purple (adaptive, STORY-031)
+end note
+
 @enduml

@@ -11,7 +11,7 @@ Single source of truth for shared types to eliminate code duplication.
 from __future__ import annotations
 
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -80,7 +80,7 @@ class AgentCard(BaseModel):
 # =============================================================================
 
 
-class CallType(str, Enum):
+class CallType(StrEnum):
     """Call type enumeration for A2A Traceability Extension.
 
     Classification per A2A spec:

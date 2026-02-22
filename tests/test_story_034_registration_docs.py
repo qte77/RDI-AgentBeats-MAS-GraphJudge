@@ -2,7 +2,9 @@
 
 from pathlib import Path
 
-REGISTRATION_MD = Path(__file__).parent.parent / "docs" / "AgentBeats" / "AGENTBEATS_REGISTRATION.md"
+REGISTRATION_MD = (
+    Path(__file__).parent.parent / "docs" / "AgentBeats" / "AGENTBEATS_REGISTRATION.md"
+)
 
 
 def test_registration_md_exists():
@@ -31,7 +33,9 @@ def test_registration_md_documents_tier1_graph_structural():
     """Acceptance: Tier 1 must reference Graph/structural analysis."""
     content = REGISTRATION_MD.read_text()
     tier1_keywords = ["graph", "structural", "Graph"]
-    assert any(kw in content for kw in tier1_keywords), "Tier 1 must describe graph/structural analysis"
+    assert any(kw in content for kw in tier1_keywords), (
+        "Tier 1 must describe graph/structural analysis"
+    )
 
 
 def test_registration_md_documents_tier2_llm_latency():
@@ -50,7 +54,7 @@ def test_registration_md_documents_graph_metric_plugin():
 
 
 def test_registration_md_has_step_by_step_guide():
-    """Acceptance: Must have step-by-step guide with file creation, evaluate(), and executor wiring."""
+    """Acceptance: Must have step-by-step guide with evaluate() and executor wiring."""
     content = REGISTRATION_MD.read_text()
     # Should have numbered steps or an explicit step-by-step section
     has_steps = (

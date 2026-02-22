@@ -13,6 +13,7 @@ from typing import Any
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
+from green.evals.base import BaseEvaluator
 from green.executor import Executor
 from green.messenger import Messenger
 from green.models import (
@@ -104,22 +105,22 @@ def _build_traces_from_pattern(pattern: dict[str, Any]) -> list[InteractionStep]
     return traces
 
 
-class _LLMJudgeEvaluator:
+class _LLMJudgeEvaluator(BaseEvaluator):
     """Wrapper for LLM judge evaluation."""
 
     async def evaluate(
-        self, traces: list[InteractionStep], graph_results: dict[str, Any] | None = None
+        self, traces: list[InteractionStep], **context: Any,
     ) -> dict[str, Any]:
         from green.evals.llm_judge import llm_evaluate
 
-        result = await llm_evaluate(traces, graph_metrics=graph_results)
+        result = await llm_evaluate(traces, graph_metrics=context.get("graph_results"))
         return result.model_dump()
 
 
-class _LatencyEvaluator:
+class _LatencyEvaluator(BaseEvaluator):
     """Wrapper for latency evaluation."""
 
-    async def evaluate(self, traces: list[InteractionStep]) -> dict[str, Any]:
+    async def evaluate(self, traces: list[InteractionStep], **context: Any) -> dict[str, Any]:
         from green.evals.system import evaluate_latency
 
         metrics = evaluate_latency(traces)

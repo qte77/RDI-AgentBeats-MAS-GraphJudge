@@ -5,11 +5,13 @@ RED phase: These tests should FAIL initially since Executor doesn't exist yet.
 
 from __future__ import annotations
 
+import asyncio
 from datetime import datetime
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
+from common.models import TraceCollectionConfig
 from green.executor import Executor
 from green.models import CallType, InteractionStep
 
@@ -228,3 +230,119 @@ class TestExecutorLatencyEvaluation:
         assert hasattr(result, "p95")
         assert hasattr(result, "p99")
         assert hasattr(result, "slowest_agent")
+
+
+class TestAdaptiveCollectionStrategy:
+    """Tests for adaptive hybrid trace collection strategy (idle + timeout + completion)."""
+
+    async def test_executor_accepts_trace_collection_config(self):
+        """Executor accepts TraceCollectionConfig as optional parameter."""
+        config = TraceCollectionConfig(max_timeout_seconds=5, idle_threshold_seconds=1)
+        executor = Executor(coordination_rounds=3, trace_collection=config)
+        assert executor is not None
+
+    async def test_adaptive_collects_at_least_one_trace(self, mock_messenger):
+        """Adaptive executor collects at least one trace."""
+        config = TraceCollectionConfig(
+            max_timeout_seconds=1, idle_threshold_seconds=0.5, use_completion_signals=False
+        )
+        executor = Executor(coordination_rounds=3, trace_collection=config)
+        traces = await executor.execute_task(
+            task_description="Test task",
+            messenger=mock_messenger,
+            agent_url="http://agent.example.com:9009",
+        )
+        assert len(traces) >= 1
+
+    async def test_adaptive_stops_on_completion_signal(self, mock_messenger):
+        """Adaptive loop stops after first response with status=complete."""
+        mock_messenger.send_message = AsyncMock(return_value='{"status": "complete"}')
+        config = TraceCollectionConfig(
+            max_timeout_seconds=10, idle_threshold_seconds=5, use_completion_signals=True
+        )
+        executor = Executor(coordination_rounds=99, trace_collection=config)
+        traces = await executor.execute_task(
+            task_description="Test task",
+            messenger=mock_messenger,
+            agent_url="http://agent.example.com:9009",
+        )
+        assert len(traces) == 1
+        mock_messenger.send_message.assert_called_once()
+
+    async def test_adaptive_ignores_completion_signal_when_disabled(self, mock_messenger):
+        """When use_completion_signals=False, completion signal is not honoured."""
+        mock_messenger.send_message = AsyncMock(return_value='{"status": "complete"}')
+        config = TraceCollectionConfig(
+            max_timeout_seconds=0.05,
+            idle_threshold_seconds=10,
+            use_completion_signals=False,
+        )
+        executor = Executor(coordination_rounds=99, trace_collection=config)
+        traces = await executor.execute_task(
+            task_description="Test task",
+            messenger=mock_messenger,
+            agent_url="http://agent.example.com:9009",
+        )
+        # Stops on timeout, not on completion signal — so more than 1 call
+        assert mock_messenger.send_message.call_count > 1
+        assert len(traces) >= 1
+
+    async def test_adaptive_stops_on_max_timeout(self, mock_messenger):
+        """Adaptive loop stops after max_timeout_seconds regardless of activity."""
+
+        async def slow_response(url: str, message: str) -> str:
+            await asyncio.sleep(0.05)
+            return "Response"
+
+        mock_messenger.send_message.side_effect = slow_response
+        config = TraceCollectionConfig(
+            max_timeout_seconds=0.08,
+            idle_threshold_seconds=10,
+            use_completion_signals=False,
+        )
+        executor = Executor(coordination_rounds=100, trace_collection=config)
+        traces = await executor.execute_task(
+            task_description="Test task",
+            messenger=mock_messenger,
+            agent_url="http://agent.example.com:9009",
+        )
+        assert len(traces) < 10
+
+    async def test_adaptive_stops_on_idle_threshold(self, mock_messenger):
+        """Adaptive loop stops when agent doesn't respond within idle_threshold_seconds."""
+        call_count = 0
+
+        async def slow_after_first(url: str, message: str) -> str:
+            nonlocal call_count
+            call_count += 1
+            if call_count > 1:
+                await asyncio.sleep(0.2)
+            return "Response"
+
+        mock_messenger.send_message.side_effect = slow_after_first
+        config = TraceCollectionConfig(
+            max_timeout_seconds=10,
+            idle_threshold_seconds=0.05,
+            use_completion_signals=False,
+        )
+        executor = Executor(coordination_rounds=99, trace_collection=config)
+        traces = await executor.execute_task(
+            task_description="Test task",
+            messenger=mock_messenger,
+            agent_url="http://agent.example.com:9009",
+        )
+        assert len(traces) == 1
+
+    async def test_adaptive_closes_messenger_after_collection(self, mock_messenger):
+        """Adaptive executor calls messenger.close() after collection completes."""
+        mock_messenger.send_message = AsyncMock(return_value='{"status": "complete"}')
+        config = TraceCollectionConfig(
+            max_timeout_seconds=5, idle_threshold_seconds=5, use_completion_signals=True
+        )
+        executor = Executor(coordination_rounds=3, trace_collection=config)
+        await executor.execute_task(
+            task_description="Test task",
+            messenger=mock_messenger,
+            agent_url="http://agent.example.com:9009",
+        )
+        mock_messenger.close.assert_called_once()

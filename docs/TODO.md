@@ -147,6 +147,19 @@ See `docs/research/trace-collection-strategy.md` for original design rationale.
 
 ---
 
+## DevEx / Local Development
+
+- [ ] **Configure Docker Compose Watch for live development**
+  - `docker-compose-local.yaml` currently has no `develop.watch` config
+  - Requires Docker Compose v2.22+
+  - [ ] Add `sync` action for Python source files (`src/green/`, `src/purple/`) → container targets, enabling hot-reload without rebuild
+  - [ ] Add `rebuild` action for dependency changes (`pyproject.toml`, `uv.lock`)
+  - [ ] Add `sync+restart` action for config files (`scenario.toml`, settings) that need a process restart but not a full rebuild
+  - [ ] Add `ignore` patterns for `__pycache__/`, `.pytest_cache/`, `output/`
+  - **Ref**: <https://docs.docker.com/compose/file-watch/>
+
+---
+
 ## Tech Debt
 
 - [ ] **Pass Pydantic models through evaluation pipeline**

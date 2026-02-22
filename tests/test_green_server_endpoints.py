@@ -142,6 +142,43 @@ async def test_server_delegates_to_executor_and_agent(
             mock_executor.evaluate_all.assert_called_once()
 
 
+async def test_executor_receives_trace_collection_from_settings(
+    mock_executor: MagicMock,
+) -> None:
+    """Test that Executor is constructed with trace_collection from settings."""
+    from green.server import create_app
+    from green.settings import GreenSettings
+
+    settings = GreenSettings()
+    mock_cls = MagicMock(return_value=mock_executor)
+
+    with patch("green.server.Executor", mock_cls):
+        app = create_app(settings=settings)
+
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            request_data = {
+                "jsonrpc": "2.0",
+                "method": "message/send",
+                "params": {
+                    "task": {
+                        "description": "Evaluate agent coordination",
+                        "context": {},
+                    }
+                },
+                "id": "test-trace-collection",
+            }
+
+            await client.post("/", json=request_data)
+
+            # Executor must be constructed with trace_collection kwarg
+            mock_cls.assert_called_once()
+            call_kwargs = mock_cls.call_args
+            assert "trace_collection" in call_kwargs.kwargs, (
+                "Executor must receive trace_collection from settings"
+            )
+            assert call_kwargs.kwargs["trace_collection"] == settings.trace_collection
+
+
 async def test_server_writes_results_to_output_file(
     mock_agent: MagicMock, mock_executor: MagicMock, tmp_path: Path
 ) -> None:

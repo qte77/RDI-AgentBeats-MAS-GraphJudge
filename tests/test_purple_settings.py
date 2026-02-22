@@ -158,9 +158,7 @@ class TestPurpleSettingsPeersAndGreenURL:
         """Test PURPLE_STATIC_PEERS env var is respected (JSON list)."""
         from purple.settings import PurpleSettings
 
-        monkeypatch.setenv(
-            "PURPLE_STATIC_PEERS", '["http://agent1:8080", "http://agent2:8080"]'
-        )
+        monkeypatch.setenv("PURPLE_STATIC_PEERS", '["http://agent1:8080", "http://agent2:8080"]')
         settings = PurpleSettings()
         assert settings.static_peers == ["http://agent1:8080", "http://agent2:8080"]
 

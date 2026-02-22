@@ -141,6 +141,7 @@ class Executor:
                     end_time=end_time,
                     latency=latency,
                     parent_step_id=previous_step_id,
+                    agent_url=agent_url,
                 )
             )
             previous_step_id = step_id
@@ -192,6 +193,7 @@ class Executor:
                     end_time=end_time,
                     latency=latency,
                     parent_step_id=previous_step_id,
+                    agent_url=agent_url,
                 )
             )
             previous_step_id = step_id

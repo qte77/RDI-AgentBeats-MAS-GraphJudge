@@ -137,6 +137,7 @@ async def _process_evaluation_request(
     executor = Executor(
         coordination_rounds=settings.coordination_rounds,
         round_delay_seconds=settings.round_delay_seconds,
+        trace_collection=settings.trace_collection,
     )
 
     if interaction_pattern:

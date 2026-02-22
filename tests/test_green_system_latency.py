@@ -117,6 +117,35 @@ def test_evaluate_latency_identifies_slowest_agent(sample_steps: list[Interactio
     assert result.slowest_agent is not None
 
 
+def test_evaluate_latency_slowest_agent_returns_url() -> None:
+    """Test that slowest_agent returns agent_url when available, not step_id."""
+    steps = [
+        InteractionStep(
+            step_id="step-fast",
+            trace_id="trace-1",
+            call_type=CallType.AGENT,
+            start_time=datetime(2024, 1, 1, 12, 0, 0),
+            end_time=datetime(2024, 1, 1, 12, 0, 0, 100000),
+            latency=100,
+            agent_url="http://fast-agent:9010",
+        ),
+        InteractionStep(
+            step_id="step-slow",
+            trace_id="trace-1",
+            call_type=CallType.AGENT,
+            start_time=datetime(2024, 1, 1, 12, 0, 1),
+            end_time=datetime(2024, 1, 1, 12, 0, 3),
+            latency=2000,
+            agent_url="http://slow-agent:9011",
+        ),
+    ]
+
+    result = evaluate_latency(steps)
+
+    # AC: slowest agent identified by URL, not step_id
+    assert result.slowest_agent == "http://slow-agent:9011"
+
+
 def test_evaluate_latency_with_empty_steps() -> None:
     """Test that latency evaluator handles empty step list."""
     result = evaluate_latency([])

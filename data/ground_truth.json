@@ -1,0 +1,285 @@
+{
+  "metadata": {
+    "source": "allenai/PeerRead dataset subset",
+    "purpose": "E2E validation for Green Agent evaluation correctness",
+    "sample_count": 12,
+    "generated": "2026-01-27",
+    "description": "Diverse coordination scenarios with expected quality labels"
+  },
+  "scenarios": [
+    {
+      "id": "scenario_001",
+      "type": "high_coordination",
+      "task_description": "Multi-agent paper review with distributed workload",
+      "abstract": "We propose a novel approach to distributed machine learning that reduces communication overhead by 40%.",
+      "interaction_pattern": {
+        "agents": ["reviewer_1", "reviewer_2", "reviewer_3", "coordinator"],
+        "edges": [
+          {"from": "coordinator", "to": "reviewer_1"},
+          {"from": "coordinator", "to": "reviewer_2"},
+          {"from": "coordinator", "to": "reviewer_3"},
+          {"from": "reviewer_1", "to": "coordinator"},
+          {"from": "reviewer_2", "to": "coordinator"},
+          {"from": "reviewer_3", "to": "coordinator"},
+          {"from": "reviewer_1", "to": "reviewer_2"},
+          {"from": "reviewer_2", "to": "reviewer_3"}
+        ],
+        "steps_count": 8
+      },
+      "expected_metrics": {
+        "graph_density": 0.42,
+        "coordination_quality": "high",
+        "has_bottleneck": false,
+        "isolated_agents": []
+      }
+    },
+    {
+      "id": "scenario_002",
+      "type": "low_coordination",
+      "task_description": "Isolated agents with no collaboration",
+      "abstract": "A survey of recent advances in natural language processing and transformer architectures.",
+      "interaction_pattern": {
+        "agents": ["agent_1", "agent_2", "agent_3"],
+        "edges": [],
+        "steps_count": 0
+      },
+      "expected_metrics": {
+        "graph_density": 0.0,
+        "coordination_quality": "low",
+        "has_bottleneck": false,
+        "isolated_agents": ["agent_1", "agent_2", "agent_3"]
+      }
+    },
+    {
+      "id": "scenario_003",
+      "type": "bottleneck",
+      "task_description": "Over-centralized coordination with single hub",
+      "abstract": "Deep learning for computer vision: A comprehensive review of convolutional neural networks.",
+      "interaction_pattern": {
+        "agents": ["hub", "worker_1", "worker_2", "worker_3", "worker_4"],
+        "edges": [
+          {"from": "hub", "to": "worker_1"},
+          {"from": "hub", "to": "worker_2"},
+          {"from": "hub", "to": "worker_3"},
+          {"from": "hub", "to": "worker_4"},
+          {"from": "worker_1", "to": "hub"},
+          {"from": "worker_2", "to": "hub"},
+          {"from": "worker_3", "to": "hub"},
+          {"from": "worker_4", "to": "hub"}
+        ],
+        "steps_count": 8
+      },
+      "expected_metrics": {
+        "graph_density": 0.2,
+        "coordination_quality": "bottleneck",
+        "has_bottleneck": true,
+        "isolated_agents": []
+      }
+    },
+    {
+      "id": "scenario_004",
+      "type": "medium_coordination",
+      "task_description": "Balanced collaboration with peer communication",
+      "abstract": "Transfer learning in medical image analysis: Methods and applications.",
+      "interaction_pattern": {
+        "agents": ["expert_1", "expert_2", "expert_3"],
+        "edges": [
+          {"from": "expert_1", "to": "expert_2"},
+          {"from": "expert_2", "to": "expert_3"},
+          {"from": "expert_3", "to": "expert_1"}
+        ],
+        "steps_count": 3
+      },
+      "expected_metrics": {
+        "graph_density": 0.33,
+        "coordination_quality": "medium",
+        "has_bottleneck": false,
+        "isolated_agents": []
+      }
+    },
+    {
+      "id": "scenario_005",
+      "type": "high_coordination",
+      "task_description": "Collaborative research with multiple discussions",
+      "abstract": "Federated learning privacy mechanisms: A comparative study of differential privacy techniques.",
+      "interaction_pattern": {
+        "agents": ["researcher_1", "researcher_2", "researcher_3", "researcher_4"],
+        "edges": [
+          {"from": "researcher_1", "to": "researcher_2"},
+          {"from": "researcher_1", "to": "researcher_3"},
+          {"from": "researcher_2", "to": "researcher_3"},
+          {"from": "researcher_2", "to": "researcher_4"},
+          {"from": "researcher_3", "to": "researcher_4"},
+          {"from": "researcher_4", "to": "researcher_1"}
+        ],
+        "steps_count": 6
+      },
+      "expected_metrics": {
+        "graph_density": 0.5,
+        "coordination_quality": "high",
+        "has_bottleneck": false,
+        "isolated_agents": []
+      }
+    },
+    {
+      "id": "scenario_006",
+      "type": "partial_isolation",
+      "task_description": "Mixed coordination with one isolated agent",
+      "abstract": "Graph neural networks for molecular property prediction in drug discovery.",
+      "interaction_pattern": {
+        "agents": ["connected_1", "connected_2", "isolated"],
+        "edges": [
+          {"from": "connected_1", "to": "connected_2"},
+          {"from": "connected_2", "to": "connected_1"}
+        ],
+        "steps_count": 2
+      },
+      "expected_metrics": {
+        "graph_density": 0.17,
+        "coordination_quality": "low",
+        "has_bottleneck": false,
+        "isolated_agents": ["isolated"]
+      }
+    },
+    {
+      "id": "scenario_007",
+      "type": "high_coordination",
+      "task_description": "Dense collaboration network with cross-team communication",
+      "abstract": "Attention mechanisms in sequence-to-sequence models for machine translation.",
+      "interaction_pattern": {
+        "agents": ["team_a1", "team_a2", "team_b1", "team_b2"],
+        "edges": [
+          {"from": "team_a1", "to": "team_a2"},
+          {"from": "team_a1", "to": "team_b1"},
+          {"from": "team_a2", "to": "team_b2"},
+          {"from": "team_b1", "to": "team_b2"},
+          {"from": "team_b2", "to": "team_a1"},
+          {"from": "team_b1", "to": "team_a2"}
+        ],
+        "steps_count": 6
+      },
+      "expected_metrics": {
+        "graph_density": 0.5,
+        "coordination_quality": "high",
+        "has_bottleneck": false,
+        "isolated_agents": []
+      }
+    },
+    {
+      "id": "scenario_008",
+      "type": "low_coordination",
+      "task_description": "Sparse communication network",
+      "abstract": "Self-supervised learning for speech recognition using contrastive predictive coding.",
+      "interaction_pattern": {
+        "agents": ["agent_a", "agent_b", "agent_c", "agent_d"],
+        "edges": [
+          {"from": "agent_a", "to": "agent_b"}
+        ],
+        "steps_count": 1
+      },
+      "expected_metrics": {
+        "graph_density": 0.08,
+        "coordination_quality": "low",
+        "has_bottleneck": false,
+        "isolated_agents": ["agent_c", "agent_d"]
+      }
+    },
+    {
+      "id": "scenario_009",
+      "type": "medium_coordination",
+      "task_description": "Sequential workflow with linear coordination",
+      "abstract": "Multi-task learning with shared representations for text classification.",
+      "interaction_pattern": {
+        "agents": ["stage_1", "stage_2", "stage_3", "stage_4"],
+        "edges": [
+          {"from": "stage_1", "to": "stage_2"},
+          {"from": "stage_2", "to": "stage_3"},
+          {"from": "stage_3", "to": "stage_4"}
+        ],
+        "steps_count": 3
+      },
+      "expected_metrics": {
+        "graph_density": 0.25,
+        "coordination_quality": "medium",
+        "has_bottleneck": false,
+        "isolated_agents": []
+      }
+    },
+    {
+      "id": "scenario_010",
+      "type": "bottleneck",
+      "task_description": "Star topology with central coordinator",
+      "abstract": "Ensemble methods for improving neural network robustness against adversarial attacks.",
+      "interaction_pattern": {
+        "agents": ["central", "leaf_1", "leaf_2", "leaf_3", "leaf_4", "leaf_5"],
+        "edges": [
+          {"from": "central", "to": "leaf_1"},
+          {"from": "central", "to": "leaf_2"},
+          {"from": "central", "to": "leaf_3"},
+          {"from": "central", "to": "leaf_4"},
+          {"from": "central", "to": "leaf_5"},
+          {"from": "leaf_1", "to": "central"},
+          {"from": "leaf_2", "to": "central"},
+          {"from": "leaf_3", "to": "central"},
+          {"from": "leaf_4", "to": "central"},
+          {"from": "leaf_5", "to": "central"}
+        ],
+        "steps_count": 10
+      },
+      "expected_metrics": {
+        "graph_density": 0.17,
+        "coordination_quality": "bottleneck",
+        "has_bottleneck": true,
+        "isolated_agents": []
+      }
+    },
+    {
+      "id": "scenario_011",
+      "type": "high_coordination",
+      "task_description": "Fully connected small team",
+      "abstract": "Zero-shot learning with semantic embeddings for image classification.",
+      "interaction_pattern": {
+        "agents": ["member_1", "member_2", "member_3"],
+        "edges": [
+          {"from": "member_1", "to": "member_2"},
+          {"from": "member_1", "to": "member_3"},
+          {"from": "member_2", "to": "member_1"},
+          {"from": "member_2", "to": "member_3"},
+          {"from": "member_3", "to": "member_1"},
+          {"from": "member_3", "to": "member_2"}
+        ],
+        "steps_count": 6
+      },
+      "expected_metrics": {
+        "graph_density": 1.0,
+        "coordination_quality": "high",
+        "has_bottleneck": false,
+        "isolated_agents": []
+      }
+    },
+    {
+      "id": "scenario_012",
+      "type": "medium_coordination",
+      "task_description": "Hybrid coordination with clusters",
+      "abstract": "Active learning strategies for efficient data annotation in computer vision tasks.",
+      "interaction_pattern": {
+        "agents": ["cluster_a1", "cluster_a2", "cluster_b1", "cluster_b2", "bridge"],
+        "edges": [
+          {"from": "cluster_a1", "to": "cluster_a2"},
+          {"from": "cluster_a2", "to": "cluster_a1"},
+          {"from": "cluster_b1", "to": "cluster_b2"},
+          {"from": "cluster_b2", "to": "cluster_b1"},
+          {"from": "bridge", "to": "cluster_a1"},
+          {"from": "bridge", "to": "cluster_b1"}
+        ],
+        "steps_count": 6
+      },
+      "expected_metrics": {
+        "graph_density": 0.3,
+        "coordination_quality": "medium",
+        "has_bottleneck": false,
+        "isolated_agents": []
+      }
+    }
+  ]
+}

@@ -5,9 +5,7 @@ applies-to: Agents and humans
 purpose: Why and What, Product vision, value proposition, and success metrics
 ---
 
-# User Story: Graph-Based Coordination Benchmark
-
-> **Scope**: This document covers the **Green Agent (Assessor)** - the benchmark system that evaluates coordination. The **Purple Agent (Assessee)** - the multi-agent system under test - will be documented separately.
+> **Scope**: This document covers the **Green Agent (Assessor)** - the benchmark system that evaluates coordination. For the **Purple Agent (Assessee)** - the baseline test fixture - see [PurpleAgent-UserStory.md](PurpleAgent-UserStory.md).
 >
 > **Naming Convention**: Some AgentBeats docs use "White Agent" for assessee; this project solely  uses "Purple Agent" (equivalent role).
 >
@@ -50,6 +48,7 @@ This benchmark transforms abstract "collaboration quality" into concrete, measur
 **Outcome Validity**: High coordination scores genuinely reflect successful multi-agent collaboration, not superficial pattern matching. Graph metrics alone are insufficient—they must be validated against task outcomes to ensure coordination quality correlates with actual task success.
 
 **Plugin Architecture**:
+
 - **Primary**: Graph evaluator (coordination structure analysis)
 - **Provided Plugins**: LLM-as-Judge (semantic quality, can ingest other plugin outputs), Latency (system performance, extensible), Text metrics (conventional NLP metrics)
 - **Design Principle**: Graph metrics reveal *how* agents coordinated; LLM-as-Judge can synthesize insights from multiple plugin outputs (Graph, Text, Latency) to verify coordination led to *successful* task completion
@@ -63,12 +62,13 @@ This benchmark transforms abstract "collaboration quality" into concrete, measur
 **So that** I can evaluate how agent systems collaborate on complex problems.
 
 **Acceptance Criteria:**
-- [ ] GreenAgent exposes AgentCard at `/.well-known/agent-card.json` declaring evaluation capabilities
-- [ ] Accepts task submissions via A2A JSON-RPC 2.0 protocol (`tasks.send` method)
+
+- [x] GreenAgent exposes AgentCard at `/.well-known/agent-card.json` declaring evaluation capabilities
+- [x] Accepts task submissions via A2A JSON-RPC 2.0 protocol (`message/send` method)
 - [ ] Supports configurable scenarios (agent URLs, task descriptions, expected interactions)
 - [ ] Orchestrates multi-agent execution through A2A protocol Task lifecycle management
 - [ ] Captures all agent-to-agent interactions during task execution via A2A Traceability Extension
-- [ ] Returns structured evaluation results via A2A JSONRPCSuccessResponse with evaluation metrics
+- [x] Returns structured evaluation results via A2A JSONRPCSuccessResponse with evaluation metrics
 
 ### System Developer: Capture Interaction Traces
 
@@ -77,8 +77,9 @@ This benchmark transforms abstract "collaboration quality" into concrete, measur
 **So that** I can analyze coordination patterns post-execution.
 
 **Acceptance Criteria:**
-- [ ] Captures all agent-to-agent communications via A2A Traceability Extension
-- [ ] Trace data captures sufficient information to reconstruct interaction sequence and analyze coordination patterns
+
+- [x] Captures all agent-to-agent communications via A2A Traceability Extension
+- [x] Trace data captures sufficient information to reconstruct interaction sequence and analyze coordination patterns
 - [ ] Uses production A2A protocol (not mock implementations)
 - [ ] Efficient connection management per A2A best practices
 
@@ -89,14 +90,15 @@ This benchmark transforms abstract "collaboration quality" into concrete, measur
 **So that** I can objectively measure coordination quality.
 
 **Acceptance Criteria:**
-- [ ] Constructs coordination graph representation from captured A2A interaction traces
-- [ ] **Pluggable metric system**: Each graph metric is a separate plugin that can be enabled/disabled
-- [ ] Default metrics (all pluggable):
+
+- [x] Constructs coordination graph representation from captured A2A interaction traces
+- [x] **Pluggable metric system**: Each graph metric is a separate plugin that can be enabled/disabled
+- [x] Default metrics (all pluggable):
   - **Centrality metrics**: degree, betweenness, closeness, eigenvector, PageRank
   - **Structure metrics**: graph density, clustering coefficient, connected components
   - **Path metrics**: average path length, diameter
-- [ ] Identifies coordination bottlenecks (high betweenness centrality agents)
-- [ ] Detects isolated agents (degree = 0) and over-centralized patterns
+- [x] Identifies coordination bottlenecks (high betweenness centrality agents)
+- [x] Detects isolated agents (degree = 0) and over-centralized patterns
 
 ### Competition Participant: Receive LLM-Based Evaluation
 
@@ -105,13 +107,14 @@ This benchmark transforms abstract "collaboration quality" into concrete, measur
 **So that** I understand semantic coordination quality beyond numerical metrics.
 
 **Acceptance Criteria:**
-- [ ] LLM Judge analyzes interaction traces for semantic quality assessment
+
+- [x] LLM Judge analyzes interaction traces for semantic quality assessment
 - [ ] **Multi-plugin data ingestion**: Can optionally receive outputs from other evaluators (Graph metrics, Text metrics, Latency metrics) to inform holistic assessment
 - [ ] Evaluation uses defined rubric: task alignment, communication clarity, workload distribution, bottleneck avoidance
 - [ ] **Task outcome assessment**: Evaluates whether coordination led to successful task completion (not just "good-looking" patterns)
 - [ ] When other plugin data available, LLM synthesizes graph structure insights + text quality + performance metrics for comprehensive evaluation
-- [ ] Evaluation includes: overall_score (0-1), reasoning, coordination_quality, task_success indicator
-- [ ] Identifies strengths and weaknesses in collaboration patterns
+- [x] Evaluation includes: overall_score (0-1), reasoning, coordination_quality, task_success indicator
+- [x] Identifies strengths and weaknesses in collaboration patterns
 - [ ] Graceful fallback if LLM unavailable
 - [ ] Consistent, reproducible scoring across runs
 
@@ -122,11 +125,12 @@ This benchmark transforms abstract "collaboration quality" into concrete, measur
 **So that** I can evaluate performance alongside coordination quality.
 
 **Acceptance Criteria:**
-- [ ] Captures timestamps for all agent interactions
-- [ ] **Primary focus: Latency metrics** for simplicity: avg, p50, p95, p99
-- [ ] Identifies slowest agents by URL
+
+- [x] Captures timestamps for all agent interactions
+- [x] **Primary focus: Latency metrics** for simplicity: avg, p50, p95, p99
+- [x] Identifies slowest agents by URL
 - [ ] **Extensible architecture**: System metrics evaluator can be extended to include throughput, memory usage, or other performance indicators in future
-- [ ] Plugin interface supports adding new system metrics without modifying core evaluation logic
+- [x] Plugin interface supports adding new system metrics without modifying core evaluation logic
 - [ ] Reports performance metrics alongside coordination scores
 - [ ] Latency evaluation completes in <5 seconds for typical workloads
 
@@ -137,20 +141,21 @@ This benchmark transforms abstract "collaboration quality" into concrete, measur
 **So that** I can extend evaluation criteria without modifying core code.
 
 **Acceptance Criteria:**
-- [ ] Evaluators follow consistent interface pattern (BaseEvaluator)
-- [ ] **Two-level plugin architecture**:
+
+- [x] Evaluators follow consistent interface pattern (BaseEvaluator)
+- [x] **Two-level plugin architecture**:
   - **Level 1 - Evaluator Plugins**: Graph, LLM-Judge, Latency, Text (each can be enabled/disabled)
   - **Level 2 - Metric Plugins** (within Graph evaluator): Each metric (degree, betweenness, PageRank, etc.) is independently pluggable
 - [ ] Plugin system with primary and secondary evaluators:
   - **Primary Plugin**: Graph evaluator (coordination structure—required)
   - **Provided Plugins**: LLM-Judge (semantic quality, can ingest other plugin outputs), Latency (performance, extensible to other system metrics), Text (NLP metrics)
   - **Custom Plugins**: User-defined evaluators via BaseEvaluator interface
-- [ ] **Cross-plugin data flow**: LLM-Judge evaluator can optionally receive outputs from Graph, Text, and Latency evaluators for holistic assessment
-- [ ] Graph metric plugins wrapped in consistent plugin interface (library choice in Constraints)
+- [x] **Cross-plugin data flow**: LLM-Judge evaluator can optionally receive outputs from Graph, Text, and Latency evaluators for holistic assessment
+- [x] Graph metric plugins wrapped in consistent plugin interface (library choice in Constraints)
 - [ ] Outcome correlation: Graph metrics can be cross-validated with task success via LLM-Judge or custom outcome evaluator
-- [ ] New evaluators/metrics can be added without changing Executor core logic
+- [x] New evaluators/metrics can be added without changing Executor core logic
 - [ ] Latency evaluator extensible to additional system metrics (throughput, memory) via plugin pattern
-- [ ] Documentation explains evaluator structure, integration points, and cross-plugin data flow
+- [x] Documentation explains evaluator structure, integration points, and cross-plugin data flow
 - [ ] TextEvaluator provided as plugin reference implementation
 
 ### E2E Testing: Validate with Base Purple Agent
@@ -160,6 +165,7 @@ This benchmark transforms abstract "collaboration quality" into concrete, measur
 **So that** I can validate the Green Agent evaluation pipeline works correctly.
 
 **Acceptance Criteria:**
+
 - [ ] Base Purple Agent implemented as A2A-compliant test fixture
 - [ ] Ground truth dataset with labeled test scenarios for validation
 - [ ] E2E tests validate both agents' AgentCards are accessible
@@ -175,6 +181,7 @@ This benchmark transforms abstract "collaboration quality" into concrete, measur
 **So that** I can understand the full evaluation flow and guide video production.
 
 **Acceptance Criteria:**
+
 - [ ] Script output: `docs/demo-video-script.md` (~3 minutes of content)
 - [ ] Scene 1: Server startup and A2A endpoint verification
 - [ ] Scene 2: Evaluation flow with trace capture

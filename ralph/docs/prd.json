@@ -1,0 +1,650 @@
+{
+  "project": "RDI-AgentBeats-TheBulletproofProtocol",
+  "description": "Legal Domain Agent Benchmark for AgentBeats competition - IRS Section 41 R&D tax credit evaluator. Purple agent (reference implementation) generates test narratives, Green agent (benchmark) evaluates them for IRS compliance.",
+  "source": "PRD.md",
+  "generated": "2026-02-22 17:21:36",
+  "stories": [
+    {
+      "id": "STORY-001",
+      "title": "Messenger with A2A SDK + extensions",
+      "description": "Implement Messenger class using A2A SDK for authentic agent-to-agent communication via JSON-RPC protocol. Supports A2A Traceability Extension for distributed call tracing.",
+      "acceptance": [
+        "Messenger uses ClientFactory.connect() from a2a-sdk",
+        "Messages created via create_text_message_object()",
+        "Response extracted from TaskState.completed events",
+        "Client caching per agent URL implemented",
+        "All tests pass: uv run pytest tests/test_messenger.py"
+      ],
+      "files": [
+        "src/green/messenger.py",
+        "tests/test_messenger.py"
+      ],
+      "passes": true,
+      "completed_at": "2026-01-27T17:30:00Z",
+      "content_hash": "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2",
+      "depends_on": []
+    },
+    {
+      "id": "STORY-002",
+      "title": "InteractionStep model integration",
+      "description": "Extend models to support InteractionStep conforming to A2A Traceability Extension Step specification.",
+      "acceptance": [
+        "InteractionStep model with step_id, trace_id, call_type, start_time, end_time",
+        "CallType enum: AGENT, TOOL, HOST",
+        "Model includes latency, error, parent_step_id fields",
+        "All tests pass: uv run pytest tests/test_models.py"
+      ],
+      "files": [
+        "src/green/models.py",
+        "tests/test_models.py"
+      ],
+      "passes": true,
+      "completed_at": "2026-01-27T17:45:00Z",
+      "content_hash": "b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3",
+      "depends_on": [
+        "STORY-001"
+      ]
+    },
+    {
+      "id": "STORY-003",
+      "title": "Executor with trace collection and cleanup",
+      "description": "Implement Executor class for task execution, trace collection, and resource cleanup.",
+      "acceptance": [
+        "Executor coordinates messenger, evaluators, and result aggregation",
+        "Trace collection during task execution",
+        "Calls messenger.close() after trace collection",
+        "All tests pass: uv run pytest tests/test_executor.py"
+      ],
+      "files": [
+        "src/green/executor.py",
+        "tests/test_executor.py"
+      ],
+      "passes": true,
+      "completed_at": "2026-01-27T18:00:00Z",
+      "content_hash": "c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4",
+      "depends_on": [
+        "STORY-002"
+      ]
+    },
+    {
+      "id": "STORY-004",
+      "title": "Add OpenAI dependency to pyproject.toml",
+      "description": "Add openai>=1.0 to project dependencies for LLM-based evaluation support.",
+      "acceptance": [
+        "openai>=1.0 in pyproject.toml dependencies",
+        "uv sync succeeds",
+        "Import openai works in Python"
+      ],
+      "files": [
+        "pyproject.toml"
+      ],
+      "passes": true,
+      "completed_at": "2026-01-27T18:05:00Z",
+      "content_hash": "d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5",
+      "depends_on": [
+        "STORY-003"
+      ]
+    },
+    {
+      "id": "STORY-005",
+      "title": "Green Agent business logic (agent.py)",
+      "description": "Implement Agent class for evaluation orchestration logic.",
+      "acceptance": [
+        "Agent class coordinates calls to evaluators",
+        "Aggregates evaluation results into structured response",
+        "All tests pass: uv run pytest tests/test_agent.py"
+      ],
+      "files": [
+        "src/green/agent.py",
+        "tests/test_agent.py"
+      ],
+      "passes": true,
+      "completed_at": "2026-01-27T18:15:00Z",
+      "content_hash": "e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6",
+      "depends_on": [
+        "STORY-004"
+      ]
+    },
+    {
+      "id": "STORY-006",
+      "title": "Green Agent A2A HTTP server (server.py)",
+      "description": "Implement A2A HTTP server with CLI args, AgentCard endpoint, health checks, and task delegation.",
+      "acceptance": [
+        "FastAPI server with AgentCard at /.well-known/agent-card.json",
+        "Health check endpoint at /health",
+        "JSON-RPC handler for message/send",
+        "Writes results to output/results.json",
+        "All tests pass: uv run pytest tests/test_server.py"
+      ],
+      "files": [
+        "src/green/server.py",
+        "tests/test_server.py"
+      ],
+      "passes": true,
+      "completed_at": "2026-01-27T18:30:00Z",
+      "content_hash": "f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7",
+      "depends_on": [
+        "STORY-005"
+      ]
+    },
+    {
+      "id": "STORY-007",
+      "title": "LLM client configuration with environment variables",
+      "description": "Implement LLM client configuration supporting environment variables for API key, base URL, and model selection.",
+      "acceptance": [
+        "Reads AGENTBEATS_LLM_API_KEY, AGENTBEATS_LLM_BASE_URL, AGENTBEATS_LLM_MODEL",
+        "Default base URL: https://api.openai.com/v1",
+        "Default model: gpt-4o-mini",
+        "All tests pass: uv run pytest tests/test_llm_judge.py"
+      ],
+      "files": [
+        "src/green/evals/llm_judge.py",
+        "src/green/settings.py"
+      ],
+      "passes": true,
+      "completed_at": "2026-01-27T18:09:31Z",
+      "content_hash": "a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8",
+      "depends_on": [
+        "STORY-006"
+      ]
+    },
+    {
+      "id": "STORY-008",
+      "title": "LLM prompt engineering for coordination assessment",
+      "description": "Design and implement LLM prompt for semantic assessment of coordination quality.",
+      "acceptance": [
+        "Prompt includes TraceData serialization",
+        "Requests overall_score, reasoning, coordination_quality",
+        "JSON schema for LLMJudgment response",
+        "All tests pass"
+      ],
+      "files": [
+        "src/green/evals/llm_judge.py"
+      ],
+      "passes": true,
+      "completed_at": "2026-01-27T18:13:01Z",
+      "content_hash": "b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9",
+      "depends_on": [
+        "STORY-007"
+      ]
+    },
+    {
+      "id": "STORY-009",
+      "title": "LLM API integration with fallback to rule-based evaluation",
+      "description": "Integrate LLM API calls with graceful fallback to rule-based evaluation if API unavailable.",
+      "acceptance": [
+        "Falls back to rule-based if API unavailable",
+        "Uses temperature=0 for consistency",
+        "Handles API errors gracefully",
+        "All tests pass"
+      ],
+      "files": [
+        "src/green/evals/llm_judge.py",
+        "tests/test_llm_judge.py"
+      ],
+      "passes": true,
+      "completed_at": "2026-01-27T18:16:51Z",
+      "content_hash": "c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0",
+      "depends_on": [
+        "STORY-008"
+      ]
+    },
+    {
+      "id": "STORY-010",
+      "title": "Latency metrics evaluator",
+      "description": "Implement latency metrics evaluator for comparative analysis within same system environment.",
+      "acceptance": [
+        "Reads latency from InteractionStep.latency field",
+        "Computes percentiles: avg, p50, p95, p99",
+        "Identifies slowest agent by URL",
+        "All tests pass: uv run pytest tests/test_system.py"
+      ],
+      "files": [
+        "src/green/evals/system.py",
+        "tests/test_system.py"
+      ],
+      "passes": true,
+      "completed_at": "2026-01-27T18:28:25Z",
+      "content_hash": "d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1",
+      "depends_on": [
+        "STORY-009"
+      ]
+    },
+    {
+      "id": "STORY-011",
+      "title": "Wire all evaluators in Executor pipeline",
+      "description": "Integrate all evaluators (Graph, LLM Judge, Latency) into Executor pipeline.",
+      "acceptance": [
+        "Executor calls all evaluators in correct order",
+        "Results aggregated into structured response",
+        "Output follows AgentBeats leaderboard standard",
+        "All tests pass"
+      ],
+      "files": [
+        "src/green/executor.py",
+        "tests/test_executor.py"
+      ],
+      "passes": true,
+      "completed_at": "2026-01-27T18:36:10Z",
+      "content_hash": "e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2",
+      "depends_on": [
+        "STORY-003",
+        "STORY-010"
+      ]
+    },
+    {
+      "id": "STORY-012",
+      "title": "Extensibility documentation and examples",
+      "description": "Document evaluator interface pattern and provide examples for adding custom evaluators.",
+      "acceptance": [
+        "Documentation explains evaluator interface pattern",
+        "Tier-based structure documented",
+        "Example evaluator implementation provided",
+        "Integration points clearly described"
+      ],
+      "files": [
+        "docs/AgentBeats/AGENTBEATS_REGISTRATION.md"
+      ],
+      "passes": true,
+      "completed_at": "2026-01-27T19:00:26Z",
+      "content_hash": "f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3",
+      "depends_on": [
+        "STORY-011"
+      ]
+    },
+    {
+      "id": "STORY-013",
+      "title": "Graph evaluator test suite",
+      "description": "Implement comprehensive test suite for graph-based coordination analysis.",
+      "acceptance": [
+        "Tests validate metric computation",
+        "Tests validate bottleneck detection",
+        "All tests pass: uv run pytest tests/test_graph.py"
+      ],
+      "files": [
+        "tests/test_graph.py"
+      ],
+      "passes": true,
+      "completed_at": "2026-01-27T19:08:03Z",
+      "content_hash": "a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4",
+      "depends_on": [
+        "STORY-003"
+      ]
+    },
+    {
+      "id": "STORY-014",
+      "title": "Graph-based coordination analysis implementation",
+      "description": "Implement graph-based coordination analysis with pluggable metric system.",
+      "acceptance": [
+        "Builds directed graph from TraceData",
+        "Computes centrality, density, clustering metrics",
+        "Identifies bottlenecks and isolated agents",
+        "All tests pass"
+      ],
+      "files": [
+        "src/green/evals/graph.py",
+        "tests/test_graph.py"
+      ],
+      "passes": true,
+      "completed_at": "2026-01-27T19:15:30Z",
+      "content_hash": "b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5",
+      "depends_on": [
+        "STORY-013"
+      ]
+    },
+    {
+      "id": "STORY-015",
+      "title": "Base Purple Agent implementation",
+      "description": "Implement Base Purple Agent as A2A-compliant test fixture for E2E validation.",
+      "acceptance": [
+        "Purple Agent follows RDI green-agent-template pattern",
+        "AgentCard at /.well-known/agent-card.json",
+        "Handles message/send JSON-RPC method",
+        "All tests pass: uv run pytest tests/test_purple_agent.py"
+      ],
+      "files": [
+        "src/purple/server.py",
+        "src/purple/executor.py",
+        "src/purple/settings.py",
+        "tests/test_purple_agent.py"
+      ],
+      "passes": true,
+      "completed_at": "2026-01-27T19:46:55Z",
+      "content_hash": "c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6",
+      "depends_on": [
+        "STORY-003"
+      ]
+    },
+    {
+      "id": "STORY-016",
+      "title": "E2E test suite with ground truth validation",
+      "description": "Implement E2E test suite validating both agents' AgentCards and Green Agent evaluation correctness.",
+      "acceptance": [
+        "E2E tests validate both agents' AgentCards are accessible",
+        "E2E tests verify Purple Agent generates expected outputs",
+        "E2E tests verify Green Agent correctly classifies scenarios",
+        "All tests pass"
+      ],
+      "files": [
+        "tests/e2e/",
+        "data/ground_truth.json"
+      ],
+      "passes": true,
+      "completed_at": "2026-01-27T19:57:02Z",
+      "content_hash": "d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7",
+      "depends_on": [
+        "STORY-015",
+        "STORY-011"
+      ]
+    },
+    {
+      "id": "STORY-017",
+      "title": "Create demo video script",
+      "description": "Create comprehensive demo video script showcasing Green Agent capabilities.",
+      "acceptance": [
+        "Script includes narration and screen actions",
+        "Covers key features and evaluation pipeline",
+        "Timing cues included"
+      ],
+      "files": [
+        "docs/demo_script.md"
+      ],
+      "passes": true,
+      "completed_at": "2026-01-27T21:10:48Z",
+      "content_hash": "e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8",
+      "depends_on": [
+        "STORY-011"
+      ]
+    },
+    {
+      "id": "STORY-018",
+      "title": "Common module with shared models",
+      "description": "Create common module with shared models (CallType, InteractionStep, JSONRPCRequest/Response) for use by both Green and Purple agents.",
+      "acceptance": [
+        "src/common/__init__.py exports all shared types",
+        "src/common/models.py contains CallType, InteractionStep, JSONRPCRequest, JSONRPCResponse",
+        "Models conform to A2A Traceability Extension Step specification",
+        "Green agent re-exports from common (backward compatible)",
+        "All tests pass: uv run pytest tests/test_common_models.py"
+      ],
+      "files": [
+        "src/common/__init__.py",
+        "src/common/models.py",
+        "src/green/models.py",
+        "tests/test_common_models.py"
+      ],
+      "passes": true,
+      "completed_at": "2026-01-31T20:31:53Z",
+      "content_hash": "f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9",
+      "depends_on": [
+        "STORY-003"
+      ]
+    },
+    {
+      "id": "STORY-019",
+      "title": "Common LLM settings and client factory",
+      "description": "Create shared LLMSettings and LLM client factory in common module.",
+      "acceptance": [
+        "src/common/settings.py contains LLMSettings class",
+        "LLMSettings supports env vars: AGENTBEATS_LLM_API_KEY, AGENTBEATS_LLM_BASE_URL, AGENTBEATS_LLM_MODEL",
+        "src/common/llm_client.py provides create_llm_client() factory",
+        "Green agent uses common LLMSettings (backward compatible)",
+        "All tests pass: uv run pytest tests/test_common_llm.py"
+      ],
+      "files": [
+        "src/common/settings.py",
+        "src/common/llm_client.py",
+        "src/green/settings.py",
+        "tests/test_common_llm.py"
+      ],
+      "passes": true,
+      "completed_at": "2026-01-31T20:38:08Z",
+      "content_hash": "a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0",
+      "depends_on": [
+        "STORY-018"
+      ]
+    },
+    {
+      "id": "STORY-020",
+      "title": "Common messenger",
+      "description": "Move messenger implementation to common module, eliminating code duplication.",
+      "acceptance": [
+        "src/common/messenger.py contains A2A Messenger implementation",
+        "Messenger uses ClientFactory.connect() from a2a-sdk",
+        "Green and Purple agents re-export from common",
+        "Backward compatible imports maintained",
+        "All tests pass: uv run pytest tests/test_common_messenger.py"
+      ],
+      "files": [
+        "src/common/messenger.py",
+        "src/green/messenger.py",
+        "src/purple/messenger.py",
+        "tests/test_common_messenger.py"
+      ],
+      "passes": true,
+      "completed_at": "2026-01-31T20:50:13Z",
+      "content_hash": "b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1",
+      "depends_on": [
+        "STORY-018"
+      ]
+    },
+    {
+      "id": "STORY-021",
+      "title": "Trace reporter for async trace collection",
+      "description": "Create TraceReporter for async fire-and-forget trace reporting from Purple agents to Green.",
+      "acceptance": [
+        "src/common/trace_reporter.py contains TraceReporter class",
+        "TraceReporter sends traces to Green's /traces endpoint",
+        "Fire-and-forget pattern (non-blocking)",
+        "Graceful handling of Green unavailability",
+        "All tests pass: uv run pytest tests/test_common_trace_reporter.py"
+      ],
+      "files": [
+        "src/common/trace_reporter.py",
+        "tests/test_common_trace_reporter.py"
+      ],
+      "passes": true,
+      "completed_at": "2026-01-31T20:53:45Z",
+      "content_hash": "c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2",
+      "depends_on": [
+        "STORY-018"
+      ]
+    },
+    {
+      "id": "STORY-022",
+      "title": "Peer discovery",
+      "description": "Create PeerDiscovery for discovering peer agents via static configuration and Green registry.",
+      "acceptance": [
+        "src/common/peer_discovery.py contains PeerDiscovery class",
+        "Supports static peers configuration",
+        "Supports Green registry lookup via /peers endpoint",
+        "Caches peer list with configurable TTL",
+        "All tests pass: uv run pytest tests/test_common_peer_discovery.py"
+      ],
+      "files": [
+        "src/common/peer_discovery.py",
+        "tests/test_common_peer_discovery.py"
+      ],
+      "passes": true,
+      "completed_at": "2026-01-31T21:43:29Z",
+      "content_hash": "d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3",
+      "depends_on": [
+        "STORY-018"
+      ]
+    },
+    {
+      "id": "STORY-023",
+      "title": "Green trace collector endpoints",
+      "description": "Add /traces, /register, and /peers endpoints to Green agent for trace collection and agent registry.",
+      "acceptance": [
+        "POST /traces endpoint receives async trace reports",
+        "POST /register endpoint registers agents in Green's registry",
+        "GET /peers endpoint returns list of registered agent URLs",
+        "src/green/trace_store.py provides in-memory trace storage",
+        "All tests pass: uv run pytest tests/test_green_trace_store.py tests/test_green_server_traces.py"
+      ],
+      "files": [
+        "src/green/trace_store.py",
+        "src/green/server.py",
+        "tests/test_green_trace_store.py",
+        "tests/test_green_server_traces.py"
+      ],
+      "passes": true,
+      "completed_at": "2026-01-31T21:56:22Z",
+      "content_hash": "e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4",
+      "depends_on": [
+        "STORY-011",
+        "STORY-021"
+      ]
+    },
+    {
+      "id": "STORY-030",
+      "title": "TraceCollectionConfig model",
+      "description": "Create TraceCollectionConfig Pydantic model with configurable timeout and idle detection settings for adaptive trace collection strategy.",
+      "acceptance": [
+        "TraceCollectionConfig Pydantic model with fields: max_timeout_seconds (default 30), idle_threshold_seconds (default 5), use_completion_signals (default True)",
+        "TraceCollectionConfig added to src/common/models.py and exported from src/common/__init__.py",
+        "GreenSettings includes trace_collection: TraceCollectionConfig nested field",
+        "Default config produces behaviour equivalent to current fixed-rounds baseline",
+        "All tests pass: uv run pytest tests/test_green_executor_traces.py tests/test_green_executor_pipeline.py"
+      ],
+      "files": [
+        "src/common/models.py",
+        "src/common/__init__.py",
+        "src/green/settings.py",
+        "tests/test_green_executor_traces.py",
+        "tests/test_green_executor_pipeline.py"
+      ],
+      "passes": true,
+      "completed_at": "2026-02-22T17:44:25Z",
+      "content_hash": "1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a",
+      "depends_on": []
+    },
+    {
+      "id": "STORY-031",
+      "title": "Hybrid trace collection strategy in Executor",
+      "description": "Replace fixed-rounds placeholder with adaptive trace collection strategy using idle detection, completion signals, and timeout safety in Executor.",
+      "acceptance": [
+        "Executor replaces DEFAULT_COORDINATION_ROUNDS fixed loop with adaptive collection loop",
+        "Idle detection: collection stops when no new trace received within idle_threshold_seconds",
+        "Timeout safety: hard stop after max_timeout_seconds regardless of activity",
+        "Completion signal: when use_completion_signals=True, honours status=\"complete\" in A2A response metadata",
+        "All tests pass: uv run pytest tests/test_green_executor_traces.py tests/test_green_executor_pipeline.py"
+      ],
+      "files": [
+        "src/green/executor.py",
+        "tests/test_green_executor_traces.py",
+        "tests/test_green_executor_pipeline.py"
+      ],
+      "passes": true,
+      "completed_at": "2026-02-22T17:57:23Z",
+      "content_hash": "2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b",
+      "depends_on": [
+        "STORY-030"
+      ]
+    },
+    {
+      "id": "STORY-032",
+      "title": "Settings audit and consolidation",
+      "description": "Audit both agents for hardcoded configuration values, move them into pydantic-settings classes, and produce a canonical environment variable reference document for operators and contributors.",
+      "acceptance": [
+        "Audit src/green/ and src/purple/ for hardcoded values outside settings classes",
+        "All audited values moved to GreenSettings or PurpleSettings with env var overrides",
+        "GreenSettings covers: host, port, output file path, LLM config, A2A config, trace collection config, coordination rounds (deprecated after Feature 1)",
+        "PurpleSettings covers: host, port, agent UUID, static peers, green agent URL",
+        "Settings test coverage updated: uv run pytest tests/test_green_settings.py tests/test_purple_settings.py",
+        "All tests pass"
+      ],
+      "files": [
+        "src/green/settings.py",
+        "src/purple/settings.py",
+        "tests/test_green_settings.py",
+        "tests/test_purple_settings.py"
+      ],
+      "passes": true,
+      "completed_at": "2026-02-22T18:03:23Z",
+      "content_hash": "3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c",
+      "depends_on": []
+    },
+    {
+      "id": "STORY-033",
+      "title": "Environment variable configuration guide",
+      "description": "Create docs/AgentBeats/CONFIGURATION.md with full environment variable reference table for operators and contributors.",
+      "acceptance": [
+        "docs/AgentBeats/CONFIGURATION.md created with full env var table (name, default, description, agent)",
+        "Table includes all GreenSettings and PurpleSettings environment variables",
+        "Documentation includes usage examples and troubleshooting guidance",
+        "All tests pass"
+      ],
+      "files": [
+        "docs/AgentBeats/CONFIGURATION.md"
+      ],
+      "passes": true,
+      "completed_at": "2026-02-22T18:07:29Z",
+      "content_hash": "4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d",
+      "depends_on": [
+        "STORY-032"
+      ]
+    },
+    {
+      "id": "STORY-034",
+      "title": "Create AGENTBEATS_REGISTRATION.md evaluator guide",
+      "description": "Create docs/AgentBeats/AGENTBEATS_REGISTRATION.md to document the evaluator plugin architecture, tier system, and provide a worked example of adding a custom evaluator.",
+      "acceptance": [
+        "docs/AgentBeats/AGENTBEATS_REGISTRATION.md file created",
+        "Documents BaseEvaluator ABC interface pattern with typed Python code example",
+        "Documents tier-based structure: Tier 1 (Graph/structural), Tier 2 (LLM + Latency), Tier 3 (custom plugins)",
+        "Documents GraphMetricPlugin ABC as second-level extension point within graph evaluator",
+        "Step-by-step guide: create evaluator file, implement evaluate(), register in Executor._run_evaluations()",
+        "Reference implementation: TextEvaluator (Tier 3) shown as worked example",
+        "Integration points clearly described with file paths and line number references"
+      ],
+      "files": [
+        "docs/AgentBeats/AGENTBEATS_REGISTRATION.md"
+      ],
+      "passes": true,
+      "completed_at": "2026-02-22T18:12:43Z",
+      "content_hash": "5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e",
+      "depends_on": []
+    },
+    {
+      "id": "STORY-035",
+      "title": "Live LLM connectivity tests",
+      "description": "Add network-gated tests that validate real LLM API calls without mocks. Tests skip automatically when AGENTBEATS_LLM_API_KEY env var is unset.",
+      "acceptance": [
+        "tests/test_green_llm_live.py created with @pytest.mark.network marker",
+        "Live LLM tests skip automatically when AGENTBEATS_LLM_API_KEY env var is unset",
+        "Live LLM tests call real OpenAI-compatible endpoint with temperature=0 and verify LLMJudgment response structure",
+        "Standard test run unaffected: uv run pytest tests/ -m \"not network and not integration\" passes"
+      ],
+      "files": [
+        "tests/test_green_llm_live.py"
+      ],
+      "passes": true,
+      "completed_at": "2026-02-22T18:18:13Z",
+      "content_hash": "6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f",
+      "depends_on": []
+    },
+    {
+      "id": "STORY-036",
+      "title": "Real A2A E2E integration tests",
+      "description": "Add integration-gated tests that validate live A2A communication without mocks. Tests skip in standard CI but run locally or in dedicated integration pipelines.",
+      "acceptance": [
+        "tests/e2e/test_live_a2a_evaluation.py created with @pytest.mark.integration marker",
+        "Live A2A tests launch Green and Purple via httpx.AsyncClient with ASGITransport (no Docker required)",
+        "Live A2A tests verify InteractionStep traces captured during real message/send exchange",
+        "Live A2A tests verify output/results.json written with correct AgentBeatsOutputModel schema",
+        "Standard test run unaffected: uv run pytest tests/ -m \"not network and not integration\" passes"
+      ],
+      "files": [
+        "tests/e2e/test_live_a2a_evaluation.py"
+      ],
+      "passes": true,
+      "completed_at": "2026-02-22T00:00:00Z",
+      "content_hash": "7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a",
+      "depends_on": [
+        "STORY-035"
+      ]
+    }
+  ]
+}

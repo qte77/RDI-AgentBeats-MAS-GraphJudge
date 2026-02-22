@@ -1,27 +1,67 @@
-# Dockerfile for Green Agent
+# syntax=docker/dockerfile:1
+# Dockerfile.green
+# Platform: linux/amd64
 
-FROM python:3.13-slim
-
-# Set working directory
-WORKDIR /app
+# ============================================================================
+# Stage 1: Builder - Install dependencies using uv
+# ============================================================================
+FROM --platform=linux/amd64 python:3.13-slim AS builder
 
 # Install uv for fast dependency management
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
-# Copy project files
+WORKDIR /app
+
+# Copy dependency files first for better caching
 COPY pyproject.toml ./
-COPY uv.lock ./
-COPY LICENSE.md ./
-COPY README.md ./
-COPY src/green ./src/green/
+COPY uv.lock* ./
+COPY LICENSE.md README.md ./
 
-# Install dependencies using uv
-# Install the green agent dependencies (a2a-sdk[http-server]>=0.3.0, uvicorn>=0.30.0)
-RUN uv pip install --system -e ".[green]"
+# Create virtual environment and install dependencies
+RUN uv venv /app/.venv
+ENV PATH="/app/.venv/bin:$PATH"
+RUN uv sync --frozen --no-dev --no-install-project
 
-# Expose port 9009 for A2A server (AgentBeats platform standard)
+# Copy only necessary source directories
+# - green: Green agent code
+# - common: Shared infrastructure
+COPY src/green/ ./src/green/
+COPY src/common/ ./src/common/
+
+# Install the project
+RUN uv sync --frozen --no-dev
+
+# ============================================================================
+# Stage 2: Runtime - Minimal production image
+# ============================================================================
+FROM --platform=linux/amd64 python:3.13-slim AS runtime
+
+WORKDIR /app
+
+# Create non-root user for security
+RUN groupadd --gid 1000 appgroup && \
+    useradd --uid 1000 --gid appgroup --shell /bin/bash --create-home appuser
+
+# Copy virtual environment from builder
+COPY --from=builder /app/.venv /app/.venv
+ENV PATH="/app/.venv/bin:$PATH"
+
+# Copy only necessary source directories
+COPY --from=builder /app/src/green /app/src/green
+COPY --from=builder /app/src/common /app/src/common
+
+# Create output directory for evaluation results (writable by appuser)
+RUN mkdir -p /app/output && chown appuser:appgroup /app/output
+
+# Set PYTHONPATH so Python can find the modules
+ENV PYTHONPATH="/app/src:$PYTHONPATH"
+
+# Switch to non-root user
+USER appuser
+
+# Expose port 9009 for A2A server
 EXPOSE 9009
 
-# Run the green agent server
-# Use python -m to run as module, binding to all interfaces on port 9009
-CMD ["python", "-m", "green.server", "--host", "0.0.0.0", "--port", "9009"]
+# ENTRYPOINT runs green agent server
+# Server reads GREEN_HOST and GREEN_PORT from environment (via settings.py)
+ENTRYPOINT ["python", "-m", "green.server"]

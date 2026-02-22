@@ -5,7 +5,7 @@
 
 .SILENT:
 .ONESHELL:
-.PHONY: setup_dev setup_claude_code setup_sandbox setup_project setup_devc_project setup_devc_template run_markdownlint ruff test_all type_check validate quick_validate ralph_userstory ralph_prd_md ralph_prd_json ralph_init ralph_run ralph_status ralph_clean ralph_reorganize help
+.PHONY: setup_dev setup_claude_code setup_sandbox setup_project setup_devc_project setup_devc_template markdownlint ruff ruff_tests complexity test_all test_quick test_coverage type_check validate quick_validate ralph_userstory ralph_prd_md ralph_prd_json ralph_init ralph_run ralph_status ralph_clean ralph_reorganize help
 .DEFAULT_GOAL := help
 
 
@@ -24,7 +24,13 @@ setup_claude_code:  ## Setup claude code CLI
 	echo "Claude Code CLI version: $$(claude --version)"
 
 setup_sandbox:  ## Install sandbox deps (bubblewrap, socat) for Linux/WSL2
+	# Required for Claude Code sandboxing on Linux/WSL2:
+	# - bubblewrap: Provides filesystem and process isolation
+	# - socat: Handles network socket communication for sandbox proxy
+	# Without these, sandbox falls back to unsandboxed execution (security risk)
 	# https://code.claude.com/docs/en/sandboxing
+	# https://code.claude.com/docs/en/settings#sandbox-settings
+	# https://code.claude.com/docs/en/security
 	echo "Installing sandbox dependencies ..."
 	if command -v apt-get > /dev/null; then \
 		sudo apt-get update -qq && sudo apt-get install -y bubblewrap socat; \
@@ -37,9 +43,14 @@ setup_sandbox:  ## Install sandbox deps (bubblewrap, socat) for Linux/WSL2
 	echo "Sandbox dependencies installed."
 
 setup_project:  ## Customize template with your project details. Run with help: bash scripts/setup_project.sh help
-	bash scripts/setup_project.sh || { echo ""; echo "ERROR: Project setup failed. Please check the error messages above."; exit 1; }
+	bash scripts/setup_project.sh || {
+		echo "";
+		echo "ERROR: Project setup failed. Please check the error messages above.";
+		exit 1;
+	}
 
 setup_devc_project:  ## Devcontainer: Full project env (sandbox + Python/Node deps + project customization)
+	cp -r .claude/.claude.json ~/.claude.json
 	$(MAKE) -s setup_sandbox
 	$(MAKE) -s setup_dev
 	# $(MAKE) -s setup_project
@@ -49,42 +60,54 @@ setup_devc_template:  ## Devcontainer: Template editing env (sandbox + Claude Co
 	$(MAKE) -s setup_claude_code
 
 
-# MARK: run markdownlint
-
-
-run_markdownlint:  ## Lint markdown files. Usage from root dir: make run_markdownlint INPUT_FILES="docs/**/*.md"
-	if [ -z "$(INPUT_FILES)" ]; then
-		echo "Error: No input files specified. Use INPUT_FILES=\"docs/**/*.md\""
-		exit 1
-	fi
-	uv run pymarkdown fix $(INPUT_FILES)
-
-
 # MARK: Sanity
 
 
-ruff:  ## Lint: Format and check with ruff
+ruff:  ## Lint: Format and check with ruff (src only)
 	uv run ruff format --exclude tests
 	uv run ruff check --fix --exclude tests
 
+ruff_tests:  ## Lint: Format and fix tests with ruff
+	uv run ruff format tests
+	uv run ruff check tests --fix
+
+complexity:  ## Check cognitive complexity with complexipy
+	uv run complexipy
+
 test_all:  ## Run all tests
 	uv run pytest
+
+test_quick:  ## Quick test - rerun only failed tests (use during fix iterations)
+	uv run pytest --lf -x
+
+test_coverage:  ## Run tests with coverage threshold (configured in pyproject.toml)
+	echo "Running tests with coverage gate (fail_under=70% in pyproject.toml)..."
+	uv run pytest --cov
 
 type_check:  ## Check for static typing errors
 	uv run pyright src
 
 validate:  ## Complete pre-commit validation sequence
-	echo "Running complete validation sequence ..."
+	set -e
+	echo "Running complete validation sequence..."
 	$(MAKE) -s ruff
+	$(MAKE) -s ruff_tests
 	$(MAKE) -s type_check
-	$(MAKE) -s test_all
-	echo "Validation sequence completed (check output for any failures)"
+	$(MAKE) -s complexity
+	$(MAKE) -s test_coverage
+	echo "Validation completed successfully"
 
 quick_validate:  ## Fast development cycle validation
 	echo "Running quick validation ..."
 	$(MAKE) -s ruff
 	$(MAKE) -s type_check
 	echo "Quick validation completed (check output for any failures)"
+
+markdownlint:  ## Fix markdown files. Usage: make run_markdownlint [INPUT_FILES="docs/**/*.md"] (default: docs/)
+	INPUT=$${INPUT_FILES:-docs/}
+	echo "Running markdownlint on $$INPUT ..."
+	uv run pymarkdown fix --recurse $$INPUT
+	uv run pymarkdown scan --recurse $$INPUT
 
 
 # MARK: ralph
@@ -148,7 +171,6 @@ ralph_reorganize:  ## Archive current PRD and start new iteration. Usage: make r
 
 
 help:  ## Displays this message with available recipes
-	# TODO add stackoverflow source
 	echo "Usage: make [recipe]"
 	echo "Recipes:"
 	awk '/^[a-zA-Z0-9_-]+:.*?##/ {

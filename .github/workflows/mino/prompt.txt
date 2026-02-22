@@ -1,0 +1,13 @@
+Navigate to https://agentbeats.dev and extract comprehensive data for all AI agents listed across all categories.
+
+For each agent, collect:
+1. Category (coding, web, multi-agent, research, agent-safety, computer-use, etc.)
+2. Name and author/creator
+3. External links (ArXiv papers, GitHub repositories, leaderboards, documentation)
+4. Architecture details, purpose, goal, and technical approach
+5. Technology stack and keywords (Python, Docker, A2A Protocol, NetworkX, MCP, etc.)
+6. Activity metadata (creation date, status indicators like color: green/purple)
+
+Include source URL citations for all extracted information.
+
+Return the data as structured JSON with an "agents" array containing all extracted agent information.

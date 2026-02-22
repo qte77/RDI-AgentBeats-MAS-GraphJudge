@@ -125,7 +125,10 @@ def resolve_image(agent: dict, name: str) -> None:
         sys.exit(1)
     elif has_image:
         if os.environ.get("GITHUB_ACTIONS"):
-            print(f"Error: {name} requires 'agentbeats_id' for GitHub Actions (use 'image' for local testing only)")
+            print(
+                f"Error: {name} requires 'agentbeats_id' for GitHub Actions "
+                f"(use 'image' for local testing only)"
+            )
             sys.exit(1)
         print(f"Using {name} image: {agent['image']}")
     elif has_id:
@@ -171,7 +174,7 @@ def format_depends_on(services: list) -> str:
     lines = []
     for service in services:
         lines.append(f"      {service}:")
-        lines.append(f"        condition: service_healthy")
+        lines.append("        condition: service_healthy")
     return "\n" + "\n".join(lines)
 
 
@@ -181,15 +184,17 @@ def generate_docker_compose(scenario: dict[str, Any]) -> str:
 
     participant_names = [p["name"] for p in participants]
 
-    participant_services = "\n".join([
-        PARTICIPANT_TEMPLATE.format(
-            name=p["name"],
-            image=p["image"],
-            port=DEFAULT_PORT,
-            env=format_env_vars(p.get("env", {}))
-        )
-        for p in participants
-    ])
+    participant_services = "\n".join(
+        [
+            PARTICIPANT_TEMPLATE.format(
+                name=p["name"],
+                image=p["image"],
+                port=DEFAULT_PORT,
+                env=format_env_vars(p.get("env", {})),
+            )
+            for p in participants
+        ]
+    )
 
     all_services = ["green-agent"] + participant_names
 
@@ -199,23 +204,23 @@ def generate_docker_compose(scenario: dict[str, Any]) -> str:
         green_env=format_env_vars(green.get("env", {})),
         green_depends=format_depends_on(participant_names),
         participant_services=participant_services,
-        client_depends=format_depends_on(all_services)
+        client_depends=format_depends_on(all_services),
     )
 
 
 def generate_a2a_scenario(scenario: dict[str, Any]) -> str:
-    green = scenario["green_agent"]
+    _ = scenario["green_agent"]  # Reserved for future use
     participants = scenario.get("participants", [])
 
     participant_lines = []
     for p in participants:
         lines = [
-            f"[[participants]]",
-            f"role = \"{p['name']}\"",
-            f"endpoint = \"http://{p['name']}:{DEFAULT_PORT}\"",
+            "[[participants]]",
+            f'role = "{p["name"]}"',
+            f'endpoint = "http://{p["name"]}:{DEFAULT_PORT}"',
         ]
         if "agentbeats_id" in p:
-            lines.append(f"agentbeats_id = \"{p['agentbeats_id']}\"")
+            lines.append(f'agentbeats_id = "{p["agentbeats_id"]}"')
         participant_lines.append("\n".join(lines) + "\n")
 
     config_section = scenario.get("config", {})
@@ -224,7 +229,7 @@ def generate_a2a_scenario(scenario: dict[str, Any]) -> str:
     return A2A_SCENARIO_TEMPLATE.format(
         green_port=DEFAULT_PORT,
         participants="\n".join(participant_lines),
-        config="\n".join(config_lines)
+        config="\n".join(config_lines),
     )
 
 
@@ -235,7 +240,7 @@ def generate_env_file(scenario: dict[str, Any]) -> str:
     secrets = set()
 
     # Extract secrets from ${VAR} patterns in env values
-    env_var_pattern = re.compile(r'\$\{([^}]+)\}')
+    env_var_pattern = re.compile(r"\$\{([^}]+)\}")
 
     for value in green.get("env", {}).values():
         for match in env_var_pattern.findall(str(value)):
@@ -280,6 +285,7 @@ def main():
         print(f"Generated {ENV_PATH}")
 
     print(f"Generated {COMPOSE_PATH} and {A2A_SCENARIO_PATH}")
+
 
 if __name__ == "__main__":
     main()

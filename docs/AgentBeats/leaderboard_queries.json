@@ -1,0 +1,22 @@
+[
+  {
+    "name": "Overall Performance",
+    "query": "SELECT participants.agent AS agent_id, r.score AS score, r.pass_rate AS pass_rate, r.detail.coordination_quality AS coordination_quality, r.detail.overall_score AS overall_score FROM read_json_auto('output/results.json') CROSS JOIN UNNEST(results) AS r ORDER BY r.score DESC, r.pass_rate DESC"
+  },
+  {
+    "name": "Graph Analysis",
+    "query": "SELECT participants.agent AS agent_id, r.detail.graph_metrics.graph_density AS graph_density, r.task_rewards.coordination_quality AS coordination_score, r.detail.coordination_quality AS quality_level, r.domain AS domain FROM read_json_auto('output/results.json') CROSS JOIN UNNEST(results) AS r ORDER BY graph_density DESC"
+  },
+  {
+    "name": "Latency Performance",
+    "query": "SELECT participants.agent AS agent_id, r.time_used AS time_used_ms, r.detail.latency_metrics.avg AS avg_latency_ms, r.score AS score, r.pass_rate AS pass_rate FROM read_json_auto('output/results.json') CROSS JOIN UNNEST(results) AS r ORDER BY time_used_ms ASC"
+  },
+  {
+    "name": "Task Rewards Breakdown",
+    "query": "SELECT participants.agent AS agent_id, ROUND(r.task_rewards.overall_score * 100, 1) AS overall_pct, ROUND(r.task_rewards.graph_density * 100, 1) AS density_pct, ROUND(r.task_rewards.coordination_quality * 100, 1) AS coord_pct, r.score AS total_score FROM read_json_auto('output/results.json') CROSS JOIN UNNEST(results) AS r ORDER BY total_score DESC"
+  },
+  {
+    "name": "Evaluation Details",
+    "query": "SELECT participants.agent AS agent_id, r.detail.reasoning AS reasoning, r.detail.coordination_quality AS quality, r.detail.strengths AS strengths, r.detail.weaknesses AS weaknesses FROM read_json_auto('output/results.json') CROSS JOIN UNNEST(results) AS r"
+  }
+]

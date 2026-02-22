@@ -3,36 +3,51 @@
 # This configuration runs both the green agent (assessor) and
 # purple agent (assessee) locally for integration testing.
 #
+# Port Configuration (SOURCE OF TRUTH - settings.py must align to this):
+#   Purple: host 9010 → container 9010
+#   Green:  host 9009 → container 9009
+#
 # Usage:
-#   docker-compose up -d          # Start both agents
-#   docker-compose ps             # Check status
-#   docker-compose logs -f        # View logs
-#   docker-compose down           # Stop and remove containers
+#   docker-compose -f docker-compose-local.yml up -d    # Start both agents
+#   docker-compose -f docker-compose-local.yml ps       # Check status
+#   docker-compose -f docker-compose-local.yml logs -f  # View logs
+#   docker-compose -f docker-compose-local.yml logs green 2>&1 | tail -100
+#   docker-compose -f docker-compose-local.yml down     # Stop and remove
 
 services:
-  green:
-    build:
-      context: .
-      dockerfile: Dockerfile.green
-    platform: linux/amd64
-    ports:
-      - "8001:9009"
-    networks:
-      - agentbeats
-    container_name: green
-    restart: unless-stopped
-
   purple:
     build:
       context: .
       dockerfile: Dockerfile.purple
     platform: linux/amd64
     ports:
-      - "8002:9009"
+      - "9010:9010"
+    environment:
+      - PURPLE_HOST=0.0.0.0
+      - PURPLE_PORT=9010
+      - PURPLE_CARD_URL=http://purple:9010
     networks:
       - agentbeats
     container_name: purple
     restart: unless-stopped
+
+  green:
+    build:
+      context: .
+      dockerfile: Dockerfile.green
+    platform: linux/amd64
+    ports:
+      - "9009:9009"
+    environment:
+      - GREEN_HOST=0.0.0.0
+      - GREEN_PORT=9009
+      - PURPLE_AGENT_URL=http://purple:9010
+    networks:
+      - agentbeats
+    container_name: green
+    restart: unless-stopped
+    depends_on:
+      - purple
 
 networks:
   agentbeats:

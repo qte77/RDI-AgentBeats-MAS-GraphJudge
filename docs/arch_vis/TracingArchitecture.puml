@@ -1,0 +1,52 @@
+@startuml TracingArchitecture
+title Trace Reporting & Peer Discovery Flow\n//<color:gray>(When do API calls happen?)</color>//
+
+skinparam participant {
+    BackgroundColor<<Purple>> #E8D5F2
+    BackgroundColor<<Green>> #C8E6C9
+    BackgroundColor<<Common>> #FFE0B2
+}
+
+participant "Purple Agent" as Purple <<Purple>>
+participant "TraceReporter\n(common)" as Reporter <<Common>>
+participant "PeerDiscovery\n(common)" as Discovery <<Common>>
+participant "Green Agent" as Green <<Green>>
+
+== Startup: Registration & Discovery ==
+
+Purple -> Green : POST /register
+Green --> Purple : agent_id
+
+Purple -> Discovery : get_peers()
+Discovery -> Green : GET /peers
+Green --> Discovery : [peer_urls]
+Discovery --> Purple : cached peers
+
+== Runtime: Trace Reporting ==
+
+loop every A2A message
+    Purple -> Reporter : report(trace)
+    Reporter ->> Green : POST /traces\n(fire-and-forget)
+end
+
+note right of Green
+  Traces stored for
+  graph analysis
+end note
+
+== Green Agent: Adaptive Trace Collection ==
+
+Green -> Green : execute_task(agent_url)
+loop adaptive (idle + timeout + completion signal)
+    Green -> Purple : send_message (A2A)
+    Purple --> Green : response
+    Green -> Green : record InteractionStep\n(with agent_url)
+end
+
+note right of Green
+  Two trace paths:
+  1. Push: Purple → TraceReporter → Green POST /traces
+  2. Pull: Green Executor → Messenger → Purple (adaptive, STORY-031)
+end note
+
+@enduml

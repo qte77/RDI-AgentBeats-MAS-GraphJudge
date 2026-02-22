@@ -1,6 +1,13 @@
 # AgentBeats Scenario Configuration
 # Based on: https://github.com/RDI-Foundation/agentbeats-leaderboard-template
 #
+# This file defines which agents participate in the evaluation scenario.
+# The AgentBeats platform uses this to:
+# 1. Pull agent container images
+# 2. Configure environment variables
+# 3. Orchestrate multi-agent interactions
+# 4. Collect evaluation results
+#
 # IMPORTANT: agentbeats_id values are assigned by the AgentBeats platform
 # after agent registration. These remain empty until deployment.
 # See docs/AgentBeats/AGENTBEATS_REGISTRATION.md for registration process.
@@ -9,16 +16,35 @@
 # 1. Register agents on agentbeats.dev
 # 2. Copy assigned IDs (format: "agent_xyz123abc456")
 # 3. Update this file before platform submission
+# 4. Commit and push - GitHub workflow will use this config
+#
+# References:
+# - AgentBeats Tutorial: https://github.com/RDI-Foundation/agentbeats-tutorial
+# - Debate Leaderboard: https://github.com/RDI-Foundation/agentbeats-debate-leaderboard
 
 [green_agent]
-agentbeats_id = ""  # Assigned after registration at agentbeats.dev
+# Green Agent: Multi-agent coordination evaluator (judge role)
+# Collects traces, analyzes graphs, computes metrics
+# Assigned after registration at agentbeats.dev
+agentbeats_id = "019bc41c-6d9c-7010-b4ae-04f36cefdcce"
 env = { API_KEY = "${GITHUB_SECRET_NAME}", LOG_LEVEL = "INFO" }
 
 [[participants]]
-agentbeats_id = ""  # Assigned after registration at agentbeats.dev
-env = {}
+# Participant 1: First agent being evaluated
+# Assigned after registration at agentbeats.dev
+agentbeats_id = "019c16e8-d4ca-7de0-ac2d-031a29d68db4"
+env = { AGENT_ROLE = "coordinator", LOG_LEVEL = "INFO" }
+
+[[participants]]
+# Participant 2: Second agent being evaluated
+# Assigned after registration at agentbeats.dev
+agentbeats_id = "019c16e8-d4ca-7de0-ac2d-031a29d68db4"
+env = { AGENT_ROLE = "executor", LOG_LEVEL = "INFO" }
 
 [config]
 # Project-specific benchmark configuration
+# Customize based on evaluation requirements
+# Example fields (adjust to your needs):
 # max_iterations = 5
 # evaluation_mode = "strict"
+# timeout_seconds = 300

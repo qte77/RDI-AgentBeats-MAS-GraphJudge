@@ -2,13 +2,14 @@
 
 > Measure how, not just whether
 
-A GreenAgent for [AgentBeats competition](https://rdi.berkeley.edu/agentx-agentbeats.html)
-that evaluates **how agents coordinate**, not just whether they succeed.
+A graph-based coordination benchmark where a "Green Agent Judge" dissects
+multi-agent interactions into network graphs and evaluates collaboration quality
+through structural analysis and LLM assessment.
 
 ![Version](https://img.shields.io/badge/version-0.0.0-58f4c2.svg)
 [![License](https://img.shields.io/badge/license-BSD3Clause-58f4c2.svg)](LICENSE.md)
 [![CodeQL](https://github.com/qte77/RDI-AgentX-AgentBeats-CompetitionRDI-AgentX-AgentBeats-GraphJudge/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/qte77/RDI-AgentX-AgentBeats-CompetitionRDI-AgentX-AgentBeats-GraphJudge/actions/workflows/github-code-scanning/codeql)
-[![CodeFactor](https://www.codefactor.io/repository/github/qte77/RDI-AgentX-AgentBeats-CompetitionRDI-AgentX-AgentBeats-GraphJudge/badge)](https://www.codefactor.io/repository/github/qte77/RDI-AgentX-AgentBeats-CompetitionRDI-AgentX-AgentBeats-GraphJudge)
+[![CodeFactor](https://www.codefactor.io/repository/github/qte77/rdi-agentx-agentbeats-graphjudge/badge)](https://www.codefactor.io/repository/github/qte77/rdi-agentx-agentbeats-graphjudge)
 [![ruff](https://github.com/qte77/RDI-AgentX-AgentBeats-CompetitionRDI-AgentX-AgentBeats-GraphJudge/actions/workflows/ruff.yaml/badge.svg)](https://github.com/qte77/RDI-AgentX-AgentBeats-CompetitionRDI-AgentX-AgentBeats-GraphJudge/actions/workflows/ruff.yaml)
 [![pytest](https://github.com/qte77/RDI-AgentX-AgentBeats-CompetitionRDI-AgentX-AgentBeats-GraphJudge/actions/workflows/pytest.yaml/badge.svg)](https://github.com/qte77/RDI-AgentX-AgentBeats-CompetitionRDI-AgentX-AgentBeats-GraphJudge/actions/workflows/pytest.yaml)
 
@@ -29,10 +30,6 @@ through NetworkX metrics and LLM-as-judge evaluation.
 | 1    | Graph     | NetworkX metrics (centrality, efficiency)     |
 | 2    | LLM-Judge | Coordination quality assessment               |
 | 3    | Text      | Similarity metrics (plugin for PeerRead)      |
-
-## Architecture
-
-![Agentic Graph Benchmark Architecture](assets/AgenticBenchArch.png)
 
 ## Submission
 
@@ -81,4 +78,13 @@ curl localhost:9009/.well-known/agent.json
 
 ### Developer Setup
 
-See [docs/QUICKSTART.md](docs/QUICKSTART.md) for local development, Docker build, and environment configuration.
+See [docs/AgentBeats/QUICKSTART.md](docs/AgentBeats/QUICKSTART.md) for local development, Docker build, and environment configuration.
+
+## Competition
+
+| Document | Purpose |
+|----------|---------|
+| [COMPETITION-ALIGNMENT.md](docs/AgentBeats/COMPETITION-ALIGNMENT.md) | Alignment analysis with competition requirements |
+| [SUBMISSION-GUIDE.md](docs/AgentBeats/SUBMISSION-GUIDE.md) | Phase 1 submission checklist |
+| [LIMITATIONS.md](docs/AgentBeats/LIMITATIONS.md) | Scope boundaries and deferred features |
+| [RESOURCES.md](docs/AgentBeats/RESOURCES.md) | External links and references |

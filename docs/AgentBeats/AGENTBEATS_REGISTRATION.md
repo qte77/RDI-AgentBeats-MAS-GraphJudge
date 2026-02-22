@@ -1,284 +1,262 @@
-# AgentBeats Registration Guide
+# Evaluator Plugin Architecture
 
-This guide walks you through registering your agents on the [AgentBeats platform](https://agentbeats.dev) and configuring `scenario.toml` for production deployment.
+This guide explains how to extend the AgentBeats evaluation pipeline with custom evaluators.
 
-## Prerequisites
+## Tier System Overview
 
-Before registering, ensure you have:
+The evaluation pipeline is organized into three tiers:
 
-1. Docker images published to GHCR (GitHub Container Registry)
-   - `ghcr.io/YOUR_USERNAME/green-agent:latest`
-   - `ghcr.io/YOUR_USERNAME/purple-agent:latest`
+| Tier | Name | Evaluator | File |
+|------|------|-----------|------|
+| **Tier 1** | Graph / Structural | `GraphEvaluator` | `src/green/evals/graph.py` |
+| **Tier 2** | LLM + Latency | `_LLMJudgeEvaluator`, `_LatencyEvaluator` | `src/green/server.py` |
+| **Tier 3** | Custom plugins | `BaseEvaluator` subclasses | `src/green/evals/` |
 
-2. Verified your agents work locally using `docker-compose.yml`
+All tiers are orchestrated by `Executor.evaluate_all()` in `src/green/executor.py`.
 
-3. Read the [AgentBeats documentation](https://docs.agentbeats.dev/tutorial/)
+---
 
-## Registration Process
+## BaseEvaluator ABC — Tier 3 Interface
 
-### Step 1: Sign Up for AgentBeats
+New Tier 3 evaluators must implement the `BaseEvaluator` abstract base class:
 
-1. Visit [AgentBeats Competition Signup](https://forms.gle/NHE8wYVgS6iJLwRj8)
-2. Fill out the registration form with your team details
-3. Join the [AgentBeats Discord](https://discord.gg/uqZUta3MYa) for support
-4. Wait for platform access confirmation
+```python
+# src/green/evals/base.py
+from abc import ABC, abstractmethod
+from typing import Any
 
-### Step 2: Access the Platform
+from green.models import InteractionStep
 
-1. Navigate to [agentbeats.dev](https://agentbeats.dev)
-2. Log in with your registered credentials
-3. You'll see the platform dashboard
 
-### Step 3: Register Your Green Agent (Benchmark)
+class BaseEvaluator(ABC):
+    """Interface for custom Tier 3 evaluators."""
 
-Your **green agent** is the assessor/benchmark that evaluates other agents.
+    @abstractmethod
+    async def evaluate(
+        self,
+        traces: list[InteractionStep],
+        **context: Any,
+    ) -> dict[str, Any]:
+        """Evaluate agent traces and return a results dict.
 
-1. Click **"Register New Agent"** or **"Add Benchmark"** in the dashboard
-2. Fill out the agent details:
-   - **Name**: `green-agent-evaluator`
-   - **Description**: `Narrative Evaluator - Assesses narratives for compliance`
-   - **Docker Image**: `ghcr.io/YOUR_USERNAME/green-agent:latest`
-   - **Platform**: `linux/amd64`
-   - **Port**: `8000`
-   - **Category**: `Legal Domain`
+        Args:
+            traces: Collected interaction steps from a task run.
+            **context: Optional context (e.g., graph_results from Tier 1).
 
-3. Click **"Submit"** or **"Register"**
-4. The platform will validate your agent by:
-   - Pulling the Docker image
-   - Starting the container
-   - Checking `/.well-known/agent-card.json` endpoint
-   - Verifying A2A protocol compliance
+        Returns:
+            Dict of evaluation results keyed by metric name.
+        """
 
-5. **Copy your agentbeats_id**: After successful registration, you'll see an ID like:
-
-   ```text
-   agentbeats_id: "agent_xyz123abc456"
-   ```
-
-   **Important**: Save this ID - you'll need it for `scenario.toml`
-
-### Step 4: Register Your Purple Agent (Baseline)
-
-Your **purple agent** is the baseline participant that demonstrates your benchmark.
-
-1. Repeat the registration process for the purple agent:
-   - **Name**: `purple-agent-participant`
-   - **Description**: `Narrative Generator - Creates sample narratives for testing`
-   - **Docker Image**: `ghcr.io/YOUR_USERNAME/purple-agent:latest`
-   - **Platform**: `linux/amd64`
-   - **Port**: `8000`
-   - **Category**: `Legal Domain` (participant)
-
-2. **Copy the purple agent's agentbeats_id** for `scenario.toml`
-
-### Step 5: Update scenario.toml
-
-Now that your agents are registered, update `scenario.toml` with the production IDs:
-
-```toml
-[green_agent]
-agentbeats_id = "agent_xyz123abc456"  # Replace with your green agent ID
-env = { LOG_LEVEL = "INFO" }
-
-[[participants]]
-agentbeats_id = "agent_abc789def012"  # Replace with your purple agent ID
-name = "participant"
-env = {}
-
-[config]
-difficulty = "medium"
-max_iterations = 5
-target_risk_score = 20
-evaluation_mode = "strict"
+    @property
+    def tier(self) -> int:
+        return 3
 ```
 
-**Commit and push** your updated `scenario.toml`:
+---
 
-```bash
-git add scenario.toml
-git commit -m "chore: update scenario.toml with production agentbeats_ids"
-git push
+## GraphMetricPlugin ABC — Extension Point Within Tier 1
+
+`GraphMetricPlugin` is a second-level extension point **inside** `GraphEvaluator` (Tier 1). It computes a single metric on a NetworkX directed graph.
+
+```python
+# src/green/evals/graph.py:17-23
+from abc import ABC, abstractmethod
+from typing import Any
+
+import networkx as nx
+
+
+class GraphMetricPlugin(ABC):
+    """Base interface for graph metric plugins."""
+
+    @abstractmethod
+    def compute(self, graph: nx.DiGraph[str]) -> Any:
+        """Compute metric from graph."""
 ```
 
-## Local vs Production Configuration
+Built-in plugins (registered by `GraphEvaluator.__init__`) include:
+`DegreeCentralityPlugin`, `BetweennessCentralityPlugin`, `ClosenessCentralityPlugin`,
+`EigenvectorCentralityPlugin`, `PageRankPlugin`, `GraphDensityPlugin`,
+`ClusteringCoefficientPlugin`, `ConnectedComponentsPlugin`.
 
-Understanding the difference between local testing and production deployment:
+Custom plugins are registered at runtime via `GraphEvaluator.register_plugin()`:
 
-### Local Testing (docker-compose.yml)
+```python
+# src/green/evals/graph.py:116-123
+def register_plugin(self, name: str, plugin: GraphMetricPlugin) -> None:
+    """Register a custom metric plugin.
 
-For **local development**, use `ghcr_url` to reference your Docker images directly:
-
-```yaml
-services:
-  green-agent:
-    image: ghcr.io/YOUR_USERNAME/green-agent:latest
-    ports:
-      - "8001:8000"
+    Args:
+        name: Plugin name (used as key in metrics output)
+        plugin: GraphMetricPlugin instance
+    """
+    self._plugins[name] = plugin
 ```
 
-**Purpose**: Fast iteration, debugging, integration testing
+Results for custom plugins appear in `GraphMetrics` output under the registered name
+because `GraphMetrics` uses `model_config = {"extra": "allow"}`.
 
-### Production Deployment (scenario.toml)
+---
 
-For **AgentBeats platform**, use `agentbeats_id` to reference registered agents:
+## Step-by-Step: Adding a Custom Tier 3 Evaluator
 
-```toml
-[green_agent]
-agentbeats_id = "agent_xyz123abc456"
+### Step 1 — Create the evaluator file
+
+Create `src/green/evals/text_evaluator.py` implementing `BaseEvaluator`:
+
+```python
+# src/green/evals/text_evaluator.py
+from typing import Any
+
+from green.models import InteractionStep
+
+from .base import BaseEvaluator
+
+
+class TextEvaluator(BaseEvaluator):
+    """Tier 3 custom evaluator: analyses text content of agent traces."""
+
+    async def evaluate(
+        self,
+        traces: list[InteractionStep],
+        **context: Any,
+    ) -> dict[str, Any]:
+        total_steps = len(traces)
+        return {
+            "text_total_steps": total_steps,
+        }
 ```
 
-**Purpose**: Official benchmarking, leaderboard submissions, competition evaluation
+### Step 2 — Implement `evaluate()`
 
-### Why the Difference?
+`evaluate()` receives the list of `InteractionStep` traces collected during a task run.
+Return a plain `dict[str, Any]`; all keys will be included in the final output.
 
-| Aspect | `ghcr_url` (Local) | `agentbeats_id` (Production) |
-|--------|-------------------|------------------------------|
-| **Source** | Direct Docker image pull | Platform-managed agent |
-| **Control** | You manage containers | Platform manages lifecycle |
-| **Authentication** | Your GHCR credentials | Platform handles auth |
-| **Versioning** | Tag-based (`:latest`, `:v1.0`) | Platform tracks versions |
-| **Updates** | Manual image rebuild | Platform pulls latest on each run |
-| **Monitoring** | Local logs | Platform dashboard + logs |
+### Step 3 — Register in `Executor.evaluate_all()`
 
-## Verification Steps
+Wire the new evaluator into `src/green/executor.py` alongside the existing tiers:
 
-After registration and configuration, verify everything works:
+```python
+# src/green/executor.py:279 (Executor.evaluate_all)
+async def evaluate_all(
+    self,
+    traces: list[InteractionStep],
+    graph_evaluator: Any,    # Tier 1
+    llm_judge: Any,          # Tier 2
+    latency_evaluator: Any,  # Tier 2
+    text_evaluator: Any = None,  # Tier 3 (custom)
+) -> dict[str, Any]:
+    tier1_graph_result = await self._evaluate_graph(traces, graph_evaluator)
+    # ... existing Tier 1 / Tier 2 logic ...
 
-### 1. Verify Agent Registration
+    tier3_text = None
+    if text_evaluator is not None:
+        tier3_text = await text_evaluator.evaluate(traces)
 
-Check the AgentBeats dashboard:
-
-```text
-✓ Green agent status: Active
-✓ Purple agent status: Active
-✓ Agent cards validated
-✓ A2A protocol compliance confirmed
+    return {
+        "tier1_graph": tier1_graph,
+        "tier2_llm": tier2_llm,
+        "tier2_latency": tier2_latency,
+        "tier3_text": tier3_text,  # new
+    }
 ```
 
-### 2. Test Agent Discovery
+### Step 4 — Pass the evaluator from `server.py`
 
-You can test agent card endpoints locally:
+In `src/green/server.py`, instantiate and pass the new evaluator to `evaluate_all()`:
 
-```bash
-# Test green agent
-curl http://localhost:8001/.well-known/agent-card.json
+```python
+from green.evals.text_evaluator import TextEvaluator
 
-# Test purple agent
-curl http://localhost:8002/.well-known/agent-card.json
+evaluation_results = await executor.evaluate_all(
+    traces=traces,
+    graph_evaluator=GraphEvaluator(),
+    llm_judge=_LLMJudgeEvaluator(),
+    latency_evaluator=_LatencyEvaluator(),
+    text_evaluator=TextEvaluator(),   # new
+)
 ```
 
-Expected response:
+---
 
-```json
-{
-  "name": "green-agent-evaluator",
-  "description": "Narrative Evaluator",
-  "version": "0.1.0",
-  "capabilities": ["task/send", "task/result"]
-}
+## Reference Implementation: TextEvaluator (Tier 3)
+
+`TextEvaluator` is the canonical Tier 3 example. It demonstrates the minimal surface
+required to add a custom evaluator without modifying any existing Tier 1 or Tier 2 code:
+
+```python
+# src/green/evals/text_evaluator.py
+from abc import ABC, abstractmethod
+from typing import Any
+
+from green.models import InteractionStep
+
+
+class BaseEvaluator(ABC):
+    @abstractmethod
+    async def evaluate(
+        self,
+        traces: list[InteractionStep],
+        **context: Any,
+    ) -> dict[str, Any]: ...
+
+    @property
+    def tier(self) -> int:
+        return 3
+
+
+class TextEvaluator(BaseEvaluator):
+    """Counts interaction steps; extend with richer text analysis."""
+
+    async def evaluate(
+        self,
+        traces: list[InteractionStep],
+        **context: Any,
+    ) -> dict[str, Any]:
+        return {"text_total_steps": len(traces)}
 ```
 
-### 3. Run Platform Test
+---
 
-The AgentBeats platform may provide a **"Test Benchmark"** button:
+## Integration Points
 
-1. Click **"Test Benchmark"** on your green agent
-2. Platform will:
-   - Start your green agent
-   - Send a test task
-   - Verify task execution
-   - Check result format
+| Extension Point | File | Lines |
+|----------------|------|-------|
+| `GraphMetricPlugin` ABC | `src/green/evals/graph.py` | 17–23 |
+| `GraphEvaluator.register_plugin()` | `src/green/evals/graph.py` | 116–123 |
+| Built-in plugin registration | `src/green/evals/graph.py` | 107–114 |
+| `Executor.evaluate_all()` | `src/green/executor.py` | 279–333 |
+| `_LLMJudgeEvaluator` (Tier 2 pattern) | `src/green/server.py` | 107–116 |
+| `_LatencyEvaluator` (Tier 2 pattern) | `src/green/server.py` | 119–126 |
+| Evaluator wiring in server | `src/green/server.py` | 152–157 |
 
-3. Review test results in the dashboard
+---
 
-### 4. Validate scenario.toml
+## Adding a Custom GraphMetricPlugin (Tier 1 Extension)
 
-Ensure your `scenario.toml` is valid:
+To add a metric to the existing graph evaluation without touching any other code:
 
-```bash
-# Check TOML syntax
-python -c "import tomllib; tomllib.load(open('scenario.toml', 'rb'))"
+```python
+# src/green/evals/graph.py — add a new plugin class
+import networkx as nx
+from typing import Any
+
+from green.evals.graph import GraphMetricPlugin, GraphEvaluator
+
+
+class TriangleCountPlugin(GraphMetricPlugin):
+    """Counts triangles in the interaction graph."""
+
+    def compute(self, graph: nx.DiGraph[str]) -> int:
+        undirected = graph.to_undirected()
+        triangles: dict[str, int] = nx.triangles(undirected)
+        return sum(triangles.values()) // 3
+
+
+# Register at startup (e.g. in server.py or a factory):
+evaluator = GraphEvaluator()
+evaluator.register_plugin("triangle_count", TriangleCountPlugin())
 ```
 
-### 5. Check Docker Image Accessibility
-
-Verify the platform can pull your images:
-
-```bash
-# Test public accessibility (images must be public)
-docker pull ghcr.io/YOUR_USERNAME/green-agent:latest
-docker pull ghcr.io/YOUR_USERNAME/purple-agent:latest
-```
-
-**Important**: GHCR packages must be **public** for the platform to access them.
-
-To make packages public:
-
-1. Go to `https://github.com/YOUR_USERNAME?tab=packages`
-2. Click on `green-agent` or `purple-agent`
-3. Click **"Package settings"**
-4. Scroll to **"Danger Zone"**
-5. Click **"Change visibility"** → **"Public"**
-
-## Common Issues
-
-### Issue: "Agent registration failed - image not found"
-
-**Solution**:
-
-- Verify image is pushed to GHCR: `https://github.com/YOUR_USERNAME?tab=packages`
-- Ensure image is **public** (not private)
-- Check image name matches exactly: `ghcr.io/YOUR_USERNAME/green-agent:latest`
-
-### Issue: "Agent card validation failed"
-
-**Solution**:
-
-- Test agent card endpoint locally: `curl http://localhost:8001/.well-known/agent-card.json`
-- Verify agent starts correctly: `docker-compose up`
-- Check container logs for startup errors
-
-### Issue: "Platform can't reach my agent"
-
-**Solution**:
-
-- Ensure agent listens on `0.0.0.0:8000` (not `localhost:8000`)
-- Verify `EXPOSE 8000` in Dockerfile
-- Check agent runs correctly: `docker run -p 8001:8000 ghcr.io/YOUR_USERNAME/green-agent:latest`
-
-### Issue: "agentbeats_id not showing after registration"
-
-**Solution**:
-
-- Refresh the dashboard page
-- Check email for confirmation
-- Contact support on Discord
-- Review agent validation logs on platform
-
-## Next Steps
-
-After successful registration:
-
-1. **Test Your Benchmark**: Use the platform's test runner to validate
-2. **Submit for Phase 1**: Complete the [submission form](https://forms.gle/1C5d8KXny2JBpZhz7)
-3. **Monitor Leaderboard**: Track your benchmark's performance
-4. **Iterate**: Update agents based on feedback and testing
-
-## Resources
-
-- **Platform**: [agentbeats.dev](https://agentbeats.dev)
-- **Documentation**: [docs.agentbeats.dev](https://docs.agentbeats.dev/tutorial/)
-- **Discord Support**: [discord.gg/uqZUta3MYa](https://discord.gg/uqZUta3MYa)
-- **Phase 1 Submission**: [forms.gle/1C5d8KXny2JBpZhz7](https://forms.gle/1C5d8KXny2JBpZhz7)
-- **A2A Protocol**: [a2a-protocol.org](https://a2a-protocol.org/latest/)
-- **Project README**: [../README.md](../README.md)
-- **GHCR Deployment Guide**: [../README.md#ghcr-deployment](../README.md#ghcr-deployment)
-
-## Support
-
-If you encounter issues:
-
-1. Check this guide's [Common Issues](#common-issues) section
-2. Review [AgentBeats Tutorial](https://docs.agentbeats.dev/tutorial/)
-3. Ask on [Discord](https://discord.gg/uqZUta3MYa) in #support or #legal-domain
-4. Check GitHub Issues in reference repositories ([green-agent-template](https://github.com/RDI-Foundation/green-agent-template), [leaderboard-template](https://github.com/RDI-Foundation/agentbeats-leaderboard-template))
+The result appears in `GraphMetrics` output as `triangle_count` because the model
+uses `model_config = {"extra": "allow"}`.

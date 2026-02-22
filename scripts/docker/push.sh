@@ -29,6 +29,8 @@ echo ""
 # Validate required environment variables
 GH_USERNAME="${GH_USERNAME:-}"
 GHCR_PAT="${GHCR_PAT:-}"
+GREEN_AGENT_IMAGE_NAME="mas-graphjudge-green"
+PURPLE_AGENT_IMAGE_NAME="mas-graphjudge-purple"
 
 if [ -z "$GH_USERNAME" ]; then
   echo -e "${RED}Error: GH_USERNAME environment variable is not set${NC}"
@@ -73,14 +75,14 @@ echo ""
 
 # Push Green Agent
 echo -e "${GREEN}[2/3] Pushing Agent Green Agent...${NC}"
-docker push ghcr.io/${GH_USERNAME}/green-agent:latest
+docker push ghcr.io/${GH_USERNAME}/${GREEN_AGENT_IMAGE_NAME}:latest
 
 echo -e "${GREEN}✓ Green agent pushed successfully${NC}"
 echo ""
 
 # Push Purple Agent
 echo -e "${GREEN}[3/3] Pushing Agent Purple Agent...${NC}"
-docker push ghcr.io/${GH_USERNAME}/purple-agent:latest
+docker push ghcr.io/${GH_USERNAME}/${PURPLE_AGENT_IMAGE_NAME}:latest
 
 echo -e "${GREEN}✓ Purple agent pushed successfully${NC}"
 echo ""
@@ -89,12 +91,12 @@ echo ""
 echo -e "${GREEN}Push Complete!${NC}"
 echo ""
 echo "Images pushed to GHCR:"
-echo "  - ghcr.io/${GH_USERNAME}/green-agent:latest"
-echo "  - ghcr.io/${GH_USERNAME}/purple-agent:latest"
+echo "  - ghcr.io/${GH_USERNAME}/${GREEN_AGENT_IMAGE_NAME}:latest"
+echo "  - ghcr.io/${GH_USERNAME}/${PURPLE_AGENT_IMAGE_NAME}:latest"
 echo ""
 echo "View your packages at:"
 echo "  https://github.com/${GH_USERNAME}?tab=packages"
 echo ""
 echo "To use these images, update scenario.toml with:"
-echo "  ghcr_url = \"ghcr.io/${GH_USERNAME}/green-agent:latest\""
+echo "  ghcr_url = \"ghcr.io/${GH_USERNAME}/${GREEN_AGENT_IMAGE_NAME}:latest\""
 echo ""

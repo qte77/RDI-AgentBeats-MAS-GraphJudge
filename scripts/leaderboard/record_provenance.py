@@ -1,11 +1,14 @@
-"""Record provenance information (image digests, timestamp, and workflow metadata) for assessment results."""
+"""Record provenance information for assessment results.
+
+Captures image digests, timestamp, and workflow metadata.
+"""
 
 import argparse
 import json
 import os
 import subprocess
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 try:
@@ -88,7 +91,7 @@ def write_provenance(output_path: Path, image_digests: dict[str, str]) -> None:
     """Write provenance information to a JSON file."""
     provenance = {
         "image_digests": image_digests,
-        "timestamp": datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
+        "timestamp": datetime.now(UTC).isoformat(timespec="seconds").replace("+00:00", "Z"),
     }
     github_actions = collect_github_actions_metadata()
     if github_actions:
@@ -99,9 +102,13 @@ def write_provenance(output_path: Path, image_digests: dict[str, str]) -> None:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Record provenance information for assessment results")
+    parser = argparse.ArgumentParser(
+        description="Record provenance information for assessment results"
+    )
     parser.add_argument("--compose", type=Path, required=True, help="Path to docker-compose.yml")
-    parser.add_argument("--output", type=Path, required=True, help="Path to output provenance JSON file")
+    parser.add_argument(
+        "--output", type=Path, required=True, help="Path to output provenance JSON file"
+    )
     args = parser.parse_args()
 
     if not args.compose.exists():

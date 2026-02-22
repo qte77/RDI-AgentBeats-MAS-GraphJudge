@@ -8,25 +8,52 @@
 
 ### Start Here
 
-1. **[ABSTRACT.md](ABSTRACT.md)** - TL;DR: USP and value proposition
+1. **[AgentBeats/ABSTRACT.md](AgentBeats/ABSTRACT.md)** - TL;DR: USP and value proposition
+
+#### Green Agent (Assessor)
+
 2. **[GreenAgent-UserStory.md](GreenAgent-UserStory.md)** - Product vision, problem statement, scope
 3. **[GreenAgent-PRD.md](GreenAgent-PRD.md)** - Technical requirements and story breakdown
 
+#### Purple Agent (Baseline Participant)
+
+4. **[PurpleAgent-UserStory.md](PurpleAgent-UserStory.md)** - Vision for baseline test fixture
+5. **[PurpleAgent-PRD.md](PurpleAgent-PRD.md)** - Technical requirements for baseline agent
+
 ### Implementation
 
-1. **[QUICKSTART.md](QUICKSTART.md)** - Get running in 5 minutes
+1. **[AgentBeats/QUICKSTART.md](AgentBeats/QUICKSTART.md)** - Get running in 5 minutes
 
-### Platform Integration
+### Platform Integration & Competition
 
-1. **[AgentBeats/AGENTBEATS_REGISTRATION.md](AgentBeats/AGENTBEATS_REGISTRATION.md)** - Platform registration process
+1. **[AgentBeats/COMPETITION-ALIGNMENT.md](AgentBeats/COMPETITION-ALIGNMENT.md)** - Competition alignment analysis (97% aligned)
+2. **[AgentBeats/SUBMISSION-GUIDE.md](AgentBeats/SUBMISSION-GUIDE.md)** - Phase 1 submission checklist
+3. **[AgentBeats/AGENTBEATS_REGISTRATION.md](AgentBeats/AGENTBEATS_REGISTRATION.md)** - Platform registration process
+4. **[AgentBeats/LIMITATIONS.md](AgentBeats/LIMITATIONS.md)** - Scope boundaries and deferred features
 
 ### Architecture
 
-1. **[arch_vis/](arch_vis/)** - Component and sequence diagrams (PlantUML)
+#### Agentic Bench Architecture (How does evaluation work?)
+
+![Agentic Bench Architecture](../assets/AgenticBenchArch.png)
+
+#### Component Diagram (How is it composed?)
+
+![Component Diagram](../assets/ComponentDiagram.png)
+
+#### Tracing Architecture (When do API calls happen?)
+
+![Tracing Architecture](../assets/TracingArchitecture.png)
+
+See [arch_vis/](arch_vis/) for PlantUML source files.
+
+### Research & Design
+
+1. **[research/MULTI_AGENT_TRACING.md](research/MULTI_AGENT_TRACING.md)** - Common module, tracing, plugin architecture (Feature 7)
 
 ### Reference
 
-1. **[RESOURCES.md](RESOURCES.md)** - External links, tool docs
+1. **[AgentBeats/RESOURCES.md](AgentBeats/RESOURCES.md)** - External links, tool docs
 
 ---
 
@@ -35,15 +62,34 @@
 ```text
 docs/
 ├── README.md (THIS FILE)
-├── ABSTRACT.md (TL;DR)
-├── GreenAgent-UserStory.md (vision, scope)
-├── GreenAgent-PRD.md (requirements, stories)
-├── QUICKSTART.md (developer setup)
-├── RESOURCES.md (external links)
+├── TODO.md (implementation roadmap)
+├── GreenAgent-UserStory.md (Green Agent vision)
+├── GreenAgent-PRD.md (Green Agent requirements)
+├── PurpleAgent-UserStory.md (Purple Agent vision)
+├── PurpleAgent-PRD.md (Purple Agent requirements)
 ├── AgentBeats/
-│   └── AGENTBEATS_REGISTRATION.md
+│   ├── ABSTRACT.md (TL;DR)
+│   ├── QUICKSTART.md (developer setup)
+│   ├── COMPETITION-ALIGNMENT.md (alignment analysis)
+│   ├── LIMITATIONS.md (scope boundaries)
+│   ├── AGENTBEATS_REGISTRATION.md (registration guide)
+│   ├── SUBMISSION-GUIDE.md (Phase 1 checklist)
+│   ├── RESOURCES.md (external links)
+│   ├── DEMO_VIDEO_SCRIPT.md (demo recording guide)
+│   ├── output_schema.md (JSON output format)
+│   ├── sample_output.json (example output)
+│   └── scenario.toml (platform config)
+├── research/
+│   ├── MULTI_AGENT_TRACING.md (Feature 7 design)
+│   └── trace-collection-strategy.md
+├── best-practices/
+│   ├── testing-strategy.md
+│   ├── tdd-best-practices.md
+│   └── bdd-best-practices.md
 └── arch_vis/
-    └── *.puml (diagrams)
+    ├── ComponentDiagram.puml (how is it composed?)
+    ├── AgenticBenchArch.puml (how does evaluation work?)
+    └── TracingArchitecture.puml (when do API calls happen?)
 ```
 
 ---
@@ -52,13 +98,16 @@ docs/
 
 ```bash
 # 1. Get running fast
-Read: QUICKSTART.md
+Read: AgentBeats/QUICKSTART.md
 
 # 2. Understand the vision
 Read: GreenAgent-UserStory.md → GreenAgent-PRD.md
 
-# 3. Deploy to platform
-Read: AgentBeats/AGENTBEATS_REGISTRATION.md
+# 3. Check competition alignment
+Read: AgentBeats/COMPETITION-ALIGNMENT.md
+
+# 4. Deploy to platform
+Read: AgentBeats/SUBMISSION-GUIDE.md
 ```
 
 ---
@@ -66,10 +115,23 @@ Read: AgentBeats/AGENTBEATS_REGISTRATION.md
 ## Quick Reference
 
 | Question | Document |
-|----------|----------|
-| TL;DR? | ABSTRACT.md |
-| Full vision? | GreenAgent-UserStory.md |
-| Requirements? | GreenAgent-PRD.md |
-| Get started? | QUICKSTART.md |
+| ---------- | ---------- |
+| TL;DR? | AgentBeats/ABSTRACT.md |
+| Competition aligned? | AgentBeats/COMPETITION-ALIGNMENT.md |
+| What's out of scope? | AgentBeats/LIMITATIONS.md |
+| Green Agent vision? | GreenAgent-UserStory.md |
+| Green Agent requirements? | GreenAgent-PRD.md |
+| Purple Agent vision? | PurpleAgent-UserStory.md |
+| Purple Agent requirements? | PurpleAgent-PRD.md |
+| Get started? | AgentBeats/QUICKSTART.md |
 | Architecture? | arch_vis/*.puml |
-| Deploy? | AGENTBEATS_REGISTRATION.md |
+| Deploy? | AgentBeats/AGENTBEATS_REGISTRATION.md |
+| Submit? | AgentBeats/SUBMISSION-GUIDE.md |
+| Tracing/plugins? | research/MULTI_AGENT_TRACING.md, AgentBeats/AGENTBEATS_REGISTRATION.md |
+| TODOs? | TODO.md |
+
+---
+
+## Project TODOs
+
+See **[TODO.md](TODO.md)** for implementation roadmap, open design decisions, and pending tasks.

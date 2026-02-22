@@ -1,0 +1,32 @@
+{
+  "participants": {
+    "agent": "d212fc05-de37-4d6e-b44c-aa5f23a8a6c0"
+  },
+  "results": [
+    {
+      "pass_rate": 80.0,
+      "time_used": 0.0,
+      "max_score": 100.0,
+      "domain": "graph-assessment",
+      "score": 80.0,
+      "task_rewards": {
+        "overall_score": 0.8,
+        "graph_density": 0.5,
+        "coordination_quality": 0.33
+      },
+      "detail": {
+        "overall_score": 0.8,
+        "reasoning": "No evaluation performed",
+        "coordination_quality": "low",
+        "strengths": [],
+        "weaknesses": [],
+        "graph_metrics": {
+          "graph_density": 0.5
+        },
+        "latency_metrics": {
+          "avg": 1250.0
+        }
+      }
+    }
+  ]
+}

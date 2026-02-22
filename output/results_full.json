@@ -1,0 +1,54 @@
+{
+  "participants": {
+    "agent": "green-agent"
+  },
+  "results": [
+    {
+      "pass_rate": 80.0,
+      "time_used": 0.0,
+      "max_score": 100.0,
+      "domain": "grap-assessment",
+      "score": 80.0,
+      "task_rewards": {
+        "overall_score": 0.8,
+        "graph_density": 0.5,
+        "coordination_quality": 0.33
+      },
+      "detail": {
+        "overall_score": 0.8,
+        "reasoning": "No evaluation performed",
+        "coordination_quality": "low",
+        "strengths": [],
+        "weaknesses": [],
+        "graph_metrics": {
+          "degree_centrality": {},
+          "betweenness_centrality": {},
+          "closeness_centrality": {},
+          "eigenvector_centrality": {},
+          "pagerank": {},
+          "graph_density": 0.5,
+          "clustering_coefficient": 0.0,
+          "connected_components": 0,
+          "average_path_length": 0.0,
+          "diameter": 0,
+          "bottlenecks": [],
+          "has_bottleneck": false,
+          "isolated_agents": [],
+          "over_centralized": false,
+          "coordination_quality": "low"
+        },
+        "latency_metrics": {
+          "avg_latency": 0.0,
+          "p50_latency": 0.0,
+          "p95_latency": 0.0,
+          "p99_latency": 0.0,
+          "min_latency": 0.0,
+          "max_latency": 0.0,
+          "total_steps": 0,
+          "slowest_step_id": null,
+          "avg": 1250.0
+        }
+      }
+    }
+  ]
+}

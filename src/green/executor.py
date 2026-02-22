@@ -7,42 +7,57 @@ Real agent-to-agent communication enables authentic coordination measurement.
 from __future__ import annotations
 
 import asyncio
+import json
+import time
 import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
+from common.models import TraceCollectionConfig
 from green.evals.system import evaluate_latency
 from green.models import CallType, InteractionStep, LatencyMetrics
 
 if TYPE_CHECKING:
     from green.messenger import Messenger
 
-# TODO: Implement trace collection strategy from docs/trace-collection-strategy.md
-#   Recommended: Hybrid approach (task completion + timeout + idle detection)
-# FIXME: Current fixed-rounds approach is placeholder for testing
+
+def _is_complete(response: str) -> bool:
+    """Check if A2A response contains status='complete' in metadata."""
+    try:
+        data = json.loads(response)
+        return isinstance(data, dict) and data.get("status") == "complete"
+    except (json.JSONDecodeError, ValueError, TypeError):
+        return False
 
 
 class Executor:
     """Executor that collects interaction traces and manages cleanup."""
 
-    def __init__(self, coordination_rounds: int, round_delay_seconds: float = 0.1) -> None:
+    def __init__(
+        self,
+        coordination_rounds: int,
+        round_delay_seconds: float = 0.1,
+        trace_collection: TraceCollectionConfig | None = None,
+    ) -> None:
         """Initialize executor.
 
         Args:
-            coordination_rounds: Number of message rounds to simulate coordination
-            round_delay_seconds: Delay between coordination rounds in seconds
+            coordination_rounds: Number of message rounds for fixed-rounds mode
+            round_delay_seconds: Delay between rounds in fixed-rounds mode
+            trace_collection: Config for adaptive collection (idle + timeout + signals).
+                When provided, replaces fixed-rounds loop with hybrid strategy.
         """
         self._coordination_rounds = coordination_rounds
         self._round_delay_seconds = round_delay_seconds
+        self._trace_collection = trace_collection
 
     async def execute_task(
         self, task_description: str, messenger: Messenger, agent_url: str
     ) -> list[InteractionStep]:
         """Execute task and collect interaction traces.
 
-        Sends multiple messages to simulate a coordination pattern:
-        - Round 1: Initial coordinator request
-        - Round 2+: Follow-up coordination messages with parent links
+        Dispatches to adaptive collection when TraceCollectionConfig is set,
+        otherwise uses fixed-rounds mode for backward compatibility.
 
         Args:
             task_description: Task description to send to agent
@@ -55,53 +70,136 @@ class Executor:
         Raises:
             Exception: If task execution fails (after cleanup)
         """
+        try:
+            if self._trace_collection is not None:
+                return await self._adaptive_execute(
+                    task_description, messenger, agent_url, self._trace_collection
+                )
+            return await self._fixed_execute(task_description, messenger, agent_url)
+        finally:
+            await messenger.close()
+
+    async def _adaptive_execute(
+        self,
+        task_description: str,
+        messenger: Messenger,
+        agent_url: str,
+        config: TraceCollectionConfig,
+    ) -> list[InteractionStep]:
+        """Adaptive trace collection: idle detection + timeout + completion signals.
+
+        Implements the recommended hybrid strategy from docs/trace-collection-strategy.md:
+        - Completion signal: stops when response contains status="complete"
+        - Idle detection: stops when agent doesn't respond within idle_threshold_seconds
+        - Timeout safety: hard stop after max_timeout_seconds
+
+        Args:
+            task_description: Initial task message
+            messenger: Messenger for agent communication
+            agent_url: Agent endpoint URL
+            config: Adaptive collection configuration
+
+        Returns:
+            List of collected InteractionStep traces
+        """
         traces: list[InteractionStep] = []
         trace_id = str(uuid.uuid4())
         previous_step_id: str | None = None
+        deadline = time.monotonic() + config.max_timeout_seconds
+        round_num = 0
 
-        try:
-            for round_num in range(self._coordination_rounds):
-                # Record start time
-                start_time = datetime.now()
+        while True:
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                break  # Hard timeout exceeded
 
-                # Send message via messenger
-                message = (
-                    task_description
-                    if round_num == 0
-                    else f"Follow-up coordination round {round_num + 1}"
+            per_msg_timeout = min(float(config.idle_threshold_seconds), remaining)
+            message = (
+                task_description
+                if round_num == 0
+                else f"Follow-up coordination round {round_num + 1}"
+            )
+
+            start_time = datetime.now()
+            try:
+                response: str = await asyncio.wait_for(
+                    messenger.send_message(url=agent_url, message=message),
+                    timeout=per_msg_timeout,
                 )
-                await messenger.send_message(url=agent_url, message=message)
+            except TimeoutError:
+                break  # Idle threshold exceeded or remaining time expired
 
-                # Record end time
-                end_time = datetime.now()
-
-                # Calculate latency in milliseconds
-                latency = int((end_time - start_time).total_seconds() * 1000)
-
-                # Create interaction step with parent link for coordination graph
-                step_id = str(uuid.uuid4())
-                step = InteractionStep(
+            end_time = datetime.now()
+            latency = int((end_time - start_time).total_seconds() * 1000)
+            step_id = str(uuid.uuid4())
+            traces.append(
+                InteractionStep(
                     step_id=step_id,
                     trace_id=trace_id,
                     call_type=CallType.AGENT,
                     start_time=start_time,
                     end_time=end_time,
                     latency=latency,
-                    parent_step_id=previous_step_id,  # Link to previous step
+                    parent_step_id=previous_step_id,
                 )
+            )
+            previous_step_id = step_id
 
-                traces.append(step)
-                previous_step_id = step_id
+            if config.use_completion_signals and _is_complete(response):
+                break
 
-                # Small delay between rounds for realistic timing
-                if round_num < self._coordination_rounds - 1:
-                    await asyncio.sleep(self._round_delay_seconds)
+            round_num += 1
 
-            return traces
+        return traces
 
-        finally:
-            # Always cleanup messenger connections
-            await messenger.close()
+    async def _fixed_execute(
+        self,
+        task_description: str,
+        messenger: Messenger,
+        agent_url: str,
+    ) -> list[InteractionStep]:
+        """Fixed-rounds trace collection (legacy backward-compatible mode).
+
+        Args:
+            task_description: Initial task message
+            messenger: Messenger for agent communication
+            agent_url: Agent endpoint URL
+
+        Returns:
+            List of collected InteractionStep traces
+        """
+        traces: list[InteractionStep] = []
+        trace_id = str(uuid.uuid4())
+        previous_step_id: str | None = None
+
+        for round_num in range(self._coordination_rounds):
+            start_time = datetime.now()
+            message = (
+                task_description
+                if round_num == 0
+                else f"Follow-up coordination round {round_num + 1}"
+            )
+            await messenger.send_message(url=agent_url, message=message)
+            end_time = datetime.now()
+            latency = int((end_time - start_time).total_seconds() * 1000)
+            step_id = str(uuid.uuid4())
+            traces.append(
+                InteractionStep(
+                    step_id=step_id,
+                    trace_id=trace_id,
+                    call_type=CallType.AGENT,
+                    start_time=start_time,
+                    end_time=end_time,
+                    latency=latency,
+                    parent_step_id=previous_step_id,
+                )
+            )
+            previous_step_id = step_id
+
+            if round_num < self._coordination_rounds - 1:
+                await asyncio.sleep(self._round_delay_seconds)
+
+        return traces
 
     def _evaluate_latency(self, steps: list[InteractionStep]) -> LatencyMetrics:
         """Evaluate latency metrics from interaction steps.

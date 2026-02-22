@@ -120,8 +120,8 @@ class InteractionStep(BaseModel):
 class TraceCollectionConfig(BaseModel):
     """Configurable timeout and idle detection settings for adaptive trace collection."""
 
-    max_timeout_seconds: int = 30
-    idle_threshold_seconds: int = 5
+    max_timeout_seconds: float = 30
+    idle_threshold_seconds: float = 5
     use_completion_signals: bool = True
 
 

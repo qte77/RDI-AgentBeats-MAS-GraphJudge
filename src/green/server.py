@@ -109,7 +109,9 @@ class _LLMJudgeEvaluator(BaseEvaluator):
     """Wrapper for LLM judge evaluation."""
 
     async def evaluate(
-        self, traces: list[InteractionStep], **context: Any,
+        self,
+        traces: list[InteractionStep],
+        **context: Any,
     ) -> dict[str, Any]:
         from green.evals.llm_judge import llm_evaluate
 

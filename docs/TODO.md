@@ -147,4 +147,14 @@ Fixed-rounds placeholder at `src/green/executor.py:25`. See `docs/research/trace
 
 ---
 
-**Last Updated**: 2026-01-31
+## Tech Debt
+
+- [ ] **Pass Pydantic models through evaluation pipeline**
+  - `src/green/executor.py:311` — currently calls `.model_dump()` to convert
+    Pydantic results to dicts for downstream consumers
+  - Update consumers to accept Pydantic model attributes directly
+  - Removes two `# type: ignore` suppressions (lines 316, 327)
+
+---
+
+**Last Updated**: 2026-02-22

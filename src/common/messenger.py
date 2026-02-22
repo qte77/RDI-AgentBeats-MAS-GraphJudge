@@ -21,14 +21,20 @@ if TYPE_CHECKING:
 class Messenger:
     """Agent messenger using A2A SDK."""
 
-    def __init__(self, a2a_settings: A2ASettings | None = None) -> None:
+    def __init__(
+        self,
+        a2a_settings: A2ASettings | None = None,
+        httpx_transport: httpx.AsyncBaseTransport | None = None,
+    ) -> None:
         """Initialize messenger with client cache.
 
         Args:
             a2a_settings: A2A configuration settings for timeout and connection parameters
+            httpx_transport: Optional httpx transport override (e.g. ASGITransport for testing)
         """
         self._clients: dict[str, Client] = {}
         self._settings = a2a_settings or A2ASettings()
+        self._httpx_transport = httpx_transport
 
     async def send_message(
         self, url: str, message: str, extensions: list[str] | None = None
@@ -53,7 +59,7 @@ class Messenger:
                 timeout=self._settings.timeout,
                 connect=self._settings.connect_timeout,
             )
-            httpx_client = httpx.AsyncClient(timeout=timeout)
+            httpx_client = httpx.AsyncClient(timeout=timeout, transport=self._httpx_transport)
 
             # Create client config with configured httpx client
             client_config = ClientConfig(httpx_client=httpx_client)

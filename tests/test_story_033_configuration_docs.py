@@ -96,11 +96,7 @@ def test_configuration_md_includes_usage_examples():
     """Acceptance: Documentation must include usage examples."""
     content = CONFIGURATION_MD.read_text()
     # Usage examples section should be present
-    has_example_section = (
-        "## Usage" in content
-        or "## Example" in content
-        or "```" in content
-    )
+    has_example_section = "## Usage" in content or "## Example" in content or "```" in content
     assert has_example_section, "CONFIGURATION.md must include usage examples"
 
 

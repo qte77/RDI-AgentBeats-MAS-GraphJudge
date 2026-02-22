@@ -1,8 +1,10 @@
 """Tests for Green Agent settings configuration.
 
-Tests validate UUID format compliance per A2A protocol specification.
+Tests validate UUID format compliance per A2A protocol specification,
+and coverage of all configurable fields via environment variables.
 """
 
+from pathlib import Path
 from uuid import UUID
 
 import pytest
@@ -17,9 +19,7 @@ class TestGreenSettingsUUID:
         from green.settings import GreenSettings
 
         settings = GreenSettings()
-        # Should be a valid UUID instance or string representation
         assert settings.agent_uuid is not None
-        # Validate it's a proper UUID format
         UUID(str(settings.agent_uuid))
 
     def test_custom_uuid_accepted(self, monkeypatch):
@@ -63,6 +63,90 @@ class TestGreenSettingsAgentName:
         monkeypatch.setenv("AGENT_NAME", "my-custom-agent")
         settings = GreenSettings()
         assert settings.agent_name == "my-custom-agent"
+
+
+class TestGreenSettingsServerConfig:
+    """Tests for server configuration fields in GreenSettings."""
+
+    def test_default_host(self):
+        """Test that default host is 0.0.0.0."""
+        from green.settings import GreenSettings
+
+        settings = GreenSettings()
+        assert settings.host == "0.0.0.0"
+
+    def test_host_from_env(self, monkeypatch):
+        """Test GREEN_HOST env var is respected."""
+        from green.settings import GreenSettings
+
+        monkeypatch.setenv("GREEN_HOST", "127.0.0.1")
+        settings = GreenSettings()
+        assert settings.host == "127.0.0.1"
+
+    def test_default_port(self):
+        """Test that default port is 9009."""
+        from green.settings import GreenSettings
+
+        settings = GreenSettings()
+        assert settings.port == 9009
+
+    def test_port_from_env(self, monkeypatch):
+        """Test GREEN_PORT env var is respected."""
+        from green.settings import GreenSettings
+
+        monkeypatch.setenv("GREEN_PORT", "8080")
+        settings = GreenSettings()
+        assert settings.port == 8080
+
+    def test_default_output_file(self):
+        """Test that default output_file is output/results.json."""
+        from green.settings import GreenSettings
+
+        settings = GreenSettings()
+        assert settings.output_file == Path("output/results.json")
+
+    def test_output_file_from_env(self, monkeypatch):
+        """Test GREEN_OUTPUT_FILE env var is respected."""
+        from green.settings import GreenSettings
+
+        monkeypatch.setenv("GREEN_OUTPUT_FILE", "/tmp/results.json")
+        settings = GreenSettings()
+        assert settings.output_file == Path("/tmp/results.json")
+
+    def test_default_log_level(self):
+        """Test that default log_level is info."""
+        from green.settings import GreenSettings
+
+        settings = GreenSettings()
+        assert settings.log_level == "info"
+
+    def test_log_level_from_env(self, monkeypatch):
+        """Test GREEN_LOG_LEVEL env var is respected."""
+        from green.settings import GreenSettings
+
+        monkeypatch.setenv("GREEN_LOG_LEVEL", "debug")
+        settings = GreenSettings()
+        assert settings.log_level == "debug"
+
+
+class TestGreenSettingsAgentDescription:
+    """Tests for agent_description field in GreenSettings."""
+
+    def test_default_agent_description(self):
+        """Test that default agent_description is set."""
+        from green.settings import GreenSettings
+
+        settings = GreenSettings()
+        assert settings.agent_description is not None
+        assert len(settings.agent_description) > 0
+
+    def test_agent_description_from_env(self, monkeypatch):
+        """Test GREEN_AGENT_DESCRIPTION env var is respected."""
+        from green.settings import GreenSettings
+
+        monkeypatch.setenv("GREEN_AGENT_DESCRIPTION", "Custom evaluator description")
+        settings = GreenSettings()
+        assert settings.agent_description == "Custom evaluator description"
 
 
 class TestGreenSettingsEnvVars:

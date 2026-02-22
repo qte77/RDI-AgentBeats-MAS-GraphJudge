@@ -69,9 +69,7 @@ def evaluate_latency(steps: list[InteractionStep]) -> LatencyMetrics:
         steps_with_latency = [step for step in steps if step.latency is not None]
         if steps_with_latency:
             slowest_step = max(steps_with_latency, key=lambda s: s.latency or 0)
-            # For now, use step_id as identifier (URL would be in metadata)
-            # In real implementation, this would extract agent URL from trace metadata
-            slowest_agent = slowest_step.step_id
+            slowest_agent = slowest_step.agent_url or slowest_step.step_id
 
     return LatencyMetrics(
         avg=avg,

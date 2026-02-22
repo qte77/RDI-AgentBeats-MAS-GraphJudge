@@ -110,6 +110,7 @@ class InteractionStep(BaseModel):
     latency: int | None = None
     error: str | None = None
     parent_step_id: str | None = None
+    agent_url: str | None = None
 
 
 # =============================================================================

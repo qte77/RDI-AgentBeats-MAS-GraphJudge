@@ -1,8 +1,8 @@
 {
-  "project": "RDI-AgentBeats-GraphJudge",
-  "description": "Graph-Based Coordination Benchmark - Green Agent (Assessor) for evaluating multi-agent coordination quality through runtime graph analysis, LLM assessment, and latency metrics.",
-  "source": "GreenAgent-PRD.md",
-  "generated": "2026-01-31 02:32:03",
+  "project": "RDI-AgentBeats-TheBulletproofProtocol",
+  "description": "Legal Domain Agent Benchmark for AgentBeats competition - IRS Section 41 R&D tax credit evaluator. Purple agent (reference implementation) generates test narratives, Green agent (benchmark) evaluates them for IRS compliance.",
+  "source": "PRD.md",
+  "generated": "2026-02-22 17:21:36",
   "stories": [
     {
       "id": "STORY-001",
@@ -495,6 +495,155 @@
       "depends_on": [
         "STORY-011",
         "STORY-021"
+      ]
+    },
+    {
+      "id": "STORY-030",
+      "title": "TraceCollectionConfig model",
+      "description": "Create TraceCollectionConfig Pydantic model with configurable timeout and idle detection settings for adaptive trace collection strategy.",
+      "acceptance": [
+        "TraceCollectionConfig Pydantic model with fields: max_timeout_seconds (default 30), idle_threshold_seconds (default 5), use_completion_signals (default True)",
+        "TraceCollectionConfig added to src/common/models.py and exported from src/common/__init__.py",
+        "GreenSettings includes trace_collection: TraceCollectionConfig nested field",
+        "Default config produces behaviour equivalent to current fixed-rounds baseline",
+        "All tests pass: uv run pytest tests/test_green_executor_traces.py tests/test_green_executor_pipeline.py"
+      ],
+      "files": [
+        "src/common/models.py",
+        "src/common/__init__.py",
+        "src/green/settings.py",
+        "tests/test_green_executor_traces.py",
+        "tests/test_green_executor_pipeline.py"
+      ],
+      "passes": false,
+      "completed_at": null,
+      "content_hash": "1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a",
+      "depends_on": []
+    },
+    {
+      "id": "STORY-031",
+      "title": "Hybrid trace collection strategy in Executor",
+      "description": "Replace fixed-rounds placeholder with adaptive trace collection strategy using idle detection, completion signals, and timeout safety in Executor.",
+      "acceptance": [
+        "Executor replaces DEFAULT_COORDINATION_ROUNDS fixed loop with adaptive collection loop",
+        "Idle detection: collection stops when no new trace received within idle_threshold_seconds",
+        "Timeout safety: hard stop after max_timeout_seconds regardless of activity",
+        "Completion signal: when use_completion_signals=True, honours status=\"complete\" in A2A response metadata",
+        "All tests pass: uv run pytest tests/test_green_executor_traces.py tests/test_green_executor_pipeline.py"
+      ],
+      "files": [
+        "src/green/executor.py",
+        "tests/test_green_executor_traces.py",
+        "tests/test_green_executor_pipeline.py"
+      ],
+      "passes": false,
+      "completed_at": null,
+      "content_hash": "2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b",
+      "depends_on": [
+        "STORY-030"
+      ]
+    },
+    {
+      "id": "STORY-032",
+      "title": "Settings audit and consolidation",
+      "description": "Audit both agents for hardcoded configuration values, move them into pydantic-settings classes, and produce a canonical environment variable reference document for operators and contributors.",
+      "acceptance": [
+        "Audit src/green/ and src/purple/ for hardcoded values outside settings classes",
+        "All audited values moved to GreenSettings or PurpleSettings with env var overrides",
+        "GreenSettings covers: host, port, output file path, LLM config, A2A config, trace collection config, coordination rounds (deprecated after Feature 1)",
+        "PurpleSettings covers: host, port, agent UUID, static peers, green agent URL",
+        "Settings test coverage updated: uv run pytest tests/test_green_settings.py tests/test_purple_settings.py",
+        "All tests pass"
+      ],
+      "files": [
+        "src/green/settings.py",
+        "src/purple/settings.py",
+        "tests/test_green_settings.py",
+        "tests/test_purple_settings.py"
+      ],
+      "passes": false,
+      "completed_at": null,
+      "content_hash": "3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c",
+      "depends_on": []
+    },
+    {
+      "id": "STORY-033",
+      "title": "Environment variable configuration guide",
+      "description": "Create docs/AgentBeats/CONFIGURATION.md with full environment variable reference table for operators and contributors.",
+      "acceptance": [
+        "docs/AgentBeats/CONFIGURATION.md created with full env var table (name, default, description, agent)",
+        "Table includes all GreenSettings and PurpleSettings environment variables",
+        "Documentation includes usage examples and troubleshooting guidance",
+        "All tests pass"
+      ],
+      "files": [
+        "docs/AgentBeats/CONFIGURATION.md"
+      ],
+      "passes": false,
+      "completed_at": null,
+      "content_hash": "4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d",
+      "depends_on": [
+        "STORY-032"
+      ]
+    },
+    {
+      "id": "STORY-034",
+      "title": "Create AGENTBEATS_REGISTRATION.md evaluator guide",
+      "description": "Create docs/AgentBeats/AGENTBEATS_REGISTRATION.md to document the evaluator plugin architecture, tier system, and provide a worked example of adding a custom evaluator.",
+      "acceptance": [
+        "docs/AgentBeats/AGENTBEATS_REGISTRATION.md file created",
+        "Documents BaseEvaluator ABC interface pattern with typed Python code example",
+        "Documents tier-based structure: Tier 1 (Graph/structural), Tier 2 (LLM + Latency), Tier 3 (custom plugins)",
+        "Documents GraphMetricPlugin ABC as second-level extension point within graph evaluator",
+        "Step-by-step guide: create evaluator file, implement evaluate(), register in Executor._run_evaluations()",
+        "Reference implementation: TextEvaluator (Tier 3) shown as worked example",
+        "Integration points clearly described with file paths and line number references"
+      ],
+      "files": [
+        "docs/AgentBeats/AGENTBEATS_REGISTRATION.md"
+      ],
+      "passes": false,
+      "completed_at": null,
+      "content_hash": "5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e",
+      "depends_on": []
+    },
+    {
+      "id": "STORY-035",
+      "title": "Live LLM connectivity tests",
+      "description": "Add network-gated tests that validate real LLM API calls without mocks. Tests skip automatically when AGENTBEATS_LLM_API_KEY env var is unset.",
+      "acceptance": [
+        "tests/test_green_llm_live.py created with @pytest.mark.network marker",
+        "Live LLM tests skip automatically when AGENTBEATS_LLM_API_KEY env var is unset",
+        "Live LLM tests call real OpenAI-compatible endpoint with temperature=0 and verify LLMJudgment response structure",
+        "Standard test run unaffected: uv run pytest tests/ -m \"not network and not integration\" passes"
+      ],
+      "files": [
+        "tests/test_green_llm_live.py"
+      ],
+      "passes": false,
+      "completed_at": null,
+      "content_hash": "6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f",
+      "depends_on": []
+    },
+    {
+      "id": "STORY-036",
+      "title": "Real A2A E2E integration tests",
+      "description": "Add integration-gated tests that validate live A2A communication without mocks. Tests skip in standard CI but run locally or in dedicated integration pipelines.",
+      "acceptance": [
+        "tests/e2e/test_live_a2a_evaluation.py created with @pytest.mark.integration marker",
+        "Live A2A tests launch Green and Purple via httpx.AsyncClient with ASGITransport (no Docker required)",
+        "Live A2A tests verify InteractionStep traces captured during real message/send exchange",
+        "Live A2A tests verify output/results.json written with correct AgentBeatsOutputModel schema",
+        "Standard test run unaffected: uv run pytest tests/ -m \"not network and not integration\" passes"
+      ],
+      "files": [
+        "tests/e2e/test_live_a2a_evaluation.py"
+      ],
+      "passes": false,
+      "completed_at": null,
+      "content_hash": "7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a",
+      "depends_on": [
+        "STORY-035"
       ]
     }
   ]

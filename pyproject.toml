@@ -31,6 +31,7 @@ dev = [
 ]
 test = [
     "hypothesis>=6.151.0",
+    "scriv[toml]>=1.8",
     "pytest>=8.3.0",
     "pytest-cov>=7.0.0",
     "pytest-asyncio>=1.3.0",
@@ -179,3 +180,11 @@ replace = """
 
 ## [{new_version}] - {now:%Y-%m-%d}
 """
+
+[tool.scriv]
+format = "md"
+fragment_directory = "changelog.d"
+categories = ["Added", "Changed", "Deprecated", "Removed", "Fixed", "Security"]
+md_header_level = "2"
+entry_title_template = "[{{ version }}] - {{ date.strftime('%Y-%m-%d') }}"
+md_html_anchors = false
